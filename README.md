@@ -13,8 +13,8 @@ openssl rand -hex 32     # cole em SEGREDO_JWT dentro do .env
 docker compose up --build
 ```
 
-- API: http://localhost:8000
-- Documentação interativa: http://localhost:8000/docs
+- API: <http://localhost:8000>
+- Documentação interativa: <http://localhost:8000/docs>
 - Banco: `localhost:5432` (dados persistem no volume `dados_postgres`)
 
 Para derrubar sem perder os dados: `docker compose down`.
@@ -39,7 +39,7 @@ testáveis sem subir Postgres.
 ## Endpoints
 
 | Método | Rota | O que faz |
-|---|---|---|
+| --- | --- | --- |
 | POST | `/auth/registrar` | cria conta |
 | POST | `/auth/token` | login, devolve JWT |
 | GET/PUT | `/auth/eu` | lê e atualiza renda e dia de fechamento |
