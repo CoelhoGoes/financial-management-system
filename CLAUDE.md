@@ -65,8 +65,8 @@ docker-compose.yml   (repo root)
 cp .env.example .env
 openssl rand -hex 32     # paste into SEGREDO_JWT in .env
 
-docker compose up --build   # or `docker-compose up --build` on hosts with only the
-                             # legacy standalone binary (no `docker compose` CLI plugin)
+docker compose up --build   # requires the `docker compose` CLI plugin (Compose v2);
+                             # on Ubuntu/Debian: `sudo apt-get install docker-compose-v2`
                              # API on :8000, docs at /docs, Postgres on :5432
 docker compose down         # stop (add -v to also drop the dados_postgres volume)
 ```
