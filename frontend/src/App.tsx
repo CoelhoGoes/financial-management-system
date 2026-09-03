@@ -1,49 +1,49 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api.js'
 import { useAuth } from './lib/auth-context'
-import type { Resumo } from './types'
+import type { Summary } from './types'
 
-function mesAtual() {
-  const hoje = new Date()
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0')
-  return `${hoje.getFullYear()}-${mes}`
+function currentMonth() {
+  const today = new Date()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  return `${today.getFullYear()}-${month}`
 }
 
-function formatarMoeda(valor: string) {
-  return Number(valor).toFixed(2)
+function formatCurrency(value: string) {
+  return Number(value).toFixed(2)
 }
 
-function TelaLogin() {
-  const { entrar, registrar, erro } = useAuth()
-  const [modo, setModo] = useState<'entrar' | 'cadastrar'>('entrar')
+function LoginScreen() {
+  const { login, register, error } = useAuth()
+  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
-  const [enviando, setEnviando] = useState(false)
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  async function aoEnviar(evento: FormEvent) {
-    evento.preventDefault()
-    setEnviando(true)
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault()
+    setSubmitting(true)
     try {
-      if (modo === 'entrar') {
-        await entrar(email, senha)
+      if (mode === 'login') {
+        await login(email, password)
       } else {
-        await registrar(email, senha)
+        await register(email, password)
       }
     } catch {
-      // erro já fica exposto via useAuth().erro
+      // erro já fica exposto via useAuth().error
     } finally {
-      setEnviando(false)
+      setSubmitting(false)
     }
   }
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background">
       <form
-        onSubmit={aoEnviar}
+        onSubmit={onSubmit}
         className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-border bg-card p-6"
       >
         <h1 className="text-xl font-medium text-foreground">
-          {modo === 'entrar' ? 'Entrar' : 'Criar conta'}
+          {mode === 'login' ? 'Entrar' : 'Criar conta'}
         </h1>
         <input
           type="email"
@@ -56,32 +56,32 @@ function TelaLogin() {
         <input
           type="password"
           placeholder="Senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={modo === 'cadastrar' ? 8 : undefined}
+          minLength={mode === 'register' ? 8 : undefined}
           className="rounded-md border border-input bg-background px-3 py-2 text-foreground"
         />
-        {erro && <p className="text-sm text-destructive">{erro}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <button
           type="submit"
-          disabled={enviando}
+          disabled={submitting}
           className="rounded-md bg-primary px-3 py-2 font-medium text-primary-foreground disabled:opacity-50"
         >
-          {enviando
+          {submitting
             ? 'Enviando...'
-            : modo === 'entrar'
+            : mode === 'login'
               ? 'Entrar'
               : 'Cadastrar'}
         </button>
         <button
           type="button"
           onClick={() =>
-            setModo((m) => (m === 'entrar' ? 'cadastrar' : 'entrar'))
+            setMode((m) => (m === 'login' ? 'register' : 'login'))
           }
           className="text-sm text-muted-foreground underline"
         >
-          {modo === 'entrar'
+          {mode === 'login'
             ? 'Não tem conta? Cadastre-se'
             : 'Já tem conta? Entrar'}
         </button>
@@ -90,48 +90,48 @@ function TelaLogin() {
   )
 }
 
-function TelaResumo() {
-  const { usuario, sair } = useAuth()
-  const [resumo, setResumo] = useState<Resumo | null>(null)
-  const [erro, setErro] = useState<string | null>(null)
+function SummaryScreen() {
+  const { user, logout } = useAuth()
+  const [summary, setSummary] = useState<Summary | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     api
-      .resumo(mesAtual())
-      .then((dados: Resumo) => setResumo(dados))
-      .catch((e: Error) => setErro(e.message))
+      .summary(currentMonth())
+      .then((data: Summary) => setSummary(data))
+      .catch((e: Error) => setError(e.message))
   }, [])
 
   return (
     <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
       <div className="flex w-full max-w-sm items-center justify-between">
-        <p className="text-foreground">{usuario?.email}</p>
+        <p className="text-foreground">{user?.email}</p>
         <button
           type="button"
-          onClick={sair}
+          onClick={logout}
           className="rounded-md border border-border px-3 py-1 text-sm text-foreground"
         >
           Sair
         </button>
       </div>
 
-      {erro && <p className="text-sm text-destructive">{erro}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {resumo && (
+      {summary && (
         <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 text-foreground">
-          <h1 className="mb-4 text-xl font-medium">Resumo — {resumo.mes}</h1>
+          <h1 className="mb-4 text-xl font-medium">Resumo — {summary.month}</h1>
           <dl className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Renda mensal</dt>
-              <dd>R$ {formatarMoeda(resumo.renda_mensal)}</dd>
+              <dd>R$ {formatCurrency(summary.monthly_income)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Gasto total</dt>
-              <dd>R$ {formatarMoeda(resumo.gasto_total)}</dd>
+              <dd>R$ {formatCurrency(summary.total_spent)}</dd>
             </div>
             <div className="flex justify-between font-medium">
               <dt>Saldo disponível</dt>
-              <dd>R$ {formatarMoeda(resumo.saldo_disponivel)}</dd>
+              <dd>R$ {formatCurrency(summary.available_balance)}</dd>
             </div>
           </dl>
         </div>
@@ -141,9 +141,9 @@ function TelaResumo() {
 }
 
 function App() {
-  const { usuario, carregando } = useAuth()
+  const { user, loading } = useAuth()
 
-  if (carregando) {
+  if (loading) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-background text-foreground">
         Carregando...
@@ -151,7 +151,7 @@ function App() {
     )
   }
 
-  return usuario ? <TelaResumo /> : <TelaLogin />
+  return user ? <SummaryScreen /> : <LoginScreen />
 }
 
 export default App

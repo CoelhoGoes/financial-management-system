@@ -1,53 +1,53 @@
 // Espelha backend/app/schemas.py. Campos Decimal (dinheiro) chegam como string no JSON
 // (FastAPI serializa Decimal como string) — use Number(valor) antes de formatar/somar.
 
-export interface Usuario {
+export interface User {
   id: number
   email: string
-  renda_mensal: string
-  dia_fechamento: number
+  monthly_income: string
+  closing_day: number
 }
 
-export type TipoLancamento = 'gasto' | 'entrada'
-export type FormaLancamento = 'avista' | 'credito'
+export type EntryType = 'gasto' | 'entrada'
+export type EntryMethod = 'avista' | 'credito'
 
-export interface LancamentoEntrada {
-  tipo: TipoLancamento
-  valor: string
-  descricao: string
-  categoria: string
-  data: string
-  forma?: FormaLancamento
-  parcelas?: number
+export interface EntryCreate {
+  type: EntryType
+  amount: string
+  description: string
+  category: string
+  date: string
+  method?: EntryMethod
+  installments?: number
 }
 
-export interface LancamentoSaida extends LancamentoEntrada {
+export interface EntryOut extends EntryCreate {
   id: number
 }
 
-export interface ParcelaFatura {
-  lancamento_id: number
-  descricao: string
-  categoria: string
-  data_compra: string
-  parcela: number
-  total_parcelas: number
-  valor_parcela: string
+export interface InvoiceInstallment {
+  entry_id: number
+  description: string
+  category: string
+  purchase_date: string
+  installment: number
+  total_installments: number
+  installment_amount: string
 }
 
-export interface Fatura {
-  mes: string
+export interface Invoice {
+  month: string
   total: string
-  itens: ParcelaFatura[]
+  items: InvoiceInstallment[]
 }
 
-export interface Resumo {
-  mes: string
-  renda_mensal: string
-  entradas_extras: string
-  gastos_avista: string
-  fatura: string
-  gasto_total: string
-  saldo_disponivel: string
-  por_categoria: Record<string, string>
+export interface Summary {
+  month: string
+  monthly_income: string
+  extra_income: string
+  cash_expenses: string
+  invoice: string
+  total_spent: string
+  available_balance: string
+  by_category: Record<string, string>
 }

@@ -6,67 +6,67 @@ import {
   type ReactNode,
 } from 'react'
 import { api } from '../../api.js'
-import type { Usuario } from '../types'
+import type { User } from '../types'
 
 interface AuthContextValue {
-  usuario: Usuario | null
-  carregando: boolean
-  erro: string | null
-  entrar: (email: string, senha: string) => Promise<void>
-  registrar: (email: string, senha: string) => Promise<void>
-  sair: () => void
+  user: User | null
+  loading: boolean
+  error: string | null
+  login: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string) => Promise<void>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Usuario | null>(null)
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState<string | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!api.autenticado()) {
-      setCarregando(false)
+    if (!api.isAuthenticated()) {
+      setLoading(false)
       return
     }
     api
-      .eu()
-      .then((dados: Usuario) => setUsuario(dados))
-      .catch(() => api.sair())
-      .finally(() => setCarregando(false))
+      .me()
+      .then((data: User) => setUser(data))
+      .catch(() => api.logout())
+      .finally(() => setLoading(false))
   }, [])
 
-  async function entrar(email: string, senha: string) {
-    setErro(null)
+  async function login(email: string, password: string) {
+    setError(null)
     try {
-      await api.entrar(email, senha)
-      const dados = (await api.eu()) as Usuario
-      setUsuario(dados)
+      await api.login(email, password)
+      const data = (await api.me()) as User
+      setUser(data)
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Não deu para entrar.')
+      setError(e instanceof Error ? e.message : 'Não deu para entrar.')
       throw e
     }
   }
 
-  async function registrar(email: string, senha: string) {
-    setErro(null)
+  async function register(email: string, password: string) {
+    setError(null)
     try {
-      await api.registrar(email, senha)
+      await api.register(email, password)
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Não deu para cadastrar.')
+      setError(e instanceof Error ? e.message : 'Não deu para cadastrar.')
       throw e
     }
-    await entrar(email, senha)
+    await login(email, password)
   }
 
-  function sair() {
-    api.sair()
-    setUsuario(null)
+  function logout() {
+    api.logout()
+    setUser(null)
   }
 
   return (
     <AuthContext.Provider
-      value={{ usuario, carregando, erro, entrar, registrar, sair }}
+      value={{ user, loading, error, login, register, logout }}
     >
       {children}
     </AuthContext.Provider>
@@ -74,9 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  const contexto = useContext(AuthContext)
-  if (!contexto) {
+  const context = useContext(AuthContext)
+  if (!context) {
     throw new Error('useAuth precisa estar dentro de um AuthProvider')
   }
-  return contexto
+  return context
 }
