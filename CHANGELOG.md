@@ -18,7 +18,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   resumo mensal (saldo, gasto total, renda)
 
 ### Corrigido
--
+- Contraste de texto na tela de resumo do frontend, causado por CSS remanescente do template
+  padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 
 ### Alterado
 -
