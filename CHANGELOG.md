@@ -14,6 +14,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 - Cálculo de fatura de cartão com regra de fechamento e parcelamento
 - Cálculo de resumo mensal (saldo, categorias, tendência)
 - Cliente HTTP para o frontend (`frontend/api.js`)
+- Frontend React conectado ao `frontend/api.js`, com login e cadastro de usuário e tela de
+  resumo mensal (saldo, gasto total, renda)
 
 ### Corrigido
 -

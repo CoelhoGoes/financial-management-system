@@ -140,8 +140,10 @@ Quando eu pedir explicitamente para "lançar uma versão", promova o conteúdo d
 
 ## Planned next steps
 
-- [ ] Connect the React frontend to `frontend/api.js` (replace `window.storage` calls)
-- [ ] Add login/register screens to the frontend
+- [x] Connect the React frontend to `frontend/api.js` (via `AuthProvider`/`useAuth` in
+      `frontend/src/lib/auth-context.tsx`)
+- [x] Add login/register screens to the frontend (minimal: `TelaLogin` in `frontend/src/App.tsx`,
+      toggles between entrar/cadastrar; still no router/multi-page navigation)
 - [ ] Deploy: backend to Railway / Render / Fly.io; frontend to Vercel
 - [ ] Add Alembic once the schema needs to change with real data in the DB
 - [ ] Add a test suite (pytest) — `servico.py` pure functions are ready to test without Postgres

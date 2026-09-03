@@ -85,5 +85,6 @@ pip install alembic && alembic init alembic
 ## Frontend
 
 `frontend/api.js` é o cliente pronto: guarda o JWT, injeta o header em toda
-chamada e trata 401. No componente React, troque as chamadas de
-`window.storage` pelos métodos do `api`.
+chamada e trata 401. O React (`frontend/src`) já consome esse cliente via
+`AuthProvider`/`useAuth` (`frontend/src/lib/auth-context.tsx`), com telas de
+login/cadastro e resumo mensal.
