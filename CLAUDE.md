@@ -121,6 +121,23 @@ pointing at a reachable Postgres, and run `uvicorn app.main:app --reload` from `
 - Every `Lancamento` mutation/read endpoint scopes by `usuario.id` from the JWT — never trust a
   client-supplied user id.
 
+## Changelog
+
+Este projeto mantém um `CHANGELOG.md` no formato [Keep a Changelog](https://keepachangelog.com/).
+
+Ao finalizar qualquer feature, fix ou mudança relevante:
+
+1. Adicione uma entrada em `CHANGELOG.md`, na seção `[Não lançado]`, na categoria certa
+   (Adicionado / Corrigido / Alterado / Removido).
+2. Escreva a entrada em português, no mesmo estilo do resto do arquivo — uma linha curta,
+   descrevendo o efeito para quem usa o sistema, não a implementação.
+3. Isso deve acontecer no mesmo commit da mudança (ou no commit final, se for uma sequência
+   de commits para uma única feature) — nunca deixe para depois.
+
+Quando eu pedir explicitamente para "lançar uma versão", promova o conteúdo de
+`[Não lançado]` para uma seção `[X.Y.Z] - AAAA-MM-DD` nova, seguindo SemVer, e deixe
+`[Não lançado]` vazio para a próxima rodada.
+
 ## Planned next steps
 
 - [ ] Connect the React frontend to `frontend/api.js` (replace `window.storage` calls)
