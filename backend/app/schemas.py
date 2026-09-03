@@ -5,22 +5,22 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
-class UsuarioEntrada(BaseModel):
+class UserCreate(BaseModel):
     email: EmailStr
-    senha: str = Field(min_length=8)
+    password: str = Field(min_length=8)
 
 
-class ConfigUsuario(BaseModel):
-    renda_mensal: Decimal = Field(ge=0)
-    dia_fechamento: int = Field(ge=1, le=28)
+class UserConfig(BaseModel):
+    monthly_income: Decimal = Field(ge=0)
+    closing_day: int = Field(ge=1, le=28)
 
 
-class UsuarioSaida(BaseModel):
+class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: EmailStr
-    renda_mensal: Decimal
-    dia_fechamento: int
+    monthly_income: Decimal
+    closing_day: int
 
 
 class Token(BaseModel):
@@ -28,43 +28,43 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
-class LancamentoEntrada(BaseModel):
-    tipo: Literal["gasto", "entrada"]
-    valor: Decimal = Field(gt=0, decimal_places=2)
-    descricao: str = Field(min_length=1, max_length=200)
-    categoria: str = Field(min_length=1, max_length=50)
-    data: date
-    forma: Literal["avista", "credito"] = "avista"
-    parcelas: int = Field(default=1, ge=1, le=48)
+class EntryCreate(BaseModel):
+    type: Literal["gasto", "entrada"]
+    amount: Decimal = Field(gt=0, decimal_places=2)
+    description: str = Field(min_length=1, max_length=200)
+    category: str = Field(min_length=1, max_length=50)
+    date: date
+    method: Literal["avista", "credito"] = "avista"
+    installments: int = Field(default=1, ge=1, le=48)
 
 
-class LancamentoSaida(LancamentoEntrada):
+class EntryOut(EntryCreate):
     model_config = ConfigDict(from_attributes=True)
     id: int
 
 
-class ParcelaFatura(BaseModel):
-    lancamento_id: int
-    descricao: str
-    categoria: str
-    data_compra: date
-    parcela: int
-    total_parcelas: int
-    valor_parcela: Decimal
+class InvoiceInstallment(BaseModel):
+    entry_id: int
+    description: str
+    category: str
+    purchase_date: date
+    installment: int
+    total_installments: int
+    installment_amount: Decimal
 
 
-class Fatura(BaseModel):
-    mes: str
+class Invoice(BaseModel):
+    month: str
     total: Decimal
-    itens: list[ParcelaFatura]
+    items: list[InvoiceInstallment]
 
 
-class Resumo(BaseModel):
-    mes: str
-    renda_mensal: Decimal
-    entradas_extras: Decimal
-    gastos_avista: Decimal
-    fatura: Decimal
-    gasto_total: Decimal
-    saldo_disponivel: Decimal
-    por_categoria: dict[str, Decimal]
+class Summary(BaseModel):
+    month: str
+    monthly_income: Decimal
+    extra_income: Decimal
+    cash_expenses: Decimal
+    invoice: Decimal
+    total_spent: Decimal
+    available_balance: Decimal
+    by_category: dict[str, Decimal]
