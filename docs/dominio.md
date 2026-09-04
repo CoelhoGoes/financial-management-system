@@ -26,6 +26,16 @@ por usuário em `/auth/me`.
 **Renda mensal** (`monthly_income`) — valor fixo que o usuário declara ganhar por mês. Não é um
 lançamento; é um campo do usuário, somado automaticamente em todo mês do resumo.
 
+## Categorias
+
+Estas são as listas fechadas usadas pelo app. Não invente categoria nova sem conversar — elas
+aparecem no resumo por categoria e mudar a lista quebra a comparação com meses anteriores.
+
+**Gastos:** Mercado, Alimentação, Transporte, Moradia, Contas, Lazer, Saúde, Educação,
+Assinaturas, Outros
+
+**Entradas:** Freela, Reembolso, Presente, Venda, Outros
+
 ## Regras
 
 ### Uma entrada nunca é no crédito

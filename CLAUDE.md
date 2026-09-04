@@ -3,6 +3,35 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this
 repository.
 
+## Decisões — leia antes de agir
+
+Não escolha sozinho quando houver mais de um caminho razoável. Apresente as opções com o
+trade-off de cada uma e espere resposta. Este projeto é de uma pessoa só: uma decisão tomada
+por conta própria vira dívida que ninguém revisou.
+
+**Precisa de aprovação explícita antes:**
+
+- adicionar, remover ou trocar dependência (`requirements.txt`, `package.json`)
+- criar arquivo ou pasta novos na estrutura do projeto
+- mudar schema do banco, contrato de API ou formato de payload
+- apagar código, arquivo ou configuração
+- mudar qualquer coisa em `service.py` — são as regras de negócio
+- mudar `.gitignore`, `docker-compose.yml` ou variáveis de ambiente
+- instalar componente shadcn ou qualquer coisa que rode um CLI de scaffolding
+
+**Pode decidir sozinho:**
+
+- nome de variável, função, componente
+- ordem de imports, formatação, quebra de linha
+- como implementar algo cujo contrato já foi acordado
+
+**Quando faltar contexto, pergunte em vez de supor.** Se eu não respondi alguma coisa, não
+preencha a lacuna com o palpite mais provável — diga que falta a informação e o que você
+precisa saber. Um palpite apresentado como fato custa mais caro que uma pergunta.
+
+**Não invente motivação.** Ao documentar ou explicar uma escolha anterior que você não
+acompanhou, escreva que não foi possível determinar o motivo, em vez de deduzir um plausível.
+
 ## Project
 
 Personal finance app ("Gestão Financeira") — FastAPI + PostgreSQL backend, React + Vite
@@ -32,13 +61,10 @@ Target platforms: web (PWA, works on iOS Safari and desktop browsers) and, event
 iOS/Android app. The backend API is the single source of truth for both — never duplicate
 business logic on the client.
 
-### Expense categories (gastos)
+### Categories
 
-Mercado, Alimentação, Transporte, Moradia, Contas, Lazer, Saúde, Educação, Assinaturas, Outros
-
-### Income categories (entradas)
-
-Freela, Reembolso, Presente, Venda, Outros
+The `gasto` and `entrada` category lists live in `docs/dominio.md` — read them from there
+rather than inventing category names.
 
 ## Language conventions
 
@@ -120,72 +146,15 @@ To run the API without Docker: install `backend/requirements.txt` into a venv, e
 `DATABASE_URL` pointing at a reachable Postgres and `JWT_SECRET`, then run
 `uvicorn app.main:app --reload` from `backend/`.
 
-## Architecture — backend
+## Architecture
 
-- **`database.py`** — SQLAlchemy engine/session (`DATABASE_URL` env var, defaults to local
-  Postgres). `get_session()` is the FastAPI dependency that yields a session per request.
-- **`models.py`** — two tables: `User` (email, bcrypt hash, `monthly_income`, `closing_day`)
-  and `Entry` (`type` gasto/entrada, `amount`, `method` avista/credito, `installments`).
-  Attribute names are English but map explicitly onto the existing Portuguese DB columns (e.g.
-  `usuarios`, `renda_mensal`, `lancamentos`, `valor` — see **Language conventions**). Money
-  columns are always `Numeric(12,2)`, never float.
-- **`schemas.py`** — Pydantic request/response contracts, using `Decimal` for all money fields
-  (mirrors the DB `Numeric` columns — never switch these to `float`).
-- **`security.py`** — bcrypt password hashing and JWT issuance/verification (`JWT_SECRET` env
-  var, `HS256`, 7-day expiry). `current_user` is the FastAPI dependency that resolves the
-  current user from the bearer token; every protected endpoint depends on it.
-- **`service.py`** — the business rules, written as pure functions with no DB import
-  (`Entry`/`User` are only imported under `TYPE_CHECKING`), so they're unit-testable without a
-  running Postgres. `invoice_for_purchase`, `split_installments`, `build_invoices` /
-  `calculate_invoice`, `calculate_summary`. See `docs/dominio.md` for what each rule means.
-- **`routers/auth.py` / `routers/finance.py`** — mounted at `/auth` and root respectively.
-  `finance.py` loads *all* of a user's `Entry` rows into memory (`_all`) and then
-  filters/aggregates in Python via `service.py`, rather than doing month filtering in SQL for
-  `/summary` and `/trend` — only `/entries` filters by month at the query level. Fine at
-  single-user scale; the first thing to revisit if it gets slow.
-- **`main.py`** — app entrypoint; calls `Base.metadata.create_all` on startup (no Alembic yet —
-  schema changes to existing tables require a manual migration or dropping/recreating), wires
-  CORS from `ALLOWED_ORIGINS`, includes both routers, exposes `/health`.
+Split into path-scoped rules so each loads only when relevant:
 
-## Architecture — frontend
+- `.claude/rules/backend.md` — loads when a file under `backend/` enters context
+- `.claude/rules/frontend.md` — loads when a file under `frontend/` enters context
 
-- **`api.js`** — the HTTP client. On any `401` it clears the stored JWT and throws so the caller
-  can redirect to login. Reads `VITE_API_URL`, defaulting to `http://localhost:8000`. Token
-  lives in `localStorage` under `gf:token`.
-- **`auth-context.tsx`** — `AuthProvider` wraps the app in `main.tsx` and owns `user`,
-  `loading`, `error`. On mount, if a token exists it calls `/auth/me` to rehydrate the session.
-  `useAuth()` throws outside the provider. All screens read auth state from here, never from
-  `api.js` directly.
-- **`types.ts`** — hand-maintained mirror of `backend/app/schemas.py`. **When you change a
-  Pydantic schema, update this file in the same commit** — nothing enforces the correspondence.
-- **`App.tsx`** — currently holds both `LoginScreen` and `SummaryScreen` and switches on
-  `user`. There is no router. When a third screen appears, that's the moment to introduce one
-  and split the file.
-
-### Money in the frontend
-
-FastAPI serializes `Decimal` as a **string**. Every money field in `types.ts` is typed `string`
-on purpose. Always `Number(value)` before arithmetic or formatting, and never send a JS float
-back — the backend expects a string or number it can parse into `Decimal` exactly.
-
-### UI conventions
-
-- **Tailwind CSS v4**, configured via the `@tailwindcss/vite` plugin. There is no
-  `tailwind.config.js` — theme tokens are CSS variables in `src/index.css`.
-- **shadcn/ui on Base UI, not Radix.** `@base-ui/react` is the primitive library. Most
-  shadcn snippets found online assume Radix and will not work as-is. Icons come from
-  `@remixicon/react`, not lucide.
-- Style preset is `base-nova`, base color `neutral`, with `cssVariables: true`.
-- **No components have been installed yet** — `src/components/` does not exist. `App.tsx` uses
-  raw `<input>`/`<button>` with hand-written Tailwind classes. Install components with the
-  shadcn CLI (`npx shadcn@latest add button input card`) rather than writing them by hand, so
-  the tokens and variants stay consistent.
-- Use the `@/` alias for imports inside `src/` (`@/lib/utils`, `@/components/ui/button`).
-  `api.js` is the exception — it sits outside `src/` and is imported by relative path.
-- Compose with `cn()` from `@/lib/utils` when merging class names conditionally.
-- Colors come from the semantic tokens (`bg-background`, `text-foreground`, `border-border`,
-  `text-destructive`), never hardcoded hex or raw palette classes — that's what keeps dark mode
-  working.
+Read the matching rule before changing code in that half of the repo. The invariants below
+apply everywhere and are not repeated there.
 
 ## Key invariants to preserve
 
