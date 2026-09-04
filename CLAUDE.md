@@ -195,7 +195,9 @@ a próxima rodada.
 
 - `frontend/dist/` — build output, gitignored
 - `frontend/package-lock.json` — só muda via `npm install`, nunca edite à mão
-- `.agents/`, `.claude/`, `skills-lock.json` — instalados pelo shadcn CLI, gitignorados
+- `.agents/`, `skills-lock.json` — instalados pelo shadcn CLI, gitignorados
+- `.claude/` — instalado pelo shadcn CLI, gitignorado; só editar se eu autorizar explicitamente
+  na conversa (ex.: um arquivo em `.claude/rules/` ficou desatualizado e eu pedi para corrigir)
 - `.env` — nunca leia, escreva ou commite; use `.env.example` como referência
 
 ## Planned next steps
