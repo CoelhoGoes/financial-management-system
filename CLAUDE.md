@@ -109,6 +109,8 @@ frontend/
     ├── pages/                 one file per screen (Login/Summary/Entry)
     ├── constants/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
+    ├── components/
+    │   └── ui/                shadcn components: button.tsx, card.tsx, input.tsx, label.tsx
     └── lib/
         ├── auth-context.tsx  AuthProvider / useAuth
         ├── format.ts          currentMonth() / formatCurrency()
@@ -154,8 +156,8 @@ To run the API without Docker: install `backend/requirements.txt` into a venv, e
 
 Split into path-scoped rules so each loads only when relevant:
 
-- `.claude/rules/backend.md` — loads when a file under `backend/` enters context
-- `.claude/rules/frontend.md` — loads when a file under `frontend/` enters context
+- `.claude/rules/rules-backend.md` — loads when a file under `backend/` enters context
+- `.claude/rules/rules-frontend.md` — loads when a file under `frontend/` enters context
 
 Read the matching rule before changing code in that half of the repo. The invariants below
 apply everywhere and are not repeated there.
@@ -196,8 +198,9 @@ a próxima rodada.
 - `frontend/dist/` — build output, gitignored
 - `frontend/package-lock.json` — só muda via `npm install`, nunca edite à mão
 - `.agents/`, `skills-lock.json` — instalados pelo shadcn CLI, gitignorados
-- `.claude/` — instalado pelo shadcn CLI, gitignorado; só editar se eu autorizar explicitamente
-  na conversa (ex.: um arquivo em `.claude/rules/` ficou desatualizado e eu pedi para corrigir)
+- `.claude/rules/`, `.claude/skills/` — versionados e mantidos à mão; só editar se eu autorizar
+  explicitamente na conversa (ex.: um arquivo em `.claude/rules/` ficou desatualizado e eu pedi
+  para corrigir)
 - `.env` — nunca leia, escreva ou commite; use `.env.example` como referência
 
 ## Roadmap
