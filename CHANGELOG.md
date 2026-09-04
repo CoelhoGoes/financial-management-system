@@ -16,6 +16,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 - Cliente HTTP para o frontend (`frontend/api.js`)
 - Frontend React conectado ao `frontend/api.js`, com login e cadastro de usuário e tela de
   resumo mensal (saldo, gasto total, renda)
+- Tela de lançamentos no frontend: criar, listar e excluir gastos/entradas do mês corrente,
+  com saldo disponível atualizado a cada ação
 
 ### Corrigido
 - Contraste de texto na tela de resumo do frontend, causado por CSS remanescente do template
@@ -31,6 +33,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 - Componentes `Button`, `Input`, `Label` e `Card` do shadcn/ui instalados e usados no lugar dos
   elementos HTML nativos em `App.tsx` (login, cadastro e tela de resumo), com rótulos
   acessíveis adicionados aos campos de e-mail e senha
+- Navegação do frontend passou a usar `react-router` (rotas `/login`, `/` e `/lancamentos`) no
+  lugar da troca manual de tela; `App.tsx` foi dividido em `src/pages/`
 
 ### Removido
 -
