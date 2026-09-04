@@ -8,5 +8,4 @@ venv/
 
 # artefatos de skills de agentes de IA (instalados automaticamente pelo shadcn CLI)
 .agents/
-.claude/
 skills-lock.json
