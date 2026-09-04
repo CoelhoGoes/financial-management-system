@@ -32,9 +32,9 @@ Instale pelo CLI (`npx shadcn@latest add button`) em vez de copiar de um blog.
 variáveis CSS em `src/index.css`. Se você procurar o arquivo de config, ele não existe — não é
 um erro.
 
-**Ainda não há nenhum componente shadcn instalado.** `src/components/` não existe. `App.tsx`
-usa `<input>` e `<button>` crus com classes Tailwind escritas à mão. Os primeiros componentes
-instalados devem substituir isso.
+**Os primeiros componentes shadcn já estão instalados** (`Button`, `Input`, `Label`, `Card`, em
+`src/components/ui/`) e substituíram os `<input>`/`<button>` crus que existiam em `App.tsx`.
+Instale os próximos componentes pelo CLI, no mesmo padrão.
 
 **Cores vêm dos tokens semânticos.** `bg-background`, `text-foreground`, `border-border`,
 `text-destructive`. Nunca hex nem classes de paleta bruta (`bg-neutral-900`) — é o que mantém o
