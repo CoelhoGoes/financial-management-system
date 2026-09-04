@@ -200,17 +200,14 @@ a próxima rodada.
   na conversa (ex.: um arquivo em `.claude/rules/` ficou desatualizado e eu pedi para corrigir)
 - `.env` — nunca leia, escreva ou commite; use `.env.example` como referência
 
-## Planned next steps
+## Roadmap
 
-- [x] Connect the React frontend to `frontend/api.js` (via `AuthProvider`/`useAuth`)
-- [x] Add login/register screens
-- [x] Install the first shadcn components and replace the raw inputs/buttons in `App.tsx`
-- [x] Entry screen (create/list/delete) — the core loop from Product context #1
-- [x] Router, once there's a third screen
-- [ ] Revisit shadcn `Select` for closed-choice fields (category/type/method) — `EntryScreen`
-  uses native `<select>`/toggle buttons for now
-- [ ] Invoice screen (`/invoices/{month}`) and trend chart (`/trend`)
-- [ ] Move `api.js` into `src/` as TypeScript (see docs/dominio.md → Dívidas conhecidas)
-- [ ] Add a test suite (pytest) — `service.py` pure functions are ready to test without Postgres
-- [ ] Add Alembic once the schema needs to change with real data in the DB
-- [ ] Deploy: backend to Railway / Render / Fly.io; frontend to Vercel
+A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
+que falta ou o que vem a seguir — não a reproduza aqui.
+
+**Em andamento:** nada; a tela de lançamentos acabou de ser concluída.
+
+O backend está à frente do frontend: fatura, categorias e tendência já são calculadas e
+expostas em `/invoices/{month}`, `/summary/{month}` e `/trend`. O que falta nessas features
+é tela. Antes de propor "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas**
+no `dominio.md` — várias escolhas são deliberadas.
