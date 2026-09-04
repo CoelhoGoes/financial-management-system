@@ -102,12 +102,16 @@ frontend/
 ├── components.json           shadcn config
 ├── vite.config.ts            React + Tailwind v4 plugins, '@' alias → ./src
 └── src/
-    ├── main.tsx
-    ├── App.tsx
-    ├── types.ts              mirror of backend schemas.py
-    ├── index.css             Tailwind v4 import + shadcn theme tokens
+    ├── main.tsx               mounts App inside BrowserRouter + AuthProvider
+    ├── App.tsx                route table only (login/summary/entries)
+    ├── types.ts               mirror of backend schemas.py
+    ├── index.css              Tailwind v4 import + shadcn theme tokens
+    ├── pages/                 one file per screen (Login/Summary/Entry)
+    ├── constants/
+    │   └── categories.ts      closed category lists, mirrors docs/dominio.md
     └── lib/
         ├── auth-context.tsx  AuthProvider / useAuth
+        ├── format.ts          currentMonth() / formatCurrency()
         └── utils.ts          cn()
 docs/dominio.md               business rules in prose
 docker-compose.yml            repo root
@@ -199,9 +203,11 @@ a próxima rodada.
 - [x] Connect the React frontend to `frontend/api.js` (via `AuthProvider`/`useAuth`)
 - [x] Add login/register screens
 - [x] Install the first shadcn components and replace the raw inputs/buttons in `App.tsx`
-- [ ] Entry screen (create/list/delete) — the core loop from Product context #1
+- [x] Entry screen (create/list/delete) — the core loop from Product context #1
+- [x] Router, once there's a third screen
+- [ ] Revisit shadcn `Select` for closed-choice fields (category/type/method) — `EntryScreen`
+  uses native `<select>`/toggle buttons for now
 - [ ] Invoice screen (`/invoices/{month}`) and trend chart (`/trend`)
-- [ ] Router, once there's a third screen
 - [ ] Move `api.js` into `src/` as TypeScript (see docs/dominio.md → Dívidas conhecidas)
 - [ ] Add a test suite (pytest) — `service.py` pure functions are ready to test without Postgres
 - [ ] Add Alembic once the schema needs to change with real data in the DB
