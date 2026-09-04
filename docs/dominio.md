@@ -34,7 +34,7 @@ aparecem no resumo por categoria e mudar a lista quebra a comparação com meses
 **Gastos:** Mercado, Alimentação, Transporte, Moradia, Contas, Lazer, Saúde, Educação,
 Assinaturas, Outros
 
-**Entradas:** Freela, Reembolso, Presente, Venda, Outros
+**Entradas:** Salário, Freela, Reembolso, Presente, Venda, Outros
 
 ## Regras
 
