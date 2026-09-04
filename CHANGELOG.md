@@ -29,7 +29,7 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   banco de dados continuam em português. As rotas da API também mudaram (ex.: `/lancamentos` →
   `/entries`, `/resumo/{mes}` → `/summary/{month}`, `/auth/eu` → `/auth/me`) e as variáveis de
   ambiente `SEGREDO_JWT`/`ORIGENS_PERMITIDAS` foram renomeadas para `JWT_SECRET`/
-  `ALLOWED_ORIGENS` — quem tiver um `.env` local precisa atualizá-lo.
+  `ALLOWED_ORIGINS` — quem tiver um `.env` local precisa atualizá-lo.
 - Componentes `Button`, `Input`, `Label` e `Card` do shadcn/ui instalados e usados no lugar dos
   elementos HTML nativos em `App.tsx` (login, cadastro e tela de resumo), com rótulos
   acessíveis adicionados aos campos de e-mail e senha
