@@ -2,6 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { api } from '../api.js'
 import { useAuth } from './lib/auth-context'
 import type { Summary } from './types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function currentMonth() {
   const today = new Date()
@@ -38,54 +42,58 @@ function LoginScreen() {
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background">
-      <form
-        onSubmit={onSubmit}
-        className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-border bg-card p-6"
-      >
-        <h1 className="text-xl font-medium text-foreground">
-          {mode === 'login' ? 'Entrar' : 'Criar conta'}
-        </h1>
-        <input
-          type="email"
-          placeholder="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="rounded-md border border-input bg-background px-3 py-2 text-foreground"
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={mode === 'register' ? 8 : undefined}
-          className="rounded-md border border-input bg-background px-3 py-2 text-foreground"
-        />
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-primary px-3 py-2 font-medium text-primary-foreground disabled:opacity-50"
-        >
-          {submitting
-            ? 'Enviando...'
-            : mode === 'login'
-              ? 'Entrar'
-              : 'Cadastrar'}
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            setMode((m) => (m === 'login' ? 'register' : 'login'))
-          }
-          className="text-sm text-muted-foreground underline"
-        >
-          {mode === 'login'
-            ? 'Não tem conta? Cadastre-se'
-            : 'Já tem conta? Entrar'}
-        </button>
-      </form>
+      <Card className="w-full max-w-sm">
+        <form onSubmit={onSubmit}>
+          <CardHeader>
+            <CardTitle>{mode === 'login' ? 'Entrar' : 'Criar conta'}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="E-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={mode === 'register' ? 8 : undefined}
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" disabled={submitting}>
+              {submitting
+                ? 'Enviando...'
+                : mode === 'login'
+                  ? 'Entrar'
+                  : 'Cadastrar'}
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              className="px-0"
+              onClick={() =>
+                setMode((m) => (m === 'login' ? 'register' : 'login'))
+              }
+            >
+              {mode === 'login'
+                ? 'Não tem conta? Cadastre-se'
+                : 'Já tem conta? Entrar'}
+            </Button>
+          </CardContent>
+        </form>
+      </Card>
     </div>
   )
 }
@@ -106,35 +114,35 @@ function SummaryScreen() {
     <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
       <div className="flex w-full max-w-sm items-center justify-between">
         <p className="text-foreground">{user?.email}</p>
-        <button
-          type="button"
-          onClick={logout}
-          className="rounded-md border border-border px-3 py-1 text-sm text-foreground"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={logout}>
           Sair
-        </button>
+        </Button>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       {summary && (
-        <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 text-foreground">
-          <h1 className="mb-4 text-xl font-medium">Resumo — {summary.month}</h1>
-          <dl className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Renda mensal</dt>
-              <dd>R$ {formatCurrency(summary.monthly_income)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Gasto total</dt>
-              <dd>R$ {formatCurrency(summary.total_spent)}</dd>
-            </div>
-            <div className="flex justify-between font-medium">
-              <dt>Saldo disponível</dt>
-              <dd>R$ {formatCurrency(summary.available_balance)}</dd>
-            </div>
-          </dl>
-        </div>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Resumo — {summary.month}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="flex flex-col gap-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Renda mensal</dt>
+                <dd>R$ {formatCurrency(summary.monthly_income)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Gasto total</dt>
+                <dd>R$ {formatCurrency(summary.total_spent)}</dd>
+              </div>
+              <div className="flex justify-between font-medium">
+                <dt>Saldo disponível</dt>
+                <dd>R$ {formatCurrency(summary.available_balance)}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

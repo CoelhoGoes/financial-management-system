@@ -198,7 +198,7 @@ a próxima rodada.
 
 - [x] Connect the React frontend to `frontend/api.js` (via `AuthProvider`/`useAuth`)
 - [x] Add login/register screens
-- [ ] Install the first shadcn components and replace the raw inputs/buttons in `App.tsx`
+- [x] Install the first shadcn components and replace the raw inputs/buttons in `App.tsx`
 - [ ] Entry screen (create/list/delete) — the core loop from Product context #1
 - [ ] Invoice screen (`/invoices/{month}`) and trend chart (`/trend`)
 - [ ] Router, once there's a third screen
