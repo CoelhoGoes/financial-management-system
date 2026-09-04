@@ -14,7 +14,7 @@ duplicada no cliente.
 | --- | --- |
 | Backend | FastAPI, SQLAlchemy 2, Pydantic 2, PyJWT, bcrypt |
 | Banco | PostgreSQL 16 |
-| Frontend | React 19, TypeScript, Vite |
+| Frontend | React 19, TypeScript, Vite, React Router |
 | UI | Tailwind CSS v4, shadcn/ui sobre **Base UI** (não Radix), ícones Remix |
 | Lint (front) | oxlint |
 | Infra local | Docker Compose |
@@ -92,12 +92,16 @@ backend/app/
 frontend/
 ├── api.js             cliente HTTP (JWT, header, tratamento de 401)
 └── src/
-    ├── main.tsx       monta o React dentro do AuthProvider
-    ├── App.tsx        LoginScreen e SummaryScreen
+    ├── main.tsx       monta o React dentro do BrowserRouter + AuthProvider
+    ├── App.tsx        tabela de rotas (/login, /, /lancamentos)
     ├── types.ts       espelho TypeScript de schemas.py
     ├── index.css      Tailwind v4 + tokens de tema do shadcn
+    ├── pages/         uma tela por arquivo (Login/Summary/Entry)
+    ├── constants/
+    │   └── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
     └── lib/
         ├── auth-context.tsx   AuthProvider / useAuth
+        ├── format.ts          currentMonth() / formatCurrency()
         └── utils.ts           helper cn()
 
 docker-compose.yml     na raiz
@@ -145,11 +149,12 @@ Antes de expor na internet:
 
 ## Estado atual
 
-**Funciona:** registro, login, sessão persistida em `localStorage`, tela de resumo mensal
-(renda, gasto total, saldo disponível). Backend completo com todos os endpoints acima.
+**Funciona:** registro, login, sessão persistida em `localStorage`, roteamento multi-página
+(`/login`, `/`, `/lancamentos`), tela de resumo mensal (renda, gasto total, saldo disponível) e
+tela de lançamentos (criar, listar e excluir gastos/entradas do mês, com saldo atualizado a
+cada ação). Backend completo com todos os endpoints acima.
 
-**Ainda não existe:** tela de lançamentos, tela de fatura, gráfico de tendência, roteamento
-multi-página, testes automatizados, Alembic (o schema é criado com `create_all`, que não
-altera tabelas existentes).
+**Ainda não existe:** tela de fatura, gráfico de tendência, testes automatizados, Alembic (o
+schema é criado com `create_all`, que não altera tabelas existentes).
 
 Mudanças notáveis ficam registradas em [`CHANGELOG.md`](CHANGELOG.md).
