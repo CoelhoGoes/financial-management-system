@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -88,6 +88,9 @@ def trend(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    end = until or month_key(date.today())
+    # UTC is declared rather than inherited from the container's clock: the fallback
+    # must not change meaning if a deployment happens to set TZ. Clients that care
+    # about their own region send `until` instead of relying on this.
+    end = until or month_key(datetime.now(UTC).date())
     entries = _all(session, user)
     return [calculate_summary(shift_month(end, -i), user, entries) for i in range(months - 1, -1, -1)]
