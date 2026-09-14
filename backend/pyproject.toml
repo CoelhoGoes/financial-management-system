@@ -1,0 +1,14 @@
+# Ruff configuration. Not a package definition — the app is run from `app/`,
+# not installed, so there is no [project] or [build-system] table here.
+#
+# Run from the repository root:  uvx ruff check backend/
+
+[tool.ruff]
+# Matches the runtime in backend/Dockerfile (python:3.12-slim).
+target-version = "py312"
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency injection requires calling Depends()/Query() in the
+# argument default. Declaring them immutable keeps B008 active for the real
+# case it exists to catch (e.g. `def f(x = [])`).
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
