@@ -20,6 +20,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   com saldo disponível atualizado a cada ação
 
 ### Corrigido
+- Dependências do backend atualizadas para fechar vulnerabilidades conhecidas (FastAPI,
+  PyJWT e python-multipart): as falhas permitiam derrubar a API com requisições forjadas
+  na tela de login, que responde sem autenticação
 - Contraste de texto na tela de resumo do frontend, causado por CSS remanescente do template
   padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 
