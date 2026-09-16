@@ -1,7 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
 import { api } from '../../api.js'
-import { useAuth } from '@/lib/auth-context'
 import { currentMonth, formatCurrency } from '@/lib/format'
 import { GASTO_CATEGORIES, ENTRADA_CATEGORIES } from '@/constants/categories'
 import type { EntryCreate, EntryMethod, EntryOut, EntryType, Summary } from '@/types'
@@ -9,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/Header'
 
 function today() {
   return new Date().toISOString().slice(0, 10)
@@ -37,9 +36,6 @@ function defaultForm(): FormState {
 }
 
 export function EntryScreen() {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
-
   const [entries, setEntries] = useState<EntryOut[] | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
   const [listLoading, setListLoading] = useState(true)
@@ -138,30 +134,7 @@ export function EntryScreen() {
 
   return (
     <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
-      <div className="flex w-full max-w-sm items-center justify-between">
-        <p className="text-foreground">Lançamentos</p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-          >
-            Resumo
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              logout()
-              navigate('/login')
-            }}
-          >
-            Sair
-          </Button>
-        </div>
-      </div>
+      <Header active="lancamentos" className="max-w-sm" />
 
       {summary && (
         <Card className="w-full max-w-sm">

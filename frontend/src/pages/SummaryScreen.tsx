@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
 import { api } from '../../api.js'
-import { useAuth } from '@/lib/auth-context'
 import { currentMonth, formatCurrency } from '@/lib/format'
 import type { Summary } from '@/types'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/Header'
 
 export function SummaryScreen() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,30 +18,7 @@ export function SummaryScreen() {
 
   return (
     <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
-      <div className="flex w-full max-w-sm items-center justify-between">
-        <p className="text-foreground">{user?.email}</p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/lancamentos')}
-          >
-            Lançamentos
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              logout()
-              navigate('/login')
-            }}
-          >
-            Sair
-          </Button>
-        </div>
-      </div>
+      <Header active="resumo" className="max-w-sm" />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

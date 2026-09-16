@@ -24,6 +24,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 
 ### Alterado
+- Cabeçalho de navegação (e-mail do usuário, links entre telas e sair) unificado num componente
+  só, com ícones do remixicon, usado nas telas de resumo, lançamentos e fatura
 - Identificadores internos do código (variáveis, funções, classes, arquivos e chaves do JSON
   retornado pela API) traduzidos para inglês; interface, mensagens ao usuário e o schema do
   banco de dados continuam em português. As rotas da API também mudaram (ex.: `/lancamentos` →
