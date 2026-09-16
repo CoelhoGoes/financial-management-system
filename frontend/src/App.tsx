@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/auth-context'
 import { LoginScreen } from '@/pages/LoginScreen'
 import { SummaryScreen } from '@/pages/SummaryScreen'
 import { EntryScreen } from '@/pages/EntryScreen'
+import { InvoiceScreen } from '@/pages/InvoiceScreen'
 
 function App() {
   const { user, loading } = useAuth()
@@ -22,6 +23,10 @@ function App() {
       <Route
         path="/lancamentos"
         element={user ? <EntryScreen /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/fatura"
+        element={user ? <InvoiceScreen /> : <Navigate to="/login" replace />}
       />
       <Route path="*" element={<Navigate to={user ? '/' : '/login'} replace />} />
     </Routes>

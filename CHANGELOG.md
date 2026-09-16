@@ -18,6 +18,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   resumo mensal (saldo, gasto total, renda)
 - Tela de lançamentos no frontend: criar, listar e excluir gastos/entradas do mês corrente,
   com saldo disponível atualizado a cada ação
+- Tela de fatura no frontend: consulta a fatura do cartão de crédito por mês, com navegação
+  entre meses e lista das parcelas que vencem no período
 
 ### Corrigido
 - Contraste de texto na tela de resumo do frontend, causado por CSS remanescente do template
