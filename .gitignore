@@ -9,3 +9,6 @@ venv/
 # artefatos de skills de agentes de IA (instalados automaticamente pelo shadcn CLI)
 .agents/
 skills-lock.json
+
+# logs do playwright-mcp (ferramenta de browser, não é artefato do projeto)
+.playwright-mcp/
