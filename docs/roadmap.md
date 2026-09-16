@@ -18,7 +18,9 @@ O backend já calcula fatura, categorias e tendência. Os itens abaixo são só 
 endpoints e os métodos em `api.js` já existem.
 
 - [ ] Resumo por categoria: exibir `by_category`, que o `/summary` já devolve — #3
-- [ ] Gráfico de tendência de 6 meses consumindo `/trend` — #4
+- [ ] Gráfico de tendência consumindo `/trend` — #4. Presets fixos de 3/6/12 meses; o
+      frontend sempre envia `until` calculado no fuso do navegador, para o servidor não
+      precisar adivinhar qual é o mês corrente
 - [ ] Completar `SummaryScreen`: hoje ignora `invoice`, `extra_income` e `cash_expenses`
 - [ ] Suíte de testes (pytest), começando por `service.py`
 

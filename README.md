@@ -75,6 +75,21 @@ uvicorn app.main:app --reload
 
 Precisa de um Postgres alcançável — o projeto não roda em SQLite.
 
+### Checagem de código
+
+As ferramentas rodam por `uvx`/`npx`: não são instaladas, não entram no `requirements.txt` nem
+no `package.json`, e não aparecem no `git status`.
+
+A partir da raiz do repositório:
+
+```bash
+uvx ruff check backend/                       # lint do backend (config em backend/pyproject.toml)
+uvx pip-audit -r backend/requirements.txt     # vulnerabilidades conhecidas nas dependências
+cd frontend && npx -y knip                    # código e dependências sem uso no frontend
+```
+
+Não há suíte de testes ainda — veja `docs/roadmap.md`.
+
 ## Estrutura
 
 ```
@@ -148,6 +163,8 @@ Antes de expor na internet:
 2. `ALLOWED_ORIGINS` com o domínio real do front, não `*`
 3. Remover o mapeamento `5432:5432` do compose — o banco não precisa ser público
 4. HTTPS na frente (Caddy ou o proxy da plataforma)
+5. `uvx pip-audit -r backend/requirements.txt` sem achados — a tela de login responde sem
+   autenticação, então falha em dependência de parsing de formulário fica exposta
 
 ## Estado atual
 

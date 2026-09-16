@@ -89,9 +89,13 @@ que foi gasto.
 
 ### Tendência
 
-`/trend` devolve uma lista de resumos mensais, um por mês, terminando no mês atual (ou no mês
-passado em `until`) e voltando `months` meses. Cada item é o mesmo `Summary` de
-`/summary/{month}` — não há cálculo novo, só repetição do mesmo cálculo em meses diferentes.
+`/trend` devolve uma lista de resumos mensais, um por mês, terminando no mês passado em `until`
+e voltando `months` meses. Cada item é o mesmo `Summary` de `/summary/{month}` — não há cálculo
+novo, só repetição do mesmo cálculo em meses diferentes.
+
+Sem `until`, o servidor usa o mês atual **em UTC**: ele não conhece o fuso de quem pergunta.
+Quem se importa com o próprio fuso manda `until` — é o que a tela de tendência deve fazer
+quando existir (ver `docs/roadmap.md`).
 
 ## Invariantes
 

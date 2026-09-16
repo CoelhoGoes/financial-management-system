@@ -22,6 +22,12 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   entre meses e lista das parcelas que vencem no período
 
 ### Corrigido
+- Dependências do backend atualizadas para fechar vulnerabilidades conhecidas (FastAPI,
+  PyJWT e python-multipart): as falhas permitiam derrubar a API com requisições forjadas
+  na tela de login, que responde sem autenticação
+- Gráfico de tendência mostrava a janela de meses errada nas últimas horas do último dia
+  do mês: o servidor usava o relógio do container (UTC) para descobrir o mês atual, e no
+  horário de Brasília o mês já tinha virado lá antes de virar aqui
 - Contraste de texto na tela de resumo do frontend, causado por CSS remanescente do template
   padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 

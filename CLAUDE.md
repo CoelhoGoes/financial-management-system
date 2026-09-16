@@ -86,6 +86,7 @@ rather than inventing category names.
 ```
 backend/
 ├── Dockerfile
+├── pyproject.toml            ruff config only — not a package definition
 ├── requirements.txt
 └── app/
     ├── main.py
@@ -146,8 +147,17 @@ npm run preview    # serve the production build
 ```
 
 **There is no test suite yet.** When asked to "run the tests", say so rather than inventing a
-command. The closest thing to a check today is `npm run build` (catches type errors) and
+command. The closest thing to a check today is `npm run build` (catches type errors),
+`uvx ruff check backend/` (lints the backend; config in `backend/pyproject.toml`) and
 `docker compose config` (validates the compose file).
+
+Auditing tools run through `uvx`/`npx`, so they install nothing and never enter
+`requirements.txt` or `package.json`:
+
+```bash
+uvx ruff check backend/              # lint
+uvx pip-audit -r backend/requirements.txt   # known CVEs in dependencies
+```
 
 To run the API without Docker: install `backend/requirements.txt` into a venv, export
 `DATABASE_URL` pointing at a reachable Postgres and `JWT_SECRET`, then run
