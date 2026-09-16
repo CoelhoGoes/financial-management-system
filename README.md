@@ -104,8 +104,7 @@ frontend/
     │   └── ui/             componentes shadcn (button, card, input, label, table)
     └── lib/
         ├── auth-context.tsx   AuthProvider / useAuth
-        ├── format.ts          currentMonth() / formatCurrency() / shiftMonth()
-        └── utils.ts           helper cn()
+        └── format.ts          currentMonth() / formatCurrency() / shiftMonth()
 
 docker-compose.yml     na raiz
 .env.example           na raiz (backend); o frontend usa frontend/.env

@@ -115,8 +115,7 @@ frontend/
     │                          table.tsx
     └── lib/
         ├── auth-context.tsx  AuthProvider / useAuth
-        ├── format.ts          currentMonth() / formatCurrency() / shiftMonth()
-        └── utils.ts          cn()
+        └── format.ts          currentMonth() / formatCurrency() / shiftMonth()
 docs/dominio.md               business rules in prose
 docker-compose.yml            repo root
 .env.example                  repo root (backend vars only)

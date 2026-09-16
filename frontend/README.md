@@ -36,6 +36,15 @@ um erro.
 `Table`, em `src/components/ui/`) e substituíram os `<input>`/`<button>` crus que existiam em
 `App.tsx`. Instale os próximos componentes pelo CLI, no mesmo padrão.
 
+**O `cn` vem do pacote `cn`**, não de um helper local — é o pacote oficial do shadcn, que
+substitui `clsx` + `tailwind-merge`, e é assim que o CLI gera os imports desde o `Table`.
+Não recrie um `src/lib/utils.ts`.
+
+> **Em observação:** o `components.json` ainda declara `"utils": "@/lib/utils"`, alias que
+> aponta para um arquivo que não existe mais. Ficou assim de propósito: o CLI novo aparenta
+> não usar esse alias, mas isso não foi verificado. O próximo `npx shadcn add` confirma — se
+> o componente gerado vier com import quebrado, é aqui que está a causa.
+
 **Cores vêm dos tokens semânticos.** `bg-background`, `text-foreground`, `border-border`,
 `text-destructive`. Nunca hex nem classes de paleta bruta (`bg-neutral-900`) — é o que mantém o
 tema escuro funcionando. Já teve um bug de contraste por causa disso (veja o `CHANGELOG.md`).
@@ -67,8 +76,7 @@ src/
 │   └── ui/                componentes shadcn (button, card, input, label, table)
 └── lib/
     ├── auth-context.tsx  AuthProvider / useAuth — estado de sessão
-    ├── format.ts         currentMonth() / formatCurrency() / shiftMonth()
-    └── utils.ts          cn()
+    └── format.ts         currentMonth() / formatCurrency() / shiftMonth()
 ```
 
 ## Dinheiro chega como string

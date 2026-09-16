@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { RiHomeLine, RiFileListLine, RiBillLine, RiLogoutBoxRLine } from '@remixicon/react'
 import { useAuth } from '@/lib/auth-context'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 
 type Screen = 'resumo' | 'lancamentos' | 'fatura'
