@@ -10,14 +10,13 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — a tela de lançamentos acabou de sair)
+- [ ] (nada — a tela de fatura acabou de sair)
 
 ## Próximo
 
-O backend já calcula fatura, categorias e tendência. Os três itens abaixo são só frontend:
-os endpoints e os métodos em `api.js` já existem.
+O backend já calcula fatura, categorias e tendência. Os itens abaixo são só frontend: os
+endpoints e os métodos em `api.js` já existem.
 
-- [ ] Tela de fatura consumindo `/invoices/{month}` — Product context #2
 - [ ] Resumo por categoria: exibir `by_category`, que o `/summary` já devolve — #3
 - [ ] Gráfico de tendência de 6 meses consumindo `/trend` — #4
 - [ ] Completar `SummaryScreen`: hoje ignora `invoice`, `extra_income` e `cash_expenses`

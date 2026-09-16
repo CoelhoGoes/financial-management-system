@@ -103,17 +103,19 @@ frontend/
 ├── vite.config.ts            React + Tailwind v4 plugins, '@' alias → ./src
 └── src/
     ├── main.tsx               mounts App inside BrowserRouter + AuthProvider
-    ├── App.tsx                route table only (login/summary/entries)
+    ├── App.tsx                route table only (login/summary/entries/invoice)
     ├── types.ts               mirror of backend schemas.py
     ├── index.css              Tailwind v4 import + shadcn theme tokens
-    ├── pages/                 one file per screen (Login/Summary/Entry)
+    ├── pages/                 one file per screen (Login/Summary/Entry/Invoice)
     ├── constants/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
     ├── components/
-    │   └── ui/                shadcn components: button.tsx, card.tsx, input.tsx, label.tsx
+    │   ├── Header.tsx         shared nav header, used by every authenticated screen
+    │   └── ui/                shadcn components: button.tsx, card.tsx, input.tsx, label.tsx,
+    │                          table.tsx
     └── lib/
         ├── auth-context.tsx  AuthProvider / useAuth
-        ├── format.ts          currentMonth() / formatCurrency()
+        ├── format.ts          currentMonth() / formatCurrency() / shiftMonth()
         └── utils.ts          cn()
 docs/dominio.md               business rules in prose
 docker-compose.yml            repo root
@@ -208,7 +210,7 @@ a próxima rodada.
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** nada; a tela de lançamentos acabou de ser concluída.
+**Em andamento:** nada; a tela de fatura acabou de ser concluída.
 
 O backend está à frente do frontend: fatura, categorias e tendência já são calculadas e
 expostas em `/invoices/{month}`, `/summary/{month}` e `/trend`. O que falta nessas features

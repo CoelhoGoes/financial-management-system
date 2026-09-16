@@ -93,15 +93,18 @@ frontend/
 ├── api.js             cliente HTTP (JWT, header, tratamento de 401)
 └── src/
     ├── main.tsx       monta o React dentro do BrowserRouter + AuthProvider
-    ├── App.tsx        tabela de rotas (/login, /, /lancamentos)
+    ├── App.tsx        tabela de rotas (/login, /, /lancamentos, /fatura)
     ├── types.ts       espelho TypeScript de schemas.py
     ├── index.css      Tailwind v4 + tokens de tema do shadcn
-    ├── pages/         uma tela por arquivo (Login/Summary/Entry)
+    ├── pages/         uma tela por arquivo (Login/Summary/Entry/Invoice)
     ├── constants/
     │   └── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
+    ├── components/
+    │   ├── Header.tsx      navegação/header compartilhado entre as telas
+    │   └── ui/             componentes shadcn (button, card, input, label, table)
     └── lib/
         ├── auth-context.tsx   AuthProvider / useAuth
-        ├── format.ts          currentMonth() / formatCurrency()
+        ├── format.ts          currentMonth() / formatCurrency() / shiftMonth()
         └── utils.ts           helper cn()
 
 docker-compose.yml     na raiz
@@ -150,11 +153,12 @@ Antes de expor na internet:
 ## Estado atual
 
 **Funciona:** registro, login, sessão persistida em `localStorage`, roteamento multi-página
-(`/login`, `/`, `/lancamentos`), tela de resumo mensal (renda, gasto total, saldo disponível) e
-tela de lançamentos (criar, listar e excluir gastos/entradas do mês, com saldo atualizado a
-cada ação). Backend completo com todos os endpoints acima.
+(`/login`, `/`, `/lancamentos`, `/fatura`), tela de resumo mensal (renda, gasto total, saldo
+disponível), tela de lançamentos (criar, listar e excluir gastos/entradas do mês, com saldo
+atualizado a cada ação) e tela de fatura (consulta por mês, com navegação entre meses). Backend
+completo com todos os endpoints acima.
 
-**Ainda não existe:** tela de fatura, gráfico de tendência, testes automatizados, Alembic (o
-schema é criado com `create_all`, que não altera tabelas existentes).
+**Ainda não existe:** resumo por categoria, gráfico de tendência, testes automatizados, Alembic
+(o schema é criado com `create_all`, que não altera tabelas existentes).
 
 Mudanças notáveis ficam registradas em [`CHANGELOG.md`](CHANGELOG.md).
