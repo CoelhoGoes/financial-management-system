@@ -116,7 +116,8 @@ frontend/
     │                          table.tsx
     └── lib/
         ├── auth-context.tsx  AuthProvider / useAuth
-        └── format.ts          currentMonth() / formatCurrency() / shiftMonth()
+        └── format.ts          currentMonth() / formatCurrency() / formatPercent()
+                               / shiftMonth()
 docs/dominio.md               business rules in prose
 docker-compose.yml            repo root
 .env.example                  repo root (backend vars only)
@@ -149,7 +150,8 @@ npm run preview    # serve the production build
 **There is no test suite yet.** When asked to "run the tests", say so rather than inventing a
 command. The closest thing to a check today is `npm run build` (catches type errors),
 `uvx ruff check backend/` (lints the backend; config in `backend/pyproject.toml`) and
-`docker compose config` (validates the compose file).
+`docker compose config` (validates the compose file, and now also fails when `JWT_SECRET`
+is missing from the environment).
 
 Auditing tools run through `uvx`/`npx`, so they install nothing and never enter
 `requirements.txt` or `package.json`:
@@ -219,7 +221,7 @@ a próxima rodada.
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** nada; a tela de fatura acabou de ser concluída.
+**Em andamento:** nada; a tela de resumo acabou de ser concluída.
 
 O backend está à frente do frontend: fatura, categorias e tendência já são calculadas e
 expostas em `/invoices/{month}`, `/summary/{month}` e `/trend`. O que falta nessas features

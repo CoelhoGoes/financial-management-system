@@ -15,12 +15,19 @@ paths:
 - **`schemas.py`** — Pydantic request/response contracts, using `Decimal` for all money fields
   (mirrors the DB `Numeric` columns — never switch these to `float`).
 - **`security.py`** — bcrypt password hashing and JWT issuance/verification (`JWT_SECRET` env
-  var, `HS256`, 7-day expiry). `current_user` is the FastAPI dependency that resolves the
-  current user from the bearer token; every protected endpoint depends on it.
+  var, `HS256`, 7-day expiry). The module **refuses to import** when `JWT_SECRET` is missing,
+  so the app cannot start signing tokens with a predictable value. `current_user` is the
+  FastAPI dependency that resolves the current user from the bearer token; every protected
+  endpoint depends on it. It also holds the login attempt limiter
+  (`ensure_login_allowed` / `record_failed_login` / `clear_failed_logins`): 5 failures per
+  origin+account inside a 15-minute window, counted in memory — one process only, resets on
+  restart.
 - **`service.py`** — the business rules, written as pure functions with no DB import
   (`Entry`/`User` are only imported under `TYPE_CHECKING`), so they're unit-testable without a
   running Postgres. `invoice_for_purchase`, `split_installments`, `build_invoices` /
-  `calculate_invoice`, `calculate_summary`. See `docs/dominio.md` for what each rule means.
+  `calculate_invoice`, `calculate_summary`, `calculate_category_breakdown`. See
+  `docs/dominio.md` for what each rule means. `calculate_category_breakdown` is the only place
+  that groups spending by category — `calculate_summary` used to do it too and no longer does.
 - **`routers/auth.py` / `routers/finance.py`** — mounted at `/auth` and root respectively.
   `finance.py` loads *all* of a user's `Entry` rows into memory (`_all`) and then
   filters/aggregates in Python via `service.py`, rather than doing month filtering in SQL for

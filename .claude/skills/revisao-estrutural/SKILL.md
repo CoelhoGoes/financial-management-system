@@ -42,7 +42,7 @@ descartado uma vez; reportar de novo só faz o usuário perder tempo.
 | Campos de `schemas.py` reportados como variável não usada | São campos de modelo Pydantic, lidos por metaclasse. |
 | `@remixicon/react` sem referência em `src/` | Declarado em `components.json` como `iconLibrary`. O CLI do shadcn gera os imports quando componentes forem instalados. Remover quebra o próximo `npx shadcn add`. |
 | `oxlint` reportado como dependência não usada | É usado em `npm run lint`. O knip erra isso quando `node_modules` não está instalado. |
-| `Invoice` / `InvoiceInstallment` em `types.ts` sem uso | A tela de fatura ainda não existe. É roadmap, não dívida. |
+| Interfaces de `types.ts` sem import por nome (`InvoiceInstallment`, `CategoryItem`, …) | `types.ts` é espelho manual de `schemas.py`, por invariante do `CLAUDE.md`. Tipos aninhados são usados estruturalmente (`items: CategoryItem[]`), nunca importados soltos. Esperado, não abandono. |
 | Exportações de `src/components/ui/` sem uso | Componentes shadcn existem por convenção da biblioteca, não por demanda atual. |
 
 **A regra por trás da tabela:** ferramentas de análise estática não leem arquivos de

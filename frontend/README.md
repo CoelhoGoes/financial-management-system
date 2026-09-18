@@ -76,7 +76,8 @@ src/
 │   └── ui/                componentes shadcn (button, card, input, label, table)
 └── lib/
     ├── auth-context.tsx  AuthProvider / useAuth — estado de sessão
-    └── format.ts         currentMonth() / formatCurrency() / shiftMonth()
+    └── format.ts         currentMonth() / formatCurrency() / formatPercent()
+                          / shiftMonth()
 ```
 
 ## Dinheiro chega como string

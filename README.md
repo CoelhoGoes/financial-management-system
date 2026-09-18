@@ -31,6 +31,7 @@ O backend roda em Docker; o frontend roda direto no host com Vite.
 ```bash
 cp .env.example .env
 openssl rand -hex 32          # cole o resultado em JWT_SECRET dentro do .env
+                              # obrigatório: sem ele a API se recusa a subir
 
 docker compose up --build     # exige o plugin Compose v2 (`docker compose`, sem hífen)
                               # Ubuntu/Debian: sudo apt-get install docker-compose-v2
@@ -119,7 +120,8 @@ frontend/
     │   └── ui/             componentes shadcn (button, card, input, label, table)
     └── lib/
         ├── auth-context.tsx   AuthProvider / useAuth
-        └── format.ts          currentMonth() / formatCurrency() / shiftMonth()
+        └── format.ts          currentMonth() / formatCurrency() / formatPercent()
+                               / shiftMonth()
 
 docker-compose.yml     na raiz
 .env.example           na raiz (backend); o frontend usa frontend/.env

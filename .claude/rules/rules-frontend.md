@@ -17,9 +17,11 @@ paths:
 - **`constants/categories.ts`** — `GASTO_CATEGORIES`/`ENTRADA_CATEGORIES`, hand-maintained
   mirror of the closed lists in `docs/dominio.md`. Same rule as `types.ts`: keep both in sync,
   don't invent a new category here without updating `docs/dominio.md` too.
-- **`lib/format.ts`** — `currentMonth()` / `formatCurrency()`, shared by `SummaryScreen` and
-  `EntryScreen`.
-- **`App.tsx`** — route table only (`/login`, `/`, `/lancamentos`), via `react-router`.
+- **`lib/format.ts`** — `currentMonth()` and `formatCurrency()` (used by `SummaryScreen`,
+  `EntryScreen` and `InvoiceScreen`), `formatPercent()` (`SummaryScreen`) and `shiftMonth()`
+  (`InvoiceScreen`). Money and percentages go through `Intl.NumberFormat('pt-BR')`, so they
+  read `4.057,30` and `49,4%` — never format a number inline in a screen.
+- **`App.tsx`** — route table only (`/login`, `/`, `/lancamentos`, `/fatura`), via `react-router`.
   `main.tsx` wraps the app in `BrowserRouter` + `AuthProvider`. Screens live one per file in
   `src/pages/` (`LoginScreen`, `SummaryScreen`, `EntryScreen`). Navigate with `useNavigate()`,
   not `<Link>` — the shadcn `Button` (Base UI) has no confirmed support for rendering as
