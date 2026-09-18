@@ -11,7 +11,8 @@ por conta própria vira dívida que ninguém revisou.
 
 **Precisa de aprovação explícita antes:**
 
-- adicionar, remover ou trocar dependência (`requirements.txt`, `package.json`)
+- adicionar, remover ou trocar dependência **de runtime** — `backend/requirements.txt` e
+  `dependencies` do `package.json`. São as que vão para a imagem Docker e para o bundle
 - criar arquivo ou pasta novos na estrutura do projeto
 - mudar schema do banco, contrato de API ou formato de payload
 - apagar código, arquivo ou configuração
@@ -24,6 +25,9 @@ por conta própria vira dívida que ninguém revisou.
 - nome de variável, função, componente
 - ordem de imports, formatação, quebra de linha
 - como implementar algo cujo contrato já foi acordado
+- dependência **de desenvolvimento** — `backend/requirements-dev.txt` e `devDependencies` do
+  `package.json`. Não são entregues a ninguém: o `Dockerfile` instala só o `requirements.txt` e
+  o `vite build` não empacota `devDependencies`. O custo de errar é desinstalar
 
 **Quando faltar contexto, pergunte em vez de supor.** Se eu não respondi alguma coisa, não
 preencha a lacuna com o palpite mais provável — diga que falta a informação e o que você
