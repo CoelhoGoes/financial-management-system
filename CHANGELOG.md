@@ -34,6 +34,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 
 ### Alterado
+- Valores em dinheiro passam a usar o formato brasileiro em todas as telas, com separador
+  de milhar e vírgula decimal (R$ 4.057,30 no lugar de R$ 4057.30)
 - A API não sobe mais sem `JWT_SECRET` definida. Antes ela caía num valor padrão que está
   publicado no repositório — quem o conhecesse podia forjar a sessão de qualquer usuário, sem
   deixar rastro. Quem já tem um `.env` local precisa acrescentar a variável

@@ -4,8 +4,15 @@ export function currentMonth() {
   return `${today.getFullYear()}-${month}`
 }
 
+// Devolve só o número, com separador de milhar e vírgula decimal do pt-BR
+// (1234.5 -> "1.234,50"). O "R$" fica nas telas, que já o escrevem.
+const BRL = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 export function formatCurrency(value: string) {
-  return Number(value).toFixed(2)
+  return BRL.format(Number(value))
 }
 
 export function shiftMonth(month: string, delta: number) {
