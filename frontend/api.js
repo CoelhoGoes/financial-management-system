@@ -33,7 +33,11 @@ export const api = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
     });
-    if (!r.ok) throw new Error('E-mail ou senha não conferem.');
+    if (!r.ok) {
+      // o servidor pode responder 429 (muitas tentativas), não só credencial errada
+      const body = await r.json().catch(() => ({}));
+      throw new Error(body.detail || 'E-mail ou senha não conferem.');
+    }
     const { access_token } = await r.json();
     localStorage.setItem(TOKEN_KEY, access_token);
   },

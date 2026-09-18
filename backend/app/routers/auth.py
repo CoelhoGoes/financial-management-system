@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -6,7 +6,15 @@ from sqlalchemy.orm import Session
 from ..database import get_session
 from ..models import User
 from ..schemas import Token, UserConfig, UserCreate, UserOut
-from ..security import create_token, current_user, hash_password, verify_password
+from ..security import (
+    clear_failed_logins,
+    create_token,
+    current_user,
+    ensure_login_allowed,
+    hash_password,
+    record_failed_login,
+    verify_password,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -25,10 +33,23 @@ def register(data: UserCreate, session: Session = Depends(get_session)):
 
 
 @router.post("/token", response_model=Token)
-def login(form: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+def login(
+    request: Request,
+    form: OAuth2PasswordRequestForm = Depends(),
+    session: Session = Depends(get_session),
+):
+    # Keyed by origin *and* account: one attacker cannot lock every account out, and one
+    # account cannot be hammered from a single origin.
+    origin = request.client.host if request.client else "unknown"
+    attempt_key = f"{origin}|{form.username.strip().lower()}"
+    ensure_login_allowed(attempt_key)
+
     user = session.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.password_hash):
+        record_failed_login(attempt_key)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-mail ou senha não conferem.")
+
+    clear_failed_logins(attempt_key)
     return Token(access_token=create_token(user.id))
 
 

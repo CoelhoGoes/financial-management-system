@@ -166,6 +166,9 @@ Antes de expor na internet:
 4. HTTPS na frente (Caddy ou o proxy da plataforma)
 5. `uvx pip-audit -r backend/requirements.txt` sem achados — a tela de login responde sem
    autenticação, então falha em dependência de parsing de formulário fica exposta
+6. Rever o limite de tentativas de login: hoje ele vive em memória, o que basta para um
+   processo só. Com mais de um worker cada um conta em separado e o limite efetivo
+   multiplica
 
 ## Estado atual
 

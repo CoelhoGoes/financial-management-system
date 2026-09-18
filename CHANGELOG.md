@@ -8,6 +8,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Limite de tentativas de login: após 5 senhas erradas para a mesma conta vindas da mesma
+  origem, a API recusa novas tentativas por 15 minutos
 - Estrutura inicial do backend: FastAPI + PostgreSQL, Docker Compose
 - Autenticação com JWT (registro, login)
 - CRUD de lançamentos (gastos e entradas)
