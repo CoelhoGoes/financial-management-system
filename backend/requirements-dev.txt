@@ -1,0 +1,5 @@
+# Ferramentas de teste. Não entram na imagem: o Dockerfile instala só o
+# requirements.txt. Rodar com:  pip install -r backend/requirements-dev.txt
+-r requirements.txt
+pytest==9.1.1
+httpx2==2.13.0    # o TestClient do starlette 1.6 deprecou o httpx para este uso

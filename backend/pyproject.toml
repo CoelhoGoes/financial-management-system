@@ -12,3 +12,9 @@ target-version = "py312"
 # argument default. Declaring them immutable keeps B008 active for the real
 # case it exists to catch (e.g. `def f(x = [])`).
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.pytest.ini_options]
+# Os testes ficam em tests/ e importam `app.…`; sem isto o pytest coloca só
+# tests/ no sys.path e o pacote não é encontrado.
+pythonpath = ["."]
+testpaths = ["tests"]
