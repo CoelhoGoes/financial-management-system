@@ -159,7 +159,8 @@ O frontend vai para Vercel ou equivalente, com `VITE_API_URL` apontando para a A
 
 Antes de expor na internet:
 
-1. `JWT_SECRET` gerado de verdade, nunca o valor de exemplo
+1. `JWT_SECRET` gerado de verdade (`openssl rand -hex 32`) — a API se recusa a subir sem
+   ela, então isto não passa despercebido
 2. `ALLOWED_ORIGINS` com o domínio real do front, não `*`
 3. Remover o mapeamento `5432:5432` do compose — o banco não precisa ser público
 4. HTTPS na frente (Caddy ou o proxy da plataforma)

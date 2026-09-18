@@ -32,6 +32,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 
 ### Alterado
+- A API não sobe mais sem `JWT_SECRET` definida. Antes ela caía num valor padrão que está
+  publicado no repositório — quem o conhecesse podia forjar a sessão de qualquer usuário, sem
+  deixar rastro. Quem já tem um `.env` local precisa acrescentar a variável
 - Cabeçalho de navegação (e-mail do usuário, links entre telas e sair) unificado num componente
   só, com ícones do remixicon, usado nas telas de resumo, lançamentos e fatura
 - Identificadores internos do código (variáveis, funções, classes, arquivos e chaves do JSON

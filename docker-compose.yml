@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-gf}:${POSTGRES_PASSWORD:-gf_senha_local}@db:5432/${POSTGRES_DB:-gestao}
-      JWT_SECRET: ${JWT_SECRET:-troque_este_segredo_em_producao}
+      JWT_SECRET: "${JWT_SECRET:?defina JWT_SECRET no .env — gere com `openssl rand -hex 32`}"
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
     depends_on:
       db:

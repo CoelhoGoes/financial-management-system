@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -10,7 +10,14 @@ from sqlalchemy.orm import Session
 from .database import get_session
 from .models import User
 
-SECRET = os.getenv("JWT_SECRET", "troque_este_segredo_em_producao")
+SECRET = os.getenv("JWT_SECRET")
+if not SECRET:
+    raise RuntimeError(
+        "JWT_SECRET não está definida. Sem ela a API assinaria os tokens com um valor "
+        "previsível, e qualquer pessoa poderia forjar uma sessão de qualquer usuário. "
+        "Gere uma chave com `openssl rand -hex 32` e coloque no .env (veja .env.example)."
+    )
+
 ALGORITHM = "HS256"
 HOURS_VALID = 24 * 7
 
@@ -26,7 +33,7 @@ def verify_password(password: str, stored_hash: str) -> bool:
 
 
 def create_token(user_id: int) -> str:
-    expires = datetime.now(timezone.utc) + timedelta(hours=HOURS_VALID)
+    expires = datetime.now(UTC) + timedelta(hours=HOURS_VALID)
     return jwt.encode({"sub": str(user_id), "exp": expires}, SECRET, algorithm=ALGORITHM)
 
 
