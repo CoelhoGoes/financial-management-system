@@ -10,18 +10,16 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — a tela de fatura acabou de sair)
+- [ ] (nada — a tela de resumo acabou de sair)
 
 ## Próximo
 
-O backend já calcula fatura, categorias e tendência. Os itens abaixo são só frontend: os
-endpoints e os métodos em `api.js` já existem.
+O backend já calcula fatura, categorias e tendência. O gráfico de tendência é só frontend —
+o endpoint e o método em `api.js` já existem.
 
-- [ ] Resumo por categoria: exibir `by_category`, que o `/summary` já devolve — #3
 - [ ] Gráfico de tendência consumindo `/trend` — #4. Presets fixos de 3/6/12 meses; o
       frontend sempre envia `until` calculado no fuso do navegador, para o servidor não
       precisar adivinhar qual é o mês corrente
-- [ ] Completar `SummaryScreen`: hoje ignora `invoice`, `extra_income` e `cash_expenses`
 - [ ] Suíte de testes (pytest), começando por `service.py`
 
 ## Depois

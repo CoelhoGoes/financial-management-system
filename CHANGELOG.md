@@ -8,6 +8,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Tela de resumo completa: além de renda, gasto e saldo, agora mostra entradas extras,
+  gastos à vista e fatura do cartão separados, e o gasto de cada categoria com barra de
+  proporção. Compras parceladas aparecem com o número da parcela (ex.: parcela 3/9)
 - Limite de tentativas de login: após 5 senhas erradas para a mesma conta vindas da mesma
   origem, a API recusa novas tentativas por 15 minutos
 - Estrutura inicial do backend: FastAPI + PostgreSQL, Docker Compose

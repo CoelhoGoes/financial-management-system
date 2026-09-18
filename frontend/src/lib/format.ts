@@ -15,6 +15,17 @@ export function formatCurrency(value: string) {
   return BRL.format(Number(value))
 }
 
+// Fração (0.494) -> "49,4%", na mesma convenção do formatCurrency.
+const PERCENT = new Intl.NumberFormat('pt-BR', {
+  style: 'percent',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
+
+export function formatPercent(fraction: string) {
+  return PERCENT.format(Number(fraction))
+}
+
 export function shiftMonth(month: string, delta: number) {
   const [year, mon] = month.split('-').map(Number)
   const date = new Date(year, mon - 1 + delta, 1)
