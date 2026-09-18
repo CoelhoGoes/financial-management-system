@@ -10,16 +10,13 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — a tela de resumo acabou de sair)
+- [ ] (nada — a tela de configuração acabou de sair)
 
 ## Próximo
 
 O backend já calcula fatura, categorias e tendência. O gráfico de tendência é só frontend —
 o endpoint e o método em `api.js` já existem.
 
-- [ ] Tela de configuração: definir renda mensal e dia de fechamento. `PUT /auth/me` e
-      `api.saveConfig` já existem e nunca foram chamados — hoje não há como cadastrar a renda
-      pelo app, então toda conta nova fica com renda 0 e vê um saldo errado na tela principal
 - [ ] Gráfico de tendência consumindo `/trend` — #4. Presets fixos de 3/6/12 meses; o
       frontend sempre envia `until` calculado no fuso do navegador, para o servidor não
       precisar adivinhar qual é o mês corrente

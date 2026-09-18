@@ -15,6 +15,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   logout: () => void
+  /** Aplica o usuário devolvido por um PUT /auth/me, sem refazer o GET. */
+  updateUser: (user: User) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -66,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, register, logout }}
+      value={{ user, loading, error, login, register, logout, updateUser: setUser }}
     >
       {children}
     </AuthContext.Provider>

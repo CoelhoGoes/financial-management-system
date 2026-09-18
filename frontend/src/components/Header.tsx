@@ -1,10 +1,16 @@
 import { useNavigate } from 'react-router'
-import { RiHomeLine, RiFileListLine, RiBillLine, RiLogoutBoxRLine } from '@remixicon/react'
+import {
+  RiHomeLine,
+  RiFileListLine,
+  RiBillLine,
+  RiSettings3Line,
+  RiLogoutBoxRLine,
+} from '@remixicon/react'
 import { useAuth } from '@/lib/auth-context'
 import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 
-type Screen = 'resumo' | 'lancamentos' | 'fatura'
+type Screen = 'resumo' | 'lancamentos' | 'fatura' | 'configuracoes'
 
 const NAV_ITEMS: { screen: Screen; label: string; path: string; icon: typeof RiHomeLine }[] = [
   { screen: 'resumo', label: 'Resumo', path: '/', icon: RiHomeLine },
@@ -37,6 +43,18 @@ export function Header({ active, className }: HeaderProps) {
             {item.label}
           </Button>
         ))}
+        {active !== 'configuracoes' && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-label="Configurações"
+            title="Configurações"
+            onClick={() => navigate('/configuracoes')}
+          >
+            <RiSettings3Line />
+          </Button>
+        )}
         <Button
           type="button"
           variant="outline"

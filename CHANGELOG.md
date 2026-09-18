@@ -8,6 +8,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Tela de configuração: define a renda mensal e o dia de fechamento da fatura pelo próprio
+  app. Antes só dava para gravar esses valores chamando a API na mão, então toda conta nova
+  ficava com renda zero e via um saldo que não batia
 - Tela de resumo completa: além de renda, gasto e saldo, agora mostra entradas extras,
   gastos à vista e fatura do cartão separados, e o gasto de cada categoria com barra de
   proporção. Compras parceladas aparecem com o número da parcela (ex.: parcela 3/9)
