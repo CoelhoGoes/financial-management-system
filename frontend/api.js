@@ -58,6 +58,7 @@ export const api = {
   removeEntry: (id) => req(`/entries/${id}`, { method: 'DELETE' }),
 
   summary: (month) => req(`/summary/${month}`),
+  categories: (month) => req(`/summary/${month}/categories`),
   invoice: (month) => req(`/invoices/${month}`),
   trend: (months = 6, until) => req(`/trend?months=${months}${until ? `&until=${until}` : ''}`),
 };

@@ -10,12 +10,19 @@ from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from .schemas import Invoice, InvoiceInstallment, Summary
+from .schemas import (
+    CategoryBreakdown,
+    CategoryItem,
+    Invoice,
+    InvoiceInstallment,
+    Summary,
+)
 
 if TYPE_CHECKING:  # avoids depending on the DB: the rules below are testable on their own
     from .models import Entry, User
 
 CENT = Decimal("0.01")
+SHARE = Decimal("0.0001")
 
 
 def month_key(d: date) -> str:
@@ -97,3 +104,46 @@ def calculate_summary(month: str, user: User, entries: list[Entry]) -> Summary:
         available_balance=income + extra_income - cash_expenses - invoice.total,
         by_category=dict(sorted(categories.items(), key=lambda x: x[1], reverse=True)),
     )
+
+
+def calculate_category_breakdown(
+    month: str, user: User, entries: list[Entry]
+) -> list[CategoryBreakdown]:
+    """Spending of the month grouped by category, one line per item.
+
+    Uses the same split as `calculate_summary`: cash expenses made in the month, plus
+    the installments of the invoice that falls due in it — which is why a purchase from
+    another month shows up here. The totals add up to that month's `total_spent`.
+    """
+    grouped: dict[str, list[CategoryItem]] = defaultdict(list)
+
+    for e in entries:
+        if month_key(e.date) == month and e.type == "gasto" and e.method == "avista":
+            grouped[e.category].append(
+                CategoryItem(description=e.description, amount=Decimal(e.amount))
+            )
+
+    for item in calculate_invoice(month, entries, user.closing_day).items:
+        grouped[item.category].append(
+            CategoryItem(
+                description=item.description,
+                amount=item.installment_amount,
+                installment=item.installment,
+                total_installments=item.total_installments,
+            )
+        )
+
+    spent = sum((i.amount for items in grouped.values() for i in items), Decimal(0))
+
+    breakdown = []
+    for category, items in grouped.items():
+        total = sum((i.amount for i in items), Decimal(0))
+        breakdown.append(
+            CategoryBreakdown(
+                category=category,
+                total=total,
+                share=(total / spent).quantize(SHARE) if spent else Decimal(0),
+                items=sorted(items, key=lambda i: i.amount, reverse=True),
+            )
+        )
+    return sorted(breakdown, key=lambda c: c.total, reverse=True)

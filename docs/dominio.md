@@ -87,6 +87,17 @@ O que entra na conta como fatura é a **fatura que vence naquele mês**, não as
 naquele mês. É essa distinção que faz o número ser útil: mostra o que vai sair da conta, não o
 que foi gasto.
 
+### O que entra no resumo por categoria
+
+A categoria de um mês soma os **gastos à vista feitos nele** mais as **parcelas da fatura que
+vence nele** — a mesma divisão do saldo acima. A consequência é que uma compra parcelada
+aparece na categoria em cada mês em que uma parcela vence, e não no mês em que foi comprada.
+
+Por isso `/summary/{month}/categories` devolve cada item com o número da parcela
+(`3/9`, nulo quando é à vista): sem isso, um gasto de Lazer aparece num mês em que nada de
+lazer foi comprado, e o número parece erro. Os totais por categoria somam exatamente o
+`total_spent` do `/summary` do mesmo mês.
+
 ### Tendência
 
 `/trend` devolve uma lista de resumos mensais, um por mês, terminando no mês passado em `until`

@@ -59,6 +59,22 @@ class Invoice(BaseModel):
     items: list[InvoiceInstallment]
 
 
+class CategoryItem(BaseModel):
+    """One line inside a category. `installment` is null for cash expenses."""
+
+    description: str
+    amount: Decimal
+    installment: int | None = None
+    total_installments: int | None = None
+
+
+class CategoryBreakdown(BaseModel):
+    category: str
+    total: Decimal
+    share: Decimal
+    items: list[CategoryItem]
+
+
 class Summary(BaseModel):
     month: str
     monthly_income: Decimal

@@ -6,9 +6,15 @@ from sqlalchemy.orm import Session
 
 from ..database import get_session
 from ..models import Entry, User
-from ..schemas import EntryCreate, EntryOut, Invoice, Summary
+from ..schemas import CategoryBreakdown, EntryCreate, EntryOut, Invoice, Summary
 from ..security import current_user
-from ..service import calculate_invoice, calculate_summary, month_key, shift_month
+from ..service import (
+    calculate_category_breakdown,
+    calculate_invoice,
+    calculate_summary,
+    month_key,
+    shift_month,
+)
 
 router = APIRouter(tags=["finance"])
 
@@ -70,6 +76,15 @@ def summary(
     session: Session = Depends(get_session),
 ):
     return calculate_summary(month, user, _all(session, user))
+
+
+@router.get("/summary/{month}/categories", response_model=list[CategoryBreakdown])
+def category_breakdown(
+    month: str,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    return calculate_category_breakdown(month, user, _all(session, user))
 
 
 @router.get("/invoices/{month}", response_model=Invoice)

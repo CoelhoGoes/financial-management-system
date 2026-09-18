@@ -51,3 +51,17 @@ export interface Summary {
   available_balance: string
   by_category: Record<string, string>
 }
+
+export interface CategoryItem {
+  description: string
+  amount: string
+  installment: number | null
+  total_installments: number | null
+}
+
+export interface CategoryBreakdown {
+  category: string
+  total: string
+  share: string
+  items: CategoryItem[]
+}
