@@ -104,10 +104,10 @@ frontend/
 ├── vite.config.ts            React + Tailwind v4 plugins, '@' alias → ./src
 └── src/
     ├── main.tsx               mounts App inside BrowserRouter + AuthProvider
-    ├── App.tsx                route table only (login/summary/entries/invoice)
+    ├── App.tsx                route table only (login/summary/entries/invoice/config)
     ├── types.ts               mirror of backend schemas.py
     ├── index.css              Tailwind v4 import + shadcn theme tokens
-    ├── pages/                 one file per screen (Login/Summary/Entry/Invoice)
+    ├── pages/                 one file per screen (Login/Summary/Entry/Invoice/Config)
     ├── constants/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
     ├── components/

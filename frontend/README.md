@@ -52,7 +52,8 @@ tema escuro funcionando. Já teve um bug de contraste por causa disso (veja o `C
 **Use o alias `@/`** para imports dentro de `src/`. A exceção é `api.js`, que fica fora de
 `src/` e é importado por caminho relativo.
 
-**Navegação é `react-router`** (rotas `/login`, `/`, `/lancamentos` e `/fatura`, definidas em
+**Navegação é `react-router`** (rotas `/login`, `/`, `/lancamentos`, `/fatura` e
+`/configuracoes`, definidas em
 `App.tsx`).
 Dentro das telas, navegue com `useNavigate()`, não com `<Link>` — o `Button` do shadcn é
 baseado em `@base-ui/react/button` e não tem suporte confirmado a renderizar como outro
@@ -64,11 +65,11 @@ elemento (o `asChild` do Radix), então um botão que navega usa `onClick={() =>
 api.js                    cliente HTTP — JWT, header Authorization, tratamento de 401
 src/
 ├── main.tsx              monta o React dentro do BrowserRouter + AuthProvider
-├── App.tsx               tabela de rotas (/login, /, /lancamentos, /fatura)
+├── App.tsx               tabela de rotas (/login, /, /lancamentos, /fatura, /configuracoes)
 ├── types.ts              espelho manual de backend/app/schemas.py
 ├── index.css             import do Tailwind + tokens de tema
 ├── pages/                 uma tela por arquivo (LoginScreen, SummaryScreen, EntryScreen,
-│                          InvoiceScreen)
+│                          InvoiceScreen, ConfigScreen)
 ├── constants/
 │   └── categories.ts     listas fechadas de categoria, espelha docs/dominio.md
 ├── components/

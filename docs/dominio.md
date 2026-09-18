@@ -21,10 +21,15 @@ valor, descrição, categoria, data e forma de pagamento.
 é calculada na hora a partir dos lançamentos.
 
 **Dia de fechamento** (`closing_day`) — dia do mês em que a fatura do cartão fecha. Configurado
-por usuário em `/auth/me`.
+por usuário em `/auth/me` ou pela tela de configuração. Aceita de 1 a 28 e vale **25** enquanto
+ninguém mudar.
 
 **Renda mensal** (`monthly_income`) — valor fixo que o usuário declara ganhar por mês. Não é um
-lançamento; é um campo do usuário, somado automaticamente em todo mês do resumo.
+lançamento; é um campo do usuário, somado automaticamente em todo mês do resumo. Começa em
+**0**, então uma conta recém-criada mostra saldo como se não houvesse renda até alguém informá-la.
+
+Os dois valores padrão vivem no `default=` de `models.py` — é de lá que eles devem ser lidos, não
+repetidos em outro lugar.
 
 ## Categorias
 
@@ -156,4 +161,6 @@ conversar antes.
 Anote aqui o que existe no projeto mas você não sabe explicar — evita que uma decisão acidental
 seja tratada como intencional. Esta seção deve encolher com o tempo.
 
-- (nada registrado ainda)
+- **Por que `closing_day` vai só até 28?** O limite está em `schemas.py`
+  (`Field(ge=1, le=28)`). A explicação mais provável é evitar dias que não existem em
+  fevereiro, mas não foi possível determinar o motivo real — quem escreveu não registrou.

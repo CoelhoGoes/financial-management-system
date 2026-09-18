@@ -11,7 +11,8 @@ paths:
 - **`auth-context.tsx`** — `AuthProvider` wraps the app in `main.tsx` and owns `user`,
   `loading`, `error`. On mount, if a token exists it calls `/auth/me` to rehydrate the session.
   `useAuth()` throws outside the provider. All screens read auth state from here, never from
-  `api.js` directly.
+  `api.js` directly. `updateUser(user)` applies the `UserOut` returned by a `PUT /auth/me`
+  (used by `ConfigScreen`) so the provider stays fresh without a second `GET`.
 - **`types.ts`** — hand-maintained mirror of `backend/app/schemas.py`. **When you change a
   Pydantic schema, update this file in the same commit** — nothing enforces the correspondence.
 - **`constants/categories.ts`** — `GASTO_CATEGORIES`/`ENTRADA_CATEGORIES`, hand-maintained
@@ -21,11 +22,11 @@ paths:
   `EntryScreen` and `InvoiceScreen`), `formatPercent()` (`SummaryScreen`) and `shiftMonth()`
   (`InvoiceScreen`). Money and percentages go through `Intl.NumberFormat('pt-BR')`, so they
   read `4.057,30` and `49,4%` — never format a number inline in a screen.
-- **`App.tsx`** — route table only (`/login`, `/`, `/lancamentos`, `/fatura`), via `react-router`.
-  `main.tsx` wraps the app in `BrowserRouter` + `AuthProvider`. Screens live one per file in
-  `src/pages/` (`LoginScreen`, `SummaryScreen`, `EntryScreen`). Navigate with `useNavigate()`,
-  not `<Link>` — the shadcn `Button` (Base UI) has no confirmed support for rendering as
-  another element (Radix's `asChild`).
+- **`App.tsx`** — route table only (`/login`, `/`, `/lancamentos`, `/fatura`, `/configuracoes`),
+  via `react-router`. `main.tsx` wraps the app in `BrowserRouter` + `AuthProvider`. Screens live
+  one per file in `src/pages/` (`LoginScreen`, `SummaryScreen`, `EntryScreen`, `InvoiceScreen`,
+  `ConfigScreen`). Navigate with `useNavigate()`, not `<Link>` — the shadcn `Button` (Base UI)
+  has no confirmed support for rendering as another element (Radix's `asChild`).
 
 ### Money in the frontend
 
