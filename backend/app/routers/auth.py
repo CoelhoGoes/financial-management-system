@@ -23,7 +23,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def register(data: UserCreate, session: Session = Depends(get_session)):
     existing = session.scalar(select(User).where(User.email == data.email))
     if existing:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Este e-mail já tem conta.")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Não foi possível criar a conta com esses dados."
+        )
 
     user = User(email=data.email, password_hash=hash_password(data.password))
     session.add(user)
