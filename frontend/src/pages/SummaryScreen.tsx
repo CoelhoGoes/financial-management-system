@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
+import { RiInformationLine } from '@remixicon/react'
 import { api } from '../../api.js'
 import { currentMonth, formatCurrency, formatPercent } from '@/lib/format'
 import type { CategoryBreakdown, Summary } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Header } from '@/components/Header'
 
 function Money({ value, signal }: { value: string; signal?: '+' | '-' }) {
@@ -30,6 +33,7 @@ function CategoryBar({ share }: { share: string }) {
 }
 
 export function SummaryScreen() {
+  const navigate = useNavigate()
   const month = currentMonth()
   const [summary, setSummary] = useState<Summary | null>(null)
   const [categories, setCategories] = useState<CategoryBreakdown[] | null>(null)
@@ -52,6 +56,27 @@ export function SummaryScreen() {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {loading && <p className="text-sm text-muted-foreground">Carregando…</p>}
+
+      {summary && Number(summary.monthly_income) === 0 && (
+        <div className="flex w-full max-w-md flex-col gap-3 rounded-lg border border-border bg-muted/50 p-4">
+          <div className="flex gap-2">
+            <RiInformationLine className="mt-0.5 shrink-0 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Sua renda mensal ainda não foi informada, então o saldo disponível está sendo
+              calculado como se ela fosse zero.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="self-start"
+            onClick={() => navigate('/configuracoes')}
+          >
+            Informar renda mensal
+          </Button>
+        </div>
+      )}
 
       {summary && (
         <Card className="w-full max-w-md">
