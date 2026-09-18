@@ -141,6 +141,11 @@ conversar antes.
   imports existentes.
 - **`frontend/src/types.ts` é um espelho manual de `backend/app/schemas.py`.** Nada garante que
   os dois estejam sincronizados. Gerar os tipos a partir do OpenAPI do FastAPI resolveria.
+- **`shiftMonth` no frontend duplica `shift_month` do `service.py`.** Os dois somam e subtraem
+  mês no formato `YYYY-MM`. O do frontend só decide qual mês pedir na navegação entre telas —
+  é presentação, não cálculo de dinheiro — mas fica na fronteira da regra de não ter lógica no
+  cliente. **Monitorar:** se ele começar a decidir algo além de qual mês buscar, virou regra de
+  negócio no lugar errado e precisa voltar para o servidor.
 - **Sem testes.** As funções de `service.py` foram escritas puras justamente para serem
   testáveis sem Postgres, mas a suíte ainda não existe.
 

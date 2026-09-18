@@ -17,10 +17,15 @@ usuário é registrado no `CHANGELOG.md`.
 O backend já calcula fatura, categorias e tendência. O gráfico de tendência é só frontend —
 o endpoint e o método em `api.js` já existem.
 
+- [ ] Tela de configuração: definir renda mensal e dia de fechamento. `PUT /auth/me` e
+      `api.saveConfig` já existem e nunca foram chamados — hoje não há como cadastrar a renda
+      pelo app, então toda conta nova fica com renda 0 e vê um saldo errado na tela principal
 - [ ] Gráfico de tendência consumindo `/trend` — #4. Presets fixos de 3/6/12 meses; o
       frontend sempre envia `until` calculado no fuso do navegador, para o servidor não
       precisar adivinhar qual é o mês corrente
 - [ ] Suíte de testes (pytest), começando por `service.py`
+- [ ] Navegação entre meses na tela de resumo — a tela de fatura já tem; o certo é extrair
+      um controle compartilhado em vez de duplicar
 
 ## Depois
 
@@ -31,6 +36,12 @@ o endpoint e o método em `api.js` já existem.
 - [ ] Adicionar Alembic quando houver dado real que não possa ser perdido
 - [ ] Filtrar lançamentos no SQL em `/summary` e `/trend`, se ficar lento
 - [ ] Deploy: backend em Railway / Render / Fly.io; frontend na Vercel
+- [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.
+      Precisa de um toggle nas configurações do app e, por padrão, seguir a preferência do
+      sistema (`prefers-color-scheme`), com a escolha manual sobrepondo o padrão
+- [ ] Endpoint de exclusão de conta: hoje dá para criar usuário e apagar lançamento, mas não
+      apagar o próprio usuário — só com SQL direto no banco. Ficou evidente quando uma conta
+      de teste entrou no banco de desenvolvimento e não teve como removê-la pela API
 
 ## Manutenção
 
