@@ -87,13 +87,6 @@ def calculate_summary(month: str, user: User, entries: list[Entry]) -> Summary:
 
     invoice = calculate_invoice(month, entries, user.closing_day)
 
-    categories: dict[str, Decimal] = defaultdict(Decimal)
-    for e in this_month:
-        if e.type == "gasto" and e.method == "avista":
-            categories[e.category] += Decimal(e.amount)
-    for item in invoice.items:
-        categories[item.category] += item.installment_amount
-
     return Summary(
         month=month,
         monthly_income=income,
@@ -102,7 +95,6 @@ def calculate_summary(month: str, user: User, entries: list[Entry]) -> Summary:
         invoice=invoice.total,
         total_spent=cash_expenses + invoice.total,
         available_balance=income + extra_income - cash_expenses - invoice.total,
-        by_category=dict(sorted(categories.items(), key=lambda x: x[1], reverse=True)),
     )
 
 

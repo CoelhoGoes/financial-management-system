@@ -83,4 +83,3 @@ class Summary(BaseModel):
     invoice: Decimal
     total_spent: Decimal
     available_balance: Decimal
-    by_category: dict[str, Decimal]

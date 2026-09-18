@@ -49,7 +49,6 @@ export interface Summary {
   invoice: string
   total_spent: string
   available_balance: string
-  by_category: Record<string, string>
 }
 
 export interface CategoryItem {
