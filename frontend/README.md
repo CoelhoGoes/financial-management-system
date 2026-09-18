@@ -9,6 +9,8 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # tsc -b && vite build — é também o typecheck do projeto
 npm run lint       # oxlint
+npm test           # vitest (uma vez)
+npm run test:watch # vitest em watch
 npm run preview    # serve o build de produção
 ```
 

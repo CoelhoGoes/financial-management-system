@@ -61,7 +61,7 @@ VITE_API_URL=http://localhost:8000
 ```
 
 Outros comandos: `npm run build` (typecheck + build de produção), `npm run lint` (oxlint),
-`npm run preview` (serve o build).
+`npm test` (vitest), `npm run test:watch` (vitest em watch), `npm run preview` (serve o build).
 
 ### Rodar o backend sem Docker
 
@@ -89,21 +89,45 @@ uvx pip-audit -r backend/requirements.txt     # vulnerabilidades conhecidas nas 
 cd frontend && npx -y knip                    # código e dependências sem uso no frontend
 ```
 
-Não há suíte de testes ainda — veja `docs/roadmap.md`.
+### Testes
+
+```bash
+pip install -r backend/requirements-dev.txt   # uma vez
+cd backend && pytest                          # 49 testes, ~5s
+
+cd frontend && npm test                       # 24 testes, ~3s
+```
+
+Os testes de `backend/tests/test_service.py` não precisam de banco — `service.py` é puro e os
+testes usam dublês. Os de `test_api.py` rodam em sqlite por padrão. Para rodar a mesma suíte
+contra o Postgres de verdade:
+
+```bash
+docker run --rm -d --name pg_test -e POSTGRES_PASSWORD=teste \
+  -e POSTGRES_DB=gestao_test -p 5433:5432 postgres:16-alpine
+cd backend && TEST_DATABASE_URL='postgresql+psycopg://postgres:teste@localhost:5433/gestao_test' pytest
+docker stop pg_test
+```
 
 ## Estrutura
 
 ```
-backend/app/
-├── main.py            entrada, CORS, registro dos routers, /health
-├── database.py        engine e sessão do SQLAlchemy
-├── models.py          tabelas usuarios e lancamentos
-├── schemas.py         contratos de entrada/saída (Pydantic)
-├── security.py        hash bcrypt e emissão/verificação de JWT
-├── service.py         regras de fatura, saldo e tendência (funções puras)
-└── routers/
-    ├── auth.py        /auth/*
-    └── finance.py     /entries, /summary, /invoices, /trend
+backend/
+├── requirements.txt       dependências de runtime — é o que a imagem instala
+├── requirements-dev.txt   pytest + httpx2, não entram na imagem
+├── tests/
+│   ├── test_service.py    regras de negócio, sem banco nenhum
+│   └── test_api.py        contrato HTTP, em sqlite ou Postgres
+└── app/
+    ├── main.py            entrada, CORS, registro dos routers, /health
+    ├── database.py        engine e sessão do SQLAlchemy
+    ├── models.py          tabelas usuarios e lancamentos
+    ├── schemas.py         contratos de entrada/saída (Pydantic)
+    ├── security.py        hash bcrypt, JWT e limite de tentativas de login
+    ├── service.py         regras de fatura, saldo e tendência (funções puras)
+    └── routers/
+        ├── auth.py        /auth/*
+        └── finance.py     /entries, /summary, /invoices, /trend
 
 frontend/
 ├── api.js             cliente HTTP (JWT, header, tratamento de 401)
@@ -182,7 +206,7 @@ listar e excluir gastos/entradas do mês), tela de fatura (consulta por mês, co
 entre meses) e tela de configuração (renda mensal e dia de fechamento). Backend completo com
 todos os endpoints acima.
 
-**Ainda não existe:** gráfico de tendência, testes automatizados, Alembic
+**Ainda não existe:** gráfico de tendência, Alembic
 (o schema é criado com `create_all`, que não altera tabelas existentes).
 
 Mudanças notáveis ficam registradas em [`CHANGELOG.md`](CHANGELOG.md).

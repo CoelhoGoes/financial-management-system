@@ -20,7 +20,8 @@ o endpoint e o método em `api.js` já existem.
 - [ ] Gráfico de tendência consumindo `/trend` — #4. Presets fixos de 3/6/12 meses; o
       frontend sempre envia `until` calculado no fuso do navegador, para o servidor não
       precisar adivinhar qual é o mês corrente
-- [ ] Suíte de testes (pytest), começando por `service.py`
+- [ ] Ampliar a suíte de testes: `/trend`, expiração do JWT, recusa de subir sem `JWT_SECRET`
+      (precisa de subprocesso, porque o erro acontece no import) e telas além da de resumo
 - [ ] Navegação entre meses na tela de resumo — a tela de fatura já tem; o certo é extrair
       um controle compartilhado em vez de duplicar
 

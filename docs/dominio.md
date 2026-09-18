@@ -153,8 +153,11 @@ conversar antes.
   é presentação, não cálculo de dinheiro — mas fica na fronteira da regra de não ter lógica no
   cliente. **Monitorar:** se ele começar a decidir algo além de qual mês buscar, virou regra de
   negócio no lugar errado e precisa voltar para o servidor.
-- **Sem testes.** As funções de `service.py` foram escritas puras justamente para serem
-  testáveis sem Postgres, mas a suíte ainda não existe.
+- **A camada de API roda em sqlite por padrão.** `backend/tests/test_api.py` sobe o app contra
+  um sqlite temporário: rápido e sem container. A mesma suíte roda contra Postgres apontando
+  `TEST_DATABASE_URL` (veja o README), e foi verificada nos dois — mas a execução do dia a dia é
+  em sqlite, então uma divergência só de Postgres só aparece se alguém rodar a versão opcional.
+  O cálculo de dinheiro não corre esse risco: `test_service.py` não usa banco nenhum.
 
 ## O que eu ainda não entendo do que herdei
 

@@ -90,8 +90,10 @@ rather than inventing category names.
 ```
 backend/
 ├── Dockerfile
-├── pyproject.toml            ruff config only — not a package definition
-├── requirements.txt
+├── pyproject.toml            ruff + pytest config — not a package definition
+├── requirements.txt          runtime only — this is what the image installs
+├── requirements-dev.txt      pytest + httpx2, never shipped
+├── tests/                    test_service.py (no DB) and test_api.py (sqlite/Postgres)
 └── app/
     ├── main.py
     ├── database.py
@@ -111,6 +113,7 @@ frontend/
     ├── App.tsx                route table only (login/summary/entries/invoice/config)
     ├── types.ts               mirror of backend schemas.py
     ├── index.css              Tailwind v4 import + shadcn theme tokens
+    ├── test-setup.ts          vitest setup (jest-dom matchers)
     ├── pages/                 one file per screen (Login/Summary/Entry/Invoice/Config)
     ├── constants/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
@@ -151,11 +154,24 @@ npm run lint       # oxlint
 npm run preview    # serve the production build
 ```
 
-**There is no test suite yet.** When asked to "run the tests", say so rather than inventing a
-command. The closest thing to a check today is `npm run build` (catches type errors),
-`uvx ruff check backend/` (lints the backend; config in `backend/pyproject.toml`) and
-`docker compose config` (validates the compose file, and now also fails when `JWT_SECRET`
-is missing from the environment).
+**Running the tests:**
+
+```bash
+pip install -r backend/requirements-dev.txt   # once
+cd backend && pytest                          # 49 tests, ~5s
+
+cd frontend && npm test                       # 24 tests, ~3s
+```
+
+`backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use
+plain dataclass stubs instead of `Entry`/`User`. `test_api.py` does need one and runs on
+sqlite by default. Set `TEST_DATABASE_URL` to run the same suite against a real Postgres
+(command in `README.md`) — both are verified, but the everyday run is sqlite. The money math
+lives in the DB-free layer on purpose.
+
+Other checks: `npm run build` (typecheck), `uvx ruff check backend/` (lint; config in
+`backend/pyproject.toml`) and `docker compose config` (validates the compose file, and also
+fails when `JWT_SECRET` is missing from the environment).
 
 Auditing tools run through `uvx`/`npx`, so they install nothing and never enter
 `requirements.txt` or `package.json`:
