@@ -32,7 +32,7 @@ def create(
     session: Session = Depends(get_session),
 ):
     if data.type == "entrada" and data.method == "credito":
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Entrada não vai no crédito.")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Entrada não vai no crédito.")
 
     entry = Entry(user_id=user.id, **data.model_dump())
     session.add(entry)
