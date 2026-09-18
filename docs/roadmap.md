@@ -39,6 +39,14 @@ o endpoint e o método em `api.js` já existem.
 - [ ] Endpoint de exclusão de conta: hoje dá para criar usuário e apagar lançamento, mas não
       apagar o próprio usuário — só com SQL direto no banco. Ficou evidente quando uma conta
       de teste entrou no banco de desenvolvimento e não teve como removê-la pela API
+- [ ] Reavaliar o `deptry` (dependências Python declaradas e nunca importadas) quando o
+      `requirements.txt` crescer. Testado em 18/09/2026 com 8 dependências: 5 achados, 5 falsos
+      positivos — `uvicorn` vem do `CMD` do Dockerfile, `psycopg` da string da `DATABASE_URL`,
+      `python-multipart` é importado pelo próprio FastAPI, e `pyjwt` tem nome de pacote
+      diferente do módulo (`jwt`). Daria para configurar em `backend/pyproject.toml` com
+      `[tool.deptry.package_module_name_map]` e `[tool.deptry.per_rule_ignores]`, mas a lista de
+      ignorados vira mais uma coisa a manter em sincronia, e hoje a lista inteira de
+      dependências cabe na cabeça
 
 ## Manutenção
 
