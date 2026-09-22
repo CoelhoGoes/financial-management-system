@@ -10,13 +10,10 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — o gráfico de tendência acabou de sair)
+- [ ] (nada — a suíte de testes acabou de ser fechada)
 
 ## Próximo
 
-- [ ] Ampliar a suíte de testes: falta só a tela de fatura. Já cobertos: `/trend`,
-      `/invoices/{month}`, expiração e forja de token, o fail-fast do `JWT_SECRET` e as
-      telas de resumo, lançamentos, configuração e login
 - [ ] Navegação entre meses na tela de resumo — a tela de fatura já tem; o certo é extrair
       um controle compartilhado em vez de duplicar
 
