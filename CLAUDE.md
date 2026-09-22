@@ -165,7 +165,7 @@ npm run preview    # serve the production build
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 64 tests, ~5s
 
-cd frontend && npm test                       # 28 tests, ~3s
+cd frontend && npm test                       # 38 tests, ~3s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use

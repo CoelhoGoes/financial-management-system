@@ -14,9 +14,9 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Próximo
 
-- [ ] Ampliar a suíte de testes: telas de lançamentos, configuração e login; expiração do
-      JWT; recusa de subir sem `JWT_SECRET` (precisa de subprocesso, porque o erro acontece
-      no import). `/trend` e `/invoices/{month}` já estão cobertos
+- [ ] Ampliar a suíte de testes: telas de configuração, login e fatura; expiração do JWT;
+      recusa de subir sem `JWT_SECRET` (precisa de subprocesso, porque o erro acontece no
+      import). `/trend`, `/invoices/{month}` e a tela de lançamentos já estão cobertos
 - [ ] Navegação entre meses na tela de resumo — a tela de fatura já tem; o certo é extrair
       um controle compartilhado em vez de duplicar
 
