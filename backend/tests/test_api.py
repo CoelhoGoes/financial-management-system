@@ -1,4 +1,7 @@
 """Contrato HTTP: autenticação, escopo por usuário e validação."""
+import os
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 LANCAMENTO = {
@@ -203,3 +206,91 @@ class TestInvoices:
             json=_gasto(date="2026-09-05", amount="300.00", method="credito", installments=1),
         )
         assert client.get("/invoices/2026-10", headers=bia).json()["items"] == []
+
+
+class TestToken:
+    """O que acontece quando o bearer não é um token legítimo e recente."""
+
+    def _forjar(self, sub, *, segredo="0" * 64, expira_em_horas=1):
+        import jwt
+
+        expira = datetime.now(UTC) + timedelta(hours=expira_em_horas)
+        return jwt.encode({"sub": str(sub), "exp": expira}, segredo, algorithm="HS256")
+
+    def test_token_expirado_e_recusado(self, client, auth):
+        auth()
+        vencido = self._forjar(1, expira_em_horas=-1)
+        r = client.get("/entries", headers={"Authorization": f"Bearer {vencido}"})
+        assert r.status_code == 401
+
+    def test_token_assinado_com_outro_segredo_e_recusado(self, client, auth):
+        """Sem isto, trocar o JWT_SECRET não invalidaria sessão nenhuma."""
+        auth()
+        forjado = self._forjar(1, segredo="f" * 64)  # 64 chars: o PyJWT avisa abaixo de 32 bytes
+        r = client.get("/entries", headers={"Authorization": f"Bearer {forjado}"})
+        assert r.status_code == 401
+
+    def test_token_valido_de_usuario_inexistente_e_recusado(self, client, auth):
+        auth()
+        fantasma = self._forjar(99999)
+        r = client.get("/entries", headers={"Authorization": f"Bearer {fantasma}"})
+        assert r.status_code == 401
+
+    def test_o_token_emitido_vale_sete_dias(self, client, auth):
+        import jwt
+
+        h = auth()
+        token = h["Authorization"].removeprefix("Bearer ")
+        exp = jwt.decode(token, "0" * 64, algorithms=["HS256"])["exp"]
+        faltam = datetime.fromtimestamp(exp, UTC) - datetime.now(UTC)
+        assert timedelta(days=6, hours=23) < faltam <= timedelta(days=7)
+
+
+class TestFailFastDoSegredo:
+    """O módulo recusa importar sem JWT_SECRET. Precisa de subprocesso: o erro
+    acontece no import, antes de qualquer app existir."""
+
+    def _importar_sem(self, variavel, tmp_path):
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        env = {
+            **os.environ,
+            "DATABASE_URL": f"sqlite+pysqlite:///{tmp_path/'x.db'}",
+            "JWT_SECRET": "0" * 64,
+            "PYTHONPATH": str(Path(__file__).resolve().parent.parent),
+        }
+        env.pop(variavel, None)
+        # check=False de propósito: o returncode é o que está sendo testado
+        return subprocess.run(
+            [sys.executable, "-c", "import app.main"],
+            env=env, capture_output=True, text=True, check=False,
+        )
+
+    def test_sem_jwt_secret_a_aplicacao_nao_sobe(self, tmp_path):
+        r = self._importar_sem("JWT_SECRET", tmp_path)
+        assert r.returncode != 0
+        assert "JWT_SECRET não está definida" in r.stderr
+
+    def test_a_mensagem_diz_como_resolver(self, tmp_path):
+        """Falhar é metade; a outra metade é a pessoa saber o que fazer."""
+        r = self._importar_sem("JWT_SECRET", tmp_path)
+        assert "openssl rand -hex 32" in r.stderr
+
+    def test_com_jwt_secret_o_import_passa(self, tmp_path):
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        r = subprocess.run(
+            [sys.executable, "-c", "import app.main"],
+            env={
+                **os.environ,
+                "DATABASE_URL": f"sqlite+pysqlite:///{tmp_path/'y.db'}",
+                "JWT_SECRET": "0" * 64,
+                "PYTHONPATH": str(Path(__file__).resolve().parent.parent),
+            },
+            capture_output=True, text=True, check=False,
+        )
+        assert r.returncode == 0, r.stderr[-400:]

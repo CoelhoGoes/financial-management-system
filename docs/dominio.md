@@ -153,6 +153,10 @@ conversar antes.
   é presentação, não cálculo de dinheiro — mas fica na fronteira da regra de não ter lógica no
   cliente. **Monitorar:** se ele começar a decidir algo além de qual mês buscar, virou regra de
   negócio no lugar errado e precisa voltar para o servidor.
+- **`JWT_SECRET` é exigida, mas o tamanho dela não.** A aplicação recusa subir sem a variável,
+  e é só isso: `JWT_SECRET=abc` passa. O PyJWT 2.14 emite `InsecureKeyLengthWarning` a cada
+  token emitido com chave abaixo de 32 bytes, então o aviso vai para o log, mas nada impede a
+  subida. O `.env.example` manda gerar com `openssl rand -hex 32`, que dá 64 caracteres.
 - **A camada de API roda em sqlite por padrão.** `backend/tests/test_api.py` sobe o app contra
   um sqlite temporário: rápido e sem container. A mesma suíte roda contra Postgres apontando
   `TEST_DATABASE_URL` (veja o README), e foi verificada nos dois — mas a execução do dia a dia é

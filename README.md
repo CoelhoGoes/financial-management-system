@@ -93,7 +93,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 64 testes, ~5s
+cd backend && pytest                          # 71 testes, ~5s
 
 cd frontend && npm test                       # 48 testes, ~3s
 ```
