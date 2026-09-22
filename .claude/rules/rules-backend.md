@@ -28,6 +28,12 @@ paths:
   `calculate_invoice`, `calculate_summary`, `calculate_category_breakdown`. See
   `docs/dominio.md` for what each rule means. `calculate_category_breakdown` is the only place
   that groups spending by category — `calculate_summary` used to do it too and no longer does.
+  `tests/test_service.py` exercises all of them with dataclass stubs and no database at all;
+  add the test in the same commit as the rule.
+- **`tests/`** — `pytest` from `backend/` (config in `pyproject.toml`). `test_service.py` needs
+  nothing; `test_api.py` boots the app against sqlite, or against Postgres when
+  `TEST_DATABASE_URL` is set. Install with `pip install -r requirements-dev.txt` — dev
+  dependencies live there and never reach the image.
 - **`routers/auth.py` / `routers/finance.py`** — mounted at `/auth` and root respectively.
   `finance.py` loads *all* of a user's `Entry` rows into memory (`_all`) and then
   filters/aggregates in Python via `service.py`, rather than doing month filtering in SQL for

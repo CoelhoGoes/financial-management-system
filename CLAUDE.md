@@ -18,13 +18,17 @@ por conta própria vira dívida que ninguém revisou.
 - apagar código, arquivo ou configuração
 - mudar qualquer coisa em `service.py` — são as regras de negócio
 - mudar `.gitignore`, `docker-compose.yml` ou variáveis de ambiente
-- instalar componente shadcn ou qualquer coisa que rode um CLI de scaffolding
+- rodar CLI de scaffolding que traga **dependência de runtime nova** — é o caso do `Chart`
+  do shadcn, que instala `recharts`
 
 **Pode decidir sozinho:**
 
 - nome de variável, função, componente
 - ordem de imports, formatação, quebra de linha
 - como implementar algo cujo contrato já foi acordado
+- instalar componente do registro oficial do shadcn que **não** traga dependência de runtime
+  nova — avise qual e por quê, mas não espere aprovação. Preferir o shadcn ao feito à mão é
+  a regra, não a exceção (ver `.claude/rules/rules-frontend.md`)
 - dependência **de desenvolvimento** — `backend/requirements-dev.txt` e `devDependencies` do
   `package.json`. Não são entregues a ninguém: o `Dockerfile` instala só o `requirements.txt` e
   o `vite build` não empacota `devDependencies`. O custo de errar é desinstalar

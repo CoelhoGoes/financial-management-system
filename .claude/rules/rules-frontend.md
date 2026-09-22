@@ -22,6 +22,10 @@ paths:
   `EntryScreen` and `InvoiceScreen`), `formatPercent()` (`SummaryScreen`) and `shiftMonth()`
   (`InvoiceScreen`). Money and percentages go through `Intl.NumberFormat('pt-BR')`, so they
   read `4.057,30` and `49,4%` — never format a number inline in a screen.
+- **Tests** — `npm test` (vitest + jsdom, config in `vite.config.ts`). `lib/format.test.ts`
+  covers the pure helpers; `pages/SummaryScreen.test.tsx` renders with `@testing-library/react`
+  and mocks `api.js`. Those mocks are hand-written, so they do **not** catch a backend contract
+  change — a field can disappear from `Summary` and the test stays green.
 - **`App.tsx`** — route table only (`/login`, `/`, `/lancamentos`, `/fatura`, `/configuracoes`),
   via `react-router`. `main.tsx` wraps the app in `BrowserRouter` + `AuthProvider`. Screens live
   one per file in `src/pages/` (`LoginScreen`, `SummaryScreen`, `EntryScreen`, `InvoiceScreen`,
@@ -42,14 +46,21 @@ back — the backend expects a string or number it can parse into `Decimal` exac
   shadcn snippets found online assume Radix and will not work as-is. Icons come from
   `@remixicon/react`, not lucide.
 - Style preset is `base-nova`, base color `neutral`, with `cssVariables: true`.
-- **Installed so far**: `Button`, `Input`, `Label`, `Card` (`src/components/ui/`). Install more
-  with the shadcn CLI (`npx shadcn@latest add <name>`) rather than writing them by hand, so the
-  tokens and variants stay consistent. Closed-choice fields (category/type/method in
-  `EntryScreen`) still use a native `<select>`/toggle `Button`s, not shadcn `Select` — see the
-  "Revisit shadcn Select" item in `CLAUDE.md`'s Planned next steps.
-- Use the `@/` alias for imports inside `src/` (`@/lib/utils`, `@/components/ui/button`).
-  `api.js` is the exception — it sits outside `src/` and is imported by relative path.
-- Compose with `cn()` from `@/lib/utils` when merging class names conditionally.
+- **Check shadcn before building anything by hand.** Search the registry
+  (`npx shadcn@latest search <termo>`, or the catalogue in `.agents/skills/shadcn/`) *before*
+  writing a component yourself or reaching for another library. The theme already ships the
+  tokens its components expect — semantic colours and `--chart-1..5` — so anything hand-rolled
+  falls outside that consistency. If shadcn has it and you still choose not to use it, say why.
+  This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
+  from being written when `Chart` exists.
+- **Installed so far**: `Button`, `Input`, `Label`, `Card`, `Table` (`src/components/ui/`).
+  Install more with the shadcn CLI (`npx shadcn@latest add <name>`) rather than writing them by
+  hand. Closed-choice fields (category/type/method in `EntryScreen`) still use a native
+  `<select>`/toggle `Button`s, not shadcn `Select` — see the item in `docs/roadmap.md`.
+- Use the `@/` alias for imports inside `src/` (`@/components/ui/button`). `api.js` is the
+  exception — it sits outside `src/` and is imported by relative path.
+- Compose with `cn()` from the **`cn` package** (`import { cn } from 'cn'`), the official shadcn
+  replacement for `clsx` + `tailwind-merge`. There is no `src/lib/utils.ts` — do not recreate it.
 - Colors come from the semantic tokens (`bg-background`, `text-foreground`, `border-border`,
   `text-destructive`), never hardcoded hex or raw palette classes — that's what keeps dark mode
   working.
