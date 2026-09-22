@@ -15,7 +15,8 @@ paths:
 - **`schemas.py`** — Pydantic request/response contracts, using `Decimal` for all money fields
   (mirrors the DB `Numeric` columns — never switch these to `float`).
 - **`security.py`** — bcrypt password hashing and JWT issuance/verification (`JWT_SECRET` env
-  var, `HS256`, 7-day expiry). The module **refuses to import** when `JWT_SECRET` is missing,
+  var, `HS256`, 7-day expiry). The module **refuses to import** when `JWT_SECRET` is missing
+  or shorter than `MIN_SECRET_BYTES` (32, the RFC 7518 floor for HS256),
   so the app cannot start signing tokens with a predictable value. `current_user` is the
   FastAPI dependency that resolves the current user from the bearer token; every protected
   endpoint depends on it. It also holds the login attempt limiter

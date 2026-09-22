@@ -31,7 +31,8 @@ O backend roda em Docker; o frontend roda direto no host com Vite.
 ```bash
 cp .env.example .env
 openssl rand -hex 32          # cole o resultado em JWT_SECRET dentro do .env
-                              # obrigatório: sem ele a API se recusa a subir
+                              # obrigatório: a API recusa subir sem ele, e também
+                              # com menos de 32 bytes — o valor de exemplo não serve
 
 docker compose up --build     # exige o plugin Compose v2 (`docker compose`, sem hífen)
                               # Ubuntu/Debian: sudo apt-get install docker-compose-v2
@@ -93,7 +94,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 71 testes, ~5s
+cd backend && pytest                          # 76 testes, ~5s
 
 cd frontend && npm test                       # 48 testes, ~3s
 ```
@@ -187,8 +188,8 @@ O frontend vai para Vercel ou equivalente, com `VITE_API_URL` apontando para a A
 
 Antes de expor na internet:
 
-1. `JWT_SECRET` gerado de verdade (`openssl rand -hex 32`) — a API se recusa a subir sem
-   ela, então isto não passa despercebido
+1. `JWT_SECRET` gerado de verdade (`openssl rand -hex 32`) — a API recusa subir sem ela ou
+   com menos de 32 bytes, então isto não passa despercebido
 2. `ALLOWED_ORIGINS` com o domínio real do front, não `*`
 3. Remover o mapeamento `5432:5432` do compose — o banco não precisa ser público
 4. HTTPS na frente (Caddy ou o proxy da plataforma)

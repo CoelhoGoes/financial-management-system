@@ -250,7 +250,7 @@ class TestFailFastDoSegredo:
     """O módulo recusa importar sem JWT_SECRET. Precisa de subprocesso: o erro
     acontece no import, antes de qualquer app existir."""
 
-    def _importar_sem(self, variavel, tmp_path):
+    def _importar(self, tmp_path, *, segredo="0" * 64, remover=None):
         import subprocess
         import sys
         from pathlib import Path
@@ -258,15 +258,19 @@ class TestFailFastDoSegredo:
         env = {
             **os.environ,
             "DATABASE_URL": f"sqlite+pysqlite:///{tmp_path/'x.db'}",
-            "JWT_SECRET": "0" * 64,
+            "JWT_SECRET": segredo,
             "PYTHONPATH": str(Path(__file__).resolve().parent.parent),
         }
-        env.pop(variavel, None)
+        if remover:
+            env.pop(remover, None)
         # check=False de propósito: o returncode é o que está sendo testado
         return subprocess.run(
             [sys.executable, "-c", "import app.main"],
             env=env, capture_output=True, text=True, check=False,
         )
+
+    def _importar_sem(self, variavel, tmp_path):
+        return self._importar(tmp_path, remover=variavel)
 
     def test_sem_jwt_secret_a_aplicacao_nao_sobe(self, tmp_path):
         r = self._importar_sem("JWT_SECRET", tmp_path)
@@ -279,18 +283,24 @@ class TestFailFastDoSegredo:
         assert "openssl rand -hex 32" in r.stderr
 
     def test_com_jwt_secret_o_import_passa(self, tmp_path):
-        import subprocess
-        import sys
-        from pathlib import Path
-
-        r = subprocess.run(
-            [sys.executable, "-c", "import app.main"],
-            env={
-                **os.environ,
-                "DATABASE_URL": f"sqlite+pysqlite:///{tmp_path/'y.db'}",
-                "JWT_SECRET": "0" * 64,
-                "PYTHONPATH": str(Path(__file__).resolve().parent.parent),
-            },
-            capture_output=True, text=True, check=False,
-        )
+        r = self._importar(tmp_path)
         assert r.returncode == 0, r.stderr[-400:]
+
+    @pytest.mark.parametrize("segredo", ["abc", "a" * 31, ""])
+    def test_segredo_curto_tambem_impede_a_subida(self, tmp_path, segredo):
+        """Exigir a variável não basta: `JWT_SECRET=abc` seria quebrável por força
+        bruta, e quem quebrasse forjaria a sessão de qualquer usuário."""
+        r = self._importar(tmp_path, segredo=segredo)
+        assert r.returncode != 0
+        assert "JWT_SECRET" in r.stderr
+
+    def test_a_mensagem_do_segredo_curto_diz_o_tamanho_e_o_minimo(self, tmp_path):
+        r = self._importar(tmp_path, segredo="a" * 10)
+        assert "tem 10 bytes" in r.stderr
+        assert "mínimo é 32" in r.stderr
+        assert "openssl rand -hex 32" in r.stderr
+
+    def test_exatamente_32_bytes_passa(self, tmp_path):
+        """A fronteira: 32 é aceito, 31 não."""
+        assert self._importar(tmp_path, segredo="a" * 32).returncode == 0
+        assert self._importar(tmp_path, segredo="a" * 31).returncode != 0

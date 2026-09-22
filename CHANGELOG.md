@@ -43,6 +43,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   padrão do Vite que ficava ilegível quando o sistema/navegador preferia tema escuro
 
 ### Alterado
+- A API também recusa subir com uma `JWT_SECRET` curta, não só quando ela falta. Abaixo de
+  32 bytes o segredo é quebrável por força bruta, e quem o quebrasse forjaria a sessão de
+  qualquer usuário. Quem usa um valor curto precisa gerar outro com `openssl rand -hex 32`
 - Valores em dinheiro passam a usar o formato brasileiro em todas as telas, com separador
   de milhar e vírgula decimal (R$ 4.057,30 no lugar de R$ 4057.30)
 - A API não sobe mais sem `JWT_SECRET` definida. Antes ela caía num valor padrão que está

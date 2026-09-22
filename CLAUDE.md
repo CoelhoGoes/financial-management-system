@@ -163,7 +163,7 @@ npm run preview    # serve the production build
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 71 tests, ~5s
+cd backend && pytest                          # 76 tests, ~5s
 
 cd frontend && npm test                       # 48 tests, ~3s
 ```

@@ -10,12 +10,22 @@ from sqlalchemy.orm import Session
 from .database import get_session
 from .models import User
 
+# 32 bytes é o mínimo recomendado pela RFC 7518 para HS256, e o mesmo limite abaixo do
+# qual o PyJWT emite InsecureKeyLengthWarning. `openssl rand -hex 32` dá 64 caracteres.
+MIN_SECRET_BYTES = 32
+
 SECRET = os.getenv("JWT_SECRET")
 if not SECRET:
     raise RuntimeError(
         "JWT_SECRET não está definida. Sem ela a API assinaria os tokens com um valor "
         "previsível, e qualquer pessoa poderia forjar uma sessão de qualquer usuário. "
         "Gere uma chave com `openssl rand -hex 32` e coloque no .env (veja .env.example)."
+    )
+if len(SECRET.encode()) < MIN_SECRET_BYTES:
+    raise RuntimeError(
+        f"JWT_SECRET tem {len(SECRET.encode())} bytes; o mínimo é {MIN_SECRET_BYTES}. "
+        "Um segredo curto é quebrável por força bruta, e quem o quebrar forja a sessão de "
+        "qualquer usuário. Gere uma chave com `openssl rand -hex 32` e coloque no .env."
     )
 
 ALGORITHM = "HS256"
