@@ -53,7 +53,9 @@ back — the backend expects a string or number it can parse into `Decimal` exac
   falls outside that consistency. If shadcn has it and you still choose not to use it, say why.
   This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
   from being written when `Chart` exists.
-- **Installed so far**: `Button`, `Input`, `Label`, `Card`, `Table` (`src/components/ui/`).
+- **Installed so far**: `Button`, `Input`, `Label`, `Card`, `Table`, `Chart`
+  (`src/components/ui/`). `Chart` wraps recharts, so `TrendChart` is lazy-loaded — importing
+  it eagerly doubles the main bundle.
   Install more with the shadcn CLI (`npx shadcn@latest add <name>`) rather than writing them by
   hand. Closed-choice fields (category/type/method in `EntryScreen`) still use a native
   `<select>`/toggle `Button`s, not shadcn `Select` — see the item in `docs/roadmap.md`.

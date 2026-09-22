@@ -42,10 +42,9 @@ um erro.
 substitui `clsx` + `tailwind-merge`, e é assim que o CLI gera os imports desde o `Table`.
 Não recrie um `src/lib/utils.ts`.
 
-> **Em observação:** o `components.json` ainda declara `"utils": "@/lib/utils"`, alias que
-> aponta para um arquivo que não existe mais. Ficou assim de propósito: o CLI novo aparenta
-> não usar esse alias, mas isso não foi verificado. O próximo `npx shadcn add` confirma — se
-> o componente gerado vier com import quebrado, é aqui que está a causa.
+> **Resolvido:** o `components.json` declarava `"utils": "@/lib/utils"`, apontando para um
+> arquivo que não existe mais. O `npx shadcn add chart` confirmou que o alias é usado —
+> apontá-lo para `cn` fez o componente gerado vir com o import correto.
 
 **Cores vêm dos tokens semânticos.** `bg-background`, `text-foreground`, `border-border`,
 `text-destructive`. Nunca hex nem classes de paleta bruta (`bg-neutral-900`) — é o que mantém o
@@ -76,7 +75,8 @@ src/
 │   └── categories.ts     listas fechadas de categoria, espelha docs/dominio.md
 ├── components/
 │   ├── Header.tsx        header/navegação compartilhado entre as telas autenticadas
-│   └── ui/                componentes shadcn (button, card, input, label, table)
+│   ├── TrendChart.tsx    gráfico de tendência, carregado sob demanda
+│   └── ui/                componentes shadcn (button, card, chart, input, label, table)
 └── lib/
     ├── auth-context.tsx  AuthProvider / useAuth — estado de sessão
     └── format.ts         currentMonth() / formatCurrency() / formatPercent()

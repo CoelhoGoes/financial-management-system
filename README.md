@@ -141,7 +141,8 @@ frontend/
     │   └── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
     ├── components/
     │   ├── Header.tsx      navegação/header compartilhado entre as telas
-    │   └── ui/             componentes shadcn (button, card, input, label, table)
+    │   ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
+    │   └── ui/             componentes shadcn (button, card, chart, input, label, table)
     └── lib/
         ├── auth-context.tsx   AuthProvider / useAuth
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()

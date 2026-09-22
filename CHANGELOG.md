@@ -8,6 +8,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Gráfico de tendência na tela de resumo: barras empilhadas de gasto à vista e fatura mês a
+  mês, linha do saldo disponível e uma referência da renda mensal, com recortes de 3, 6 ou
+  12 meses
 - Tela de configuração: define a renda mensal e o dia de fechamento da fatura pelo próprio
   app. Antes só dava para gravar esses valores chamando a API na mão, então toda conta nova
   ficava com renda zero e via um saldo que não batia

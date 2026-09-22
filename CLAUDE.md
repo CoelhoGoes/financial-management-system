@@ -123,6 +123,7 @@ frontend/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
     ├── components/
     │   ├── Header.tsx         shared nav header, used by every authenticated screen
+    │   ├── TrendChart.tsx     trend chart, lazy-loaded so recharts stays out of the main bundle
     │   └── ui/                shadcn components: button.tsx, card.tsx, input.tsx, label.tsx,
     │                          table.tsx
     └── lib/
@@ -245,7 +246,7 @@ a próxima rodada.
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** nada; a tela de configuração acabou de ser concluída.
+**Em andamento:** nada; o gráfico de tendência acabou de ser concluído.
 
 O backend está à frente do frontend: fatura, categorias e tendência já são calculadas e
 expostas em `/invoices/{month}`, `/summary/{month}` e `/trend`. O que falta nessas features

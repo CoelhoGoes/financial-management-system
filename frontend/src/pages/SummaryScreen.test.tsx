@@ -10,6 +10,7 @@ vi.mock('../../api.js', () => ({
     me: vi.fn(),
     summary: vi.fn(),
     categories: vi.fn(),
+    trend: vi.fn(),
     logout: vi.fn(),
   },
 }))
@@ -40,6 +41,7 @@ describe('SummaryScreen', () => {
   beforeEach(() => {
     vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 10 })
     vi.mocked(api.categories).mockResolvedValue([])
+    vi.mocked(api.trend).mockResolvedValue([])
   })
 
   it('avisa quando a renda mensal é zero', async () => {

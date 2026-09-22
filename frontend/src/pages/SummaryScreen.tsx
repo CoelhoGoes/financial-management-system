@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { RiInformationLine } from '@remixicon/react'
 import { api } from '../../api.js'
@@ -7,6 +7,10 @@ import type { CategoryBreakdown, Summary } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/Header'
+// recharts é pesado e só esta seção usa: carrega em separado, sem bloquear a tela
+const TrendChart = lazy(() =>
+  import('@/components/TrendChart').then((m) => ({ default: m.TrendChart })),
+)
 
 function Money({ value, signal }: { value: string; signal?: '+' | '-' }) {
   return (
@@ -166,6 +170,17 @@ export function SummaryScreen() {
           </CardContent>
         </Card>
       )}
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Tendência</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<p className="text-sm text-muted-foreground">Carregando…</p>}>
+            <TrendChart />
+          </Suspense>
+        </CardContent>
+      </Card>
+
     </div>
   )
 }
