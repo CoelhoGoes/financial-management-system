@@ -34,17 +34,15 @@ Instale pelo CLI (`npx shadcn@latest add button`) em vez de copiar de um blog.
 variáveis CSS em `src/index.css`. Se você procurar o arquivo de config, ele não existe — não é
 um erro.
 
-**Os primeiros componentes shadcn já estão instalados** (`Button`, `Input`, `Label`, `Card`,
-`Table`, em `src/components/ui/`) e substituíram os `<input>`/`<button>` crus que existiam em
-`App.tsx`. Instale os próximos componentes pelo CLI, no mesmo padrão.
+**Componentes shadcn instalados** (`Button`, `Input`, `Label`, `Card`, `Table`, `Chart`, em
+`src/components/ui/`). **Antes de escrever qualquer componente à mão, veja se o shadcn já
+tem** — é regra, não preferência; veja `.claude/rules/rules-frontend.md`. O `Chart` embrulha
+o recharts, por isso o `TrendChart` é carregado com `lazy`: importado direto, ele dobraria o
+bundle principal.
 
 **O `cn` vem do pacote `cn`**, não de um helper local — é o pacote oficial do shadcn, que
 substitui `clsx` + `tailwind-merge`, e é assim que o CLI gera os imports desde o `Table`.
 Não recrie um `src/lib/utils.ts`.
-
-> **Resolvido:** o `components.json` declarava `"utils": "@/lib/utils"`, apontando para um
-> arquivo que não existe mais. O `npx shadcn add chart` confirmou que o alias é usado —
-> apontá-lo para `cn` fez o componente gerado vir com o import correto.
 
 **Cores vêm dos tokens semânticos.** `bg-background`, `text-foreground`, `border-border`,
 `text-destructive`. Nunca hex nem classes de paleta bruta (`bg-neutral-900`) — é o que mantém o
