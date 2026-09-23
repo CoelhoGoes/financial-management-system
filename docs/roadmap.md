@@ -10,12 +10,11 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — a suíte de testes acabou de ser fechada)
+- [ ] (nada — a navegação entre meses acabou de sair)
 
 ## Próximo
 
-- [ ] Navegação entre meses na tela de resumo — a tela de fatura já tem; o certo é extrair
-      um controle compartilhado em vez de duplicar
+- [ ] (vazio — nada priorizado; promova algo de **Depois** quando decidir o que vem)
 
 ## Depois
 

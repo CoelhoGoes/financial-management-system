@@ -7,6 +7,7 @@ import type { CategoryBreakdown, Summary } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/Header'
+import { MonthNav } from '@/components/MonthNav'
 // recharts é pesado e só esta seção usa: carrega em separado, sem bloquear a tela
 const TrendChart = lazy(() =>
   import('@/components/TrendChart').then((m) => ({ default: m.TrendChart })),
@@ -38,18 +39,25 @@ function CategoryBar({ share }: { share: string }) {
 
 export function SummaryScreen() {
   const navigate = useNavigate()
-  const month = currentMonth()
+  const [month, setMonth] = useState(currentMonth())
   const [summary, setSummary] = useState<Summary | null>(null)
   const [categories, setCategories] = useState<CategoryBreakdown[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let ativo = true
+    setError(null)
     Promise.all([api.summary(month), api.categories(month)])
       .then(([s, c]: [Summary, CategoryBreakdown[]]) => {
+        // dois cliques rápidos podem devolver fora de ordem: ignora o que já não é o mês atual
+        if (!ativo) return
         setSummary(s)
         setCategories(c)
       })
-      .catch((e: Error) => setError(e.message))
+      .catch((e: Error) => ativo && setError(e.message))
+    return () => {
+      ativo = false
+    }
   }, [month])
 
   const loading = !summary && !error
@@ -85,7 +93,10 @@ export function SummaryScreen() {
       {summary && (
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Resumo — {summary.month}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Resumo — {summary.month}</CardTitle>
+              <MonthNav month={month} onChange={setMonth} />
+            </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-baseline justify-between">
@@ -176,7 +187,7 @@ export function SummaryScreen() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<p className="text-sm text-muted-foreground">Carregando…</p>}>
-            <TrendChart />
+            <TrendChart until={month} />
           </Suspense>
         </CardContent>
       </Card>

@@ -8,6 +8,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Navegação entre meses na tela de resumo: as setas movem saldo, categorias e o gráfico de
+  tendência juntos, então a tela inteira passa a mostrar o mesmo mês
 - Gráfico de tendência na tela de resumo: barras empilhadas de gasto à vista e fatura mês a
   mês, linha do saldo disponível e uma referência da renda mensal, com recortes de 3, 6 ou
   12 meses

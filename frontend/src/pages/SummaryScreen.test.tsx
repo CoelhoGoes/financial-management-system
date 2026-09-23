@@ -1,7 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '@/lib/auth-context'
+import { currentMonth, shiftMonth } from '@/lib/format'
 import { SummaryScreen } from './SummaryScreen'
 
 vi.mock('../../api.js', () => ({
@@ -64,6 +66,25 @@ describe('SummaryScreen', () => {
     // sem gasto nenhum, o saldo disponível é igual à renda — o valor aparece nos dois lugares
     expect(await screen.findAllByText('R$ 6.500,00')).toHaveLength(2)
     expect(screen.queryByText('R$ 6500.00')).not.toBeInTheDocument()
+  })
+
+  it('abre no mês corrente', async () => {
+    vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
+    montar()
+    await waitFor(() => expect(api.summary).toHaveBeenCalledWith(currentMonth()))
+    expect(api.categories).toHaveBeenCalledWith(currentMonth())
+  })
+
+  it('refaz resumo e categorias ao navegar para outro mês', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
+    montar()
+    await screen.findByText(/Resumo —/)
+
+    const anterior = shiftMonth(currentMonth(), -1)
+    await user.click(screen.getByRole('button', { name: 'Mês anterior' }))
+    await waitFor(() => expect(api.summary).toHaveBeenCalledWith(anterior))
+    expect(api.categories).toHaveBeenCalledWith(anterior)
   })
 
   it('mostra a categoria com percentual e o número da parcela', async () => {

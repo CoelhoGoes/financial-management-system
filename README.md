@@ -96,7 +96,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 76 testes, ~5s
 
-cd frontend && npm test                       # 54 testes, ~3s
+cd frontend && npm test                       # 60 testes, ~3s
 ```
 
 Os testes de `backend/tests/test_service.py` não precisam de banco — `service.py` é puro e os

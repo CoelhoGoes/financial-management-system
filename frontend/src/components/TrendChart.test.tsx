@@ -24,25 +24,25 @@ describe('TrendChart', () => {
     ])
   })
 
-  it('pede 6 meses por padrão e sempre manda o `until`', async () => {
-    render(<TrendChart />)
+  it('pede 6 meses por padrão e repassa o `until` que recebeu', async () => {
+    render(<TrendChart until="2026-09" />)
     await waitFor(() => expect(api.trend).toHaveBeenCalled())
     const [months, until] = vi.mocked(api.trend).mock.calls[0]
     expect(months).toBe(6)
-    // o servidor não deve adivinhar o mês corrente — ver docs/dominio.md
-    expect(until).toMatch(/^\d{4}-(0[1-9]|1[0-2])$/)
+    // o servidor não deve adivinhar o mês: quem manda é a tela — ver docs/dominio.md
+    expect(until).toBe('2026-09')
   })
 
   it('refaz a busca ao trocar de preset', async () => {
-    const { rerender } = render(<TrendChart />)
+    const { rerender } = render(<TrendChart until="2026-09" />)
     await waitFor(() => expect(api.trend).toHaveBeenCalledTimes(1))
     screen.getByRole('button', { name: '12 meses' }).click()
-    rerender(<TrendChart />)
+    rerender(<TrendChart until="2026-09" />)
     await waitFor(() => expect(vi.mocked(api.trend).mock.calls[1][0]).toBe(12))
   })
 
   it('marca qual preset está ativo', async () => {
-    render(<TrendChart />)
+    render(<TrendChart until="2026-09" />)
     await waitFor(() => expect(api.trend).toHaveBeenCalled())
     expect(screen.getByRole('button', { name: '6 meses' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'false')
@@ -50,7 +50,7 @@ describe('TrendChart', () => {
 
   it('mostra o erro quando a busca falha', async () => {
     vi.mocked(api.trend).mockRejectedValue(new Error('Sessão expirada.'))
-    render(<TrendChart />)
+    render(<TrendChart until="2026-09" />)
     expect(await screen.findByText('Sessão expirada.')).toBeInTheDocument()
   })
 })

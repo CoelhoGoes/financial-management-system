@@ -166,7 +166,7 @@ npm run preview    # serve the production build
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 76 tests, ~5s
 
-cd frontend && npm test                       # 54 tests, ~3s
+cd frontend && npm test                       # 60 tests, ~3s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use
@@ -247,7 +247,7 @@ a próxima rodada.
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** nada; a suíte de testes acabou de ser fechada.
+**Em andamento:** nada; a navegação entre meses acabou de sair.
 
 O backend está à frente do frontend: fatura, categorias e tendência já são calculadas e
 expostas em `/invoices/{month}`, `/summary/{month}` e `/trend`. O que falta nessas features

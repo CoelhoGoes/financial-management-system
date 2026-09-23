@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis } from 'recharts'
 import { api } from '../../api.js'
-import { currentMonth, formatCurrency, formatMonthShort } from '@/lib/format'
+import { formatCurrency, formatMonthShort } from '@/lib/format'
 import type { Summary } from '@/types'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,7 +31,7 @@ interface Point {
   available_balance: number
 }
 
-export function TrendChart() {
+export function TrendChart({ until }: { until: string }) {
   const [months, setMonths] = useState<number>(6)
   const [points, setPoints] = useState<Point[] | null>(null)
   const [income, setIncome] = useState(0)
@@ -39,10 +39,10 @@ export function TrendChart() {
 
   useEffect(() => {
     let ativo = true
-    // `until` sempre vai explícito: quem sabe o fuso de quem olha é o navegador,
-    // não o servidor — ver docs/dominio.md, seção Tendência.
+    // `until` vem da tela, que o calcula no fuso do navegador: quem sabe o fuso de
+    // quem olha é o cliente, não o servidor — ver docs/dominio.md, seção Tendência.
     api
-      .trend(months, currentMonth())
+      .trend(months, until)
       .then((data: Summary[]) => {
         if (!ativo) return
         setPoints(
@@ -59,7 +59,7 @@ export function TrendChart() {
     return () => {
       ativo = false
     }
-  }, [months])
+  }, [months, until])
 
   return (
     <div className="flex flex-col gap-4">

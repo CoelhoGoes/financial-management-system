@@ -141,7 +141,8 @@ conversar antes.
   usuário na memória** e filtram em Python, em vez de filtrar no SQL. Na escala de um usuário
   isso é irrelevante; é o primeiro lugar para olhar se ficar lento. A tela de resumo chama os
   dois primeiros em paralelo, então são **duas varreduras completas e dois cálculos de fatura**
-  por carregamento — quem for fazer o filtro em SQL ganha o dobro do que parece.
+  a cada mês visitado — não só no carregamento, já que a navegação entre meses refaz as buscas.
+  Quem for fazer o filtro em SQL ganha o dobro do que parece.
 - **`frontend/api.js` é JavaScript puro e vive fora de `src/`.** O resto do frontend é
   TypeScript. Isso significa que as respostas da API chegam como `any` e os tipos em `types.ts`
   são aplicados manualmente na chamada. Mover para `src/api.ts` tipado resolveria, mas quebra os
