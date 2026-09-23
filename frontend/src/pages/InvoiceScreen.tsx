@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { api } from '../../api.js'
-import { currentMonth, formatCurrency, shiftMonth } from '@/lib/format'
+import { currentMonth, formatCurrency } from '@/lib/format'
 import type { Invoice } from '@/types'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -14,6 +12,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Header } from '@/components/Header'
+import { MonthNav } from '@/components/MonthNav'
 
 export function InvoiceScreen() {
   const [month, setMonth] = useState(currentMonth())
@@ -46,26 +45,7 @@ export function InvoiceScreen() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Fatura — {month}</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label="Mês anterior"
-                onClick={() => setMonth((m) => shiftMonth(m, -1))}
-              >
-                <RiArrowLeftSLine />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label="Próximo mês"
-                onClick={() => setMonth((m) => shiftMonth(m, 1))}
-              >
-                <RiArrowRightSLine />
-              </Button>
-            </div>
+            <MonthNav month={month} onChange={setMonth} />
           </div>
         </CardHeader>
         <CardContent>

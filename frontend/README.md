@@ -73,6 +73,7 @@ src/
 │   └── categories.ts     listas fechadas de categoria, espelha docs/dominio.md
 ├── components/
 │   ├── Header.tsx        header/navegação compartilhado entre as telas autenticadas
+│   ├── MonthNav.tsx      passo de mês, compartilhado por resumo e fatura
 │   ├── TrendChart.tsx    gráfico de tendência, carregado sob demanda
 │   └── ui/                componentes shadcn (button, card, chart, input, label, table)
 └── lib/

@@ -123,6 +123,7 @@ frontend/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
     ├── components/
     │   ├── Header.tsx         shared nav header, used by every authenticated screen
+    │   ├── MonthNav.tsx       month stepper, shared by Summary and Invoice
     │   ├── TrendChart.tsx     trend chart, lazy-loaded so recharts stays out of the main bundle
     │   └── ui/                shadcn components: button.tsx, card.tsx, input.tsx, label.tsx,
     │                          table.tsx

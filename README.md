@@ -142,6 +142,7 @@ frontend/
     │   └── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
     ├── components/
     │   ├── Header.tsx      navegação/header compartilhado entre as telas
+    │   ├── MonthNav.tsx    passo de mês, compartilhado por resumo e fatura
     │   ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
     │   └── ui/             componentes shadcn (button, card, chart, input, label, table)
     └── lib/
