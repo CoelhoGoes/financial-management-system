@@ -6,6 +6,9 @@
 [tool.ruff]
 # Matches the runtime in backend/Dockerfile (python:3.12-slim).
 target-version = "py312"
+# Migrações são geradas do template do Alembic a cada `alembic revision`; formatá-las
+# à mão só faz o próximo arquivo nascer torto de novo. `alembic/env.py` continua no lint.
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint.flake8-bugbear]
 # FastAPI's dependency injection requires calling Depends()/Query() in the
