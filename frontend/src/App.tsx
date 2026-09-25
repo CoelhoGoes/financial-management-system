@@ -4,6 +4,7 @@ import { LoginScreen } from '@/pages/LoginScreen'
 import { SummaryScreen } from '@/pages/SummaryScreen'
 import { EntryScreen } from '@/pages/EntryScreen'
 import { InvoiceScreen } from '@/pages/InvoiceScreen'
+import { ImportScreen } from '@/pages/ImportScreen'
 import { ConfigScreen } from '@/pages/ConfigScreen'
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
       <Route
         path="/fatura"
         element={user ? <InvoiceScreen /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/importar"
+        element={user ? <ImportScreen /> : <Navigate to="/login" replace />}
       />
       <Route
         path="/configuracoes"

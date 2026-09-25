@@ -8,6 +8,11 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Importação de extrato bancário em OFX: a aba Importar lê o arquivo que você baixa do app
+  do banco, mostra tudo que veio para você conferir e escolher categoria, e só grava depois
+  que você confirma. Lançamento que já entrou numa importação anterior aparece marcado e
+  fora da seleção, então reimportar o mesmo extrato não duplica nada. Fatura de cartão é
+  recusada com o motivo: ela já é calculada a partir dos seus lançamentos no crédito
 - Navegação entre meses na tela de resumo: as setas movem saldo, categorias e o gráfico de
   tendência juntos, então a tela inteira passa a mostrar o mesmo mês
 - Gráfico de tendência na tela de resumo: barras empilhadas de gasto à vista e fatura mês a

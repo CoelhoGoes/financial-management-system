@@ -41,3 +41,9 @@ export function shiftMonth(month: string, delta: number) {
   const nextMonth = String(date.getMonth() + 1).padStart(2, '0')
   return `${date.getFullYear()}-${nextMonth}`
 }
+
+/** '2026-09-21' → '21/09'. O ano fica de fora: o extrato é sempre de um período curto. */
+export function formatDayMonth(iso: string): string {
+  const [, month, day] = iso.split('-')
+  return `${day}/${month}`
+}

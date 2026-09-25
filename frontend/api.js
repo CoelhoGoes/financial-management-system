@@ -5,10 +5,13 @@ const TOKEN_KEY = 'gf:token';
 const token = () => localStorage.getItem(TOKEN_KEY);
 
 async function req(path, options = {}) {
+  // Upload de arquivo vai como FormData: quem define o Content-Type é o navegador,
+  // que precisa anexar o boundary do multipart. Declarar JSON aqui quebraria o envio.
+  const isUpload = options.body instanceof FormData;
   const response = await fetch(BASE + path, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isUpload ? {} : { 'Content-Type': 'application/json' }),
       ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
       ...options.headers,
     },
@@ -56,6 +59,13 @@ export const api = {
   createEntry: (data) =>
     req('/entries', { method: 'POST', body: JSON.stringify(data) }),
   removeEntry: (id) => req(`/entries/${id}`, { method: 'DELETE' }),
+
+  previewImport: (file) => {
+    const body = new FormData();
+    body.append('file', file);
+    return req('/imports/preview', { method: 'POST', body });
+  },
+  confirmImport: (lines) => req('/imports', { method: 'POST', body: JSON.stringify(lines) }),
 
   summary: (month) => req(`/summary/${month}`),
   categories: (month) => req(`/summary/${month}/categories`),

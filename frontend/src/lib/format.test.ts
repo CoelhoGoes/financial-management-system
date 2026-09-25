@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { currentMonth, formatCurrency, formatPercent, shiftMonth } from './format'
+import { currentMonth, formatCurrency, formatDayMonth, formatPercent, shiftMonth } from './format'
 
 describe('formatCurrency', () => {
   it.each([
@@ -60,5 +60,15 @@ describe('shiftMonth', () => {
 describe('currentMonth', () => {
   it('devolve o mês no formato que a API aceita', () => {
     expect(currentMonth()).toMatch(/^\d{4}-(0[1-9]|1[0-2])$/)
+  })
+})
+
+describe('formatDayMonth', () => {
+  it('mostra dia e mês, sem o ano', () => {
+    expect(formatDayMonth('2026-09-21')).toBe('21/09')
+  })
+
+  it('preserva o zero à esquerda', () => {
+    expect(formatDayMonth('2026-01-05')).toBe('05/01')
   })
 })

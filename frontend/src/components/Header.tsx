@@ -3,6 +3,7 @@ import {
   RiHomeLine,
   RiFileListLine,
   RiBillLine,
+  RiUploadCloud2Line,
   RiSettings3Line,
   RiLogoutBoxRLine,
 } from '@remixicon/react'
@@ -10,12 +11,13 @@ import { useAuth } from '@/lib/auth-context'
 import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 
-type Screen = 'resumo' | 'lancamentos' | 'fatura' | 'configuracoes'
+type Screen = 'resumo' | 'lancamentos' | 'fatura' | 'importar' | 'configuracoes'
 
 const NAV_ITEMS: { screen: Screen; label: string; path: string; icon: typeof RiHomeLine }[] = [
   { screen: 'resumo', label: 'Resumo', path: '/', icon: RiHomeLine },
   { screen: 'lancamentos', label: 'Lançamentos', path: '/lancamentos', icon: RiFileListLine },
   { screen: 'fatura', label: 'Fatura', path: '/fatura', icon: RiBillLine },
+  { screen: 'importar', label: 'Importar', path: '/importar', icon: RiUploadCloud2Line },
 ]
 
 interface HeaderProps {
