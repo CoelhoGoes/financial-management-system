@@ -92,6 +92,7 @@ rather than inventing category names.
 ## Repository layout
 
 ```
+dev.sh                        sobe tudo numa linha
 backend/
 ├── Dockerfile
 ├── pyproject.toml            ruff + pytest config — not a package definition
@@ -137,6 +138,18 @@ docker-compose.yml            repo root
 ```
 
 ## Commands
+
+Everything at once (Postgres + API in Docker, frontend in dev mode):
+
+```bash
+./dev.sh
+```
+
+It creates `.env` and generates `JWT_SECRET` when missing, waits for `/health` before starting
+Vite, and installs frontend deps on first run. `Ctrl+C` stops Vite only — the containers stay
+up on purpose, since bringing Postgres back is the slow part.
+
+The individual commands below are still the way to run only one half.
 
 Backend:
 

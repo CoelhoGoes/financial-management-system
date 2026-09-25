@@ -24,6 +24,17 @@ As regras de negócio estão em [`docs/dominio.md`](docs/dominio.md).
 
 ## Subir localmente
 
+```bash
+./dev.sh
+```
+
+Sobe tudo: Postgres e API em Docker, frontend em modo dev. Cria o `.env` e gera o
+`JWT_SECRET` se estiver faltando, espera a API responder antes de abrir o Vite, e instala as
+dependências do frontend na primeira vez. `Ctrl+C` encerra o Vite; os containers seguem de pé
+(`docker compose down` para derrubar).
+
+O resto desta seção é o caminho manual, útil quando você quer rodar só uma das metades.
+
 O backend roda em Docker; o frontend roda direto no host com Vite.
 
 ### 1. Backend + banco
@@ -150,6 +161,7 @@ frontend/
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
                                / shiftMonth()
 
+dev.sh                 na raiz — sobe tudo numa linha
 docker-compose.yml     na raiz
 .env.example           na raiz (backend); o frontend usa frontend/.env
 ```
