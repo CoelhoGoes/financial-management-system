@@ -1,6 +1,15 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, func
+from sqlalchemy import (
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -25,6 +34,8 @@ class User(Base):
 
 class Entry(Base):
     __tablename__ = "lancamentos"
+    # reimportar o mesmo extrato não pode duplicar; nulos não conflitam no Postgres
+    __table_args__ = (UniqueConstraint("usuario_id", "id_importacao", name="uq_lancamento_importacao"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
@@ -38,6 +49,11 @@ class Entry(Base):
     date: Mapped[date] = mapped_column("data", Date, index=True)
     method: Mapped[str] = mapped_column("forma", String(10), default="avista")  # avista | credito
     installments: Mapped[int] = mapped_column("parcelas", Integer, default=1)
+    # Origem quando veio de importação: "BANKID:ACCTID:FITID" do OFX. O FITID é único
+    # por conta, não globalmente, por isso o prefixo. Nulo em lançamento digitado.
+    import_id: Mapped[str | None] = mapped_column(
+        "id_importacao", String(120), nullable=True, default=None
+    )
     created_at: Mapped[datetime] = mapped_column(
         "criado_em", DateTime(timezone=True), server_default=func.now()
     )
