@@ -64,3 +64,23 @@ export interface CategoryBreakdown {
   share: string
   items: CategoryItem[]
 }
+
+export interface ImportPreviewItem {
+  type: EntryType
+  amount: string
+  description: string
+  date: string
+  import_id: string
+  /** Já entrou numa importação anterior: aparece marcada, não some da lista. */
+  already_imported: boolean
+}
+
+export interface EntryImport extends EntryCreate {
+  import_id: string
+}
+
+export interface ImportResult {
+  created: EntryOut[]
+  /** Quantas o servidor recusou por já existirem — não o que você desmarcou. */
+  skipped: number
+}

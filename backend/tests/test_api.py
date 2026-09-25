@@ -4,6 +4,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from tests.test_ofx import account_statement, card_statement, transaction
+
 LANCAMENTO = {
     "description": "feira", "amount": "150.50", "type": "gasto",
     "category": "Mercado", "method": "avista", "date": "2026-09-05", "installments": 1,
@@ -304,3 +306,132 @@ class TestFailFastDoSegredo:
         """A fronteira: 32 é aceito, 31 não."""
         assert self._importar(tmp_path, segredo="a" * 32).returncode == 0
         assert self._importar(tmp_path, segredo="a" * 31).returncode != 0
+
+
+def revisada(linha, category="Outros", **kw):
+    """A linha da prévia como ela volta da tela de revisão: com categoria escolhida."""
+    return {
+        "type": linha["type"], "amount": linha["amount"], "description": linha["description"],
+        "date": linha["date"], "import_id": linha["import_id"], "category": category, **kw,
+    }
+
+
+class TestImportacao:
+    """Prévia lê, confirmação grava. O que separa os dois é o usuário conferir."""
+
+    def enviar(self, client, headers, conteudo):
+        return client.post(
+            "/imports/preview",
+            headers=headers,
+            files={"file": ("extrato.ofx", conteudo, "application/x-ofx")},
+        )
+
+    def test_previa_le_o_extrato_sem_gravar_nada(self, client, auth):
+        headers = auth()
+        r = self.enviar(client, headers, account_statement([transaction(memo="PIX FULANO")]))
+
+        assert r.status_code == 200
+        assert [i["description"] for i in r.json()] == ["PIX FULANO"]
+        assert client.get("/entries", headers=headers).json() == []
+
+    def test_previa_exige_autenticacao(self, client):
+        assert self.enviar(client, {}, account_statement([transaction()])).status_code == 401
+
+    def test_previa_marca_o_que_ja_foi_importado(self, client, auth):
+        headers = auth()
+        extrato = account_statement([transaction(fitid="A"), transaction(fitid="B")])
+        linhas = self.enviar(client, headers, extrato).json()
+        assert [i["already_imported"] for i in linhas] == [False, False]
+
+        client.post("/imports", headers=headers, json=[revisada(linhas[0])])
+
+        marcadas = self.enviar(client, headers, extrato).json()
+        assert [i["already_imported"] for i in marcadas] == [True, False]
+
+    def test_previa_recusa_fatura_de_cartao_explicando(self, client, auth):
+        r = self.enviar(client, auth(), card_statement())
+
+        assert r.status_code == 422
+        assert "fatura de cartão" in r.json()["detail"]
+
+    def test_previa_recusa_arquivo_que_nao_e_ofx(self, client, auth):
+        r = self.enviar(client, auth(), b"%PDF-1.4 isto e um extrato em pdf")
+
+        assert r.status_code == 422
+
+    def test_previa_recusa_arquivo_grande_demais(self, client, auth):
+        r = self.enviar(client, auth(), b"x" * (2 * 1024 * 1024 + 1))
+
+        assert r.status_code == 413
+
+    def test_confirmacao_grava_os_lancamentos(self, client, auth):
+        headers = auth()
+        linhas = self.enviar(
+            client, headers, account_statement([transaction(amount="-20.00", memo="FEIRA")])
+        ).json()
+
+        r = client.post("/imports", headers=headers, json=[revisada(linhas[0], category="Mercado")])
+
+        assert r.status_code == 201
+        assert r.json()["skipped"] == 0
+        (criado,) = r.json()["created"]
+        assert criado["description"] == "FEIRA"
+        assert criado["category"] == "Mercado"
+        assert criado["amount"] == "20.00"
+        assert len(client.get("/entries", headers=headers).json()) == 1
+
+    def test_confirmar_duas_vezes_nao_duplica(self, client, auth):
+        headers = auth()
+        (linha,) = self.enviar(client, headers, account_statement([transaction()])).json()
+        client.post("/imports", headers=headers, json=[revisada(linha)])
+
+        r = client.post("/imports", headers=headers, json=[revisada(linha)])
+
+        assert r.json() == {"created": [], "skipped": 1}
+        assert len(client.get("/entries", headers=headers).json()) == 1
+
+    def test_lote_com_a_mesma_linha_repetida_grava_uma_vez(self, client, auth):
+        headers = auth()
+        (linha,) = self.enviar(client, headers, account_statement([transaction()])).json()
+
+        r = client.post("/imports", headers=headers, json=[revisada(linha), revisada(linha)])
+
+        assert len(r.json()["created"]) == 1
+        assert r.json()["skipped"] == 1
+
+    def test_entrada_importada_no_credito_e_recusada(self, client, auth):
+        headers = auth()
+        (linha,) = self.enviar(
+            client, headers, account_statement([transaction(trntype="CREDIT", amount="1500.00")])
+        ).json()
+
+        r = client.post(
+            "/imports", headers=headers, json=[revisada(linha, method="credito")]
+        )
+
+        assert r.status_code == 422
+
+    def test_entrada_do_extrato_vira_lancamento_de_entrada(self, client, auth):
+        headers = auth()
+        (linha,) = self.enviar(
+            client,
+            headers,
+            account_statement([transaction(trntype="CREDIT", amount="1500.00", memo="SALARIO")]),
+        ).json()
+
+        assert linha["type"] == "entrada"
+        assert linha["amount"] == "1500.00"
+
+    def test_o_mesmo_extrato_em_duas_contas_importa_nas_duas(self, client, auth):
+        """A restrição única é por usuário: o extrato de um não bloqueia o do outro."""
+        ana = auth(email="ana@b.co")
+        bia = auth(email="bia@b.co")
+        extrato = account_statement([transaction()])
+        (linha,) = self.enviar(client, ana, extrato).json()
+        client.post("/imports", headers=ana, json=[revisada(linha)])
+
+        (para_bia,) = self.enviar(client, bia, extrato).json()
+        assert para_bia["already_imported"] is False
+
+        r = client.post("/imports", headers=bia, json=[revisada(para_bia)])
+        assert len(r.json()["created"]) == 1

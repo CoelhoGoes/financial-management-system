@@ -83,3 +83,32 @@ class Summary(BaseModel):
     invoice: Decimal
     total_spent: Decimal
     available_balance: Decimal
+
+
+class ImportPreviewItem(BaseModel):
+    """Uma linha lida do extrato, antes de virar lançamento.
+
+    Sem `category`: quem importa escolhe na revisão. `already_imported` marca o que já
+    entrou numa importação anterior — a linha aparece na tela, riscada, em vez de sumir
+    em silêncio.
+    """
+
+    type: Literal["gasto", "entrada"]
+    amount: Decimal
+    description: str
+    date: date
+    import_id: str
+    already_imported: bool
+
+
+class EntryImport(EntryCreate):
+    """Linha revisada, voltando para gravação. `import_id` é o que impede duplicata."""
+
+    import_id: str = Field(min_length=1, max_length=120)
+
+
+class ImportResult(BaseModel):
+    """`skipped` conta o que o servidor recusou por já existir, não o que você desmarcou."""
+
+    created: list[EntryOut]
+    skipped: int
