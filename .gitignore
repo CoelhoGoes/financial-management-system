@@ -12,3 +12,7 @@ skills-lock.json
 
 # logs do playwright-mcp (ferramenta de browser, não é artefato do projeto)
 .playwright-mcp/
+
+# extratos bancários — nunca versionar, nem de exemplo
+*.ofx
+*.OFX
