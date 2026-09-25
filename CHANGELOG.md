@@ -40,6 +40,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   entre meses e lista das parcelas que vencem no período
 
 ### Corrigido
+- Botões do cabeçalho saíam da tela no celular: com a aba nova eles não cabiam mais numa
+  linha só, e "Sair" e o acesso às configurações ficavam fora da área visível
 - Dependências do backend atualizadas para fechar vulnerabilidades conhecidas (FastAPI,
   PyJWT e python-multipart): as falhas permitiam derrubar a API com requisições forjadas
   na tela de login, que responde sem autenticação

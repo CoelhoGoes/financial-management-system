@@ -30,9 +30,11 @@ export function Header({ active, className }: HeaderProps) {
   const navigate = useNavigate()
 
   return (
-    <div className={cn('flex w-full items-center justify-between', className)}>
+    // flex-wrap: com quatro abas os botões não cabem mais na largura de um celular,
+    // e sem quebrar a linha o "Sair" fica fora da tela.
+    <div className={cn('flex w-full flex-wrap items-center justify-between gap-2', className)}>
       <p className="text-foreground">{user?.email}</p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {NAV_ITEMS.filter((item) => item.screen !== active).map((item) => (
           <Button
             key={item.screen}
