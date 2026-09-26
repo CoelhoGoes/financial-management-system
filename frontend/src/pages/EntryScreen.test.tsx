@@ -12,6 +12,7 @@ vi.mock('../../api.js', () => ({
     entries: vi.fn(),
     summary: vi.fn(),
     createEntry: vi.fn(),
+    updateEntry: vi.fn(),
     removeEntry: vi.fn(),
     logout: vi.fn(),
   },
@@ -43,6 +44,8 @@ describe('EntryScreen', () => {
     vi.mocked(api.entries).mockResolvedValue([LANCAMENTO])
     vi.mocked(api.summary).mockResolvedValue(RESUMO)
     vi.mocked(api.createEntry).mockResolvedValue(LANCAMENTO)
+    vi.mocked(api.updateEntry).mockReset()
+    vi.mocked(api.updateEntry).mockResolvedValue(LANCAMENTO)
     vi.mocked(api.removeEntry).mockResolvedValue(null)
   })
 
@@ -188,6 +191,89 @@ describe('EntryScreen', () => {
       await user.click(screen.getByRole('button', { name: 'Excluir' }))
       await user.click(screen.getByRole('button', { name: 'Confirmar?' }))
       await waitFor(() => expect(api.entries).toHaveBeenCalledTimes(2))
+    })
+  })
+
+  describe('a edição', () => {
+    it('o lápis carrega o lançamento no formulário', async () => {
+      const user = userEvent.setup()
+      montar()
+
+      await user.click(await screen.findByRole('button', { name: 'Editar feira' }))
+
+      expect(screen.getByText('Editar lançamento')).toBeInTheDocument()
+      expect(screen.getByLabelText('Descrição')).toHaveValue('feira')
+      expect(screen.getByLabelText('Categoria')).toHaveValue('Mercado')
+      expect(screen.getByLabelText('Valor')).toHaveValue(150.5)
+      expect(screen.getByLabelText('Data')).toHaveValue('2026-09-05')
+      expect(screen.getByLabelText('Descrição')).toHaveFocus()
+    })
+
+    it('salvar em edição altera o lançamento em vez de criar outro', async () => {
+      const user = userEvent.setup()
+      montar()
+
+      await user.click(await screen.findByRole('button', { name: 'Editar feira' }))
+      await user.selectOptions(screen.getByLabelText('Categoria'), 'Lazer')
+      await user.click(screen.getByRole('button', { name: 'Salvar' }))
+
+      await waitFor(() => expect(api.updateEntry).toHaveBeenCalled())
+      expect(api.createEntry).not.toHaveBeenCalled()
+      const [id, payload] = vi.mocked(api.updateEntry).mock.calls[0]
+      expect(id).toBe(1)
+      expect(payload).toMatchObject({ description: 'feira', category: 'Lazer', amount: '150.50' })
+    })
+
+    it('depois de salvar volta a ser o formulário de lançamento novo', async () => {
+      const user = userEvent.setup()
+      montar()
+
+      await user.click(await screen.findByRole('button', { name: 'Editar feira' }))
+      await user.click(screen.getByRole('button', { name: 'Salvar' }))
+
+      expect(await screen.findByText('Novo lançamento')).toBeInTheDocument()
+      expect(screen.getByLabelText('Descrição')).toHaveValue('')
+      expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument()
+    })
+
+    it('cancelar descarta a edição sem chamar a API', async () => {
+      const user = userEvent.setup()
+      montar()
+
+      await user.click(await screen.findByRole('button', { name: 'Editar feira' }))
+      await user.clear(screen.getByLabelText('Descrição'))
+      await user.type(screen.getByLabelText('Descrição'), 'mudei de ideia')
+      await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+      expect(screen.getByText('Novo lançamento')).toBeInTheDocument()
+      expect(screen.getByLabelText('Descrição')).toHaveValue('')
+      expect(api.updateEntry).not.toHaveBeenCalled()
+    })
+
+    it('erro do servidor mantém a edição aberta com o que foi digitado', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.updateEntry).mockRejectedValue(new Error('Entrada não vai no crédito.'))
+      montar()
+
+      await user.click(await screen.findByRole('button', { name: 'Editar feira' }))
+      await user.selectOptions(screen.getByLabelText('Categoria'), 'Lazer')
+      await user.click(screen.getByRole('button', { name: 'Salvar' }))
+
+      expect(await screen.findByText('Entrada não vai no crédito.')).toBeInTheDocument()
+      expect(screen.getByText('Editar lançamento')).toBeInTheDocument()
+      expect(screen.getByLabelText('Categoria')).toHaveValue('Lazer')
+    })
+
+    it('excluir o lançamento que está em edição fecha a edição', async () => {
+      const user = userEvent.setup()
+      montar()
+
+      await user.click(await screen.findByRole('button', { name: 'Editar feira' }))
+      await user.click(screen.getByRole('button', { name: 'Excluir' }))
+      await user.click(screen.getByRole('button', { name: 'Confirmar?' }))
+
+      expect(await screen.findByText('Novo lançamento')).toBeInTheDocument()
+      expect(screen.getByLabelText('Descrição')).toHaveValue('')
     })
   })
 

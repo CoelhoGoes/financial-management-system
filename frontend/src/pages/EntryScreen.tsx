@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { RiPencilLine } from '@remixicon/react'
 import { api } from '../../api.js'
 import { currentMonth, formatCurrency } from '@/lib/format'
 import { GASTO_CATEGORIES, ENTRADA_CATEGORIES } from '@/constants/categories'
@@ -23,6 +24,19 @@ interface FormState {
   installments: string
 }
 
+/** O lançamento no formato do formulário — os inputs trabalham com string. */
+function formFromEntry(entry: EntryOut): FormState {
+  return {
+    type: entry.type,
+    amount: entry.amount,
+    description: entry.description,
+    category: entry.category,
+    date: entry.date,
+    method: entry.method ?? 'avista',
+    installments: String(entry.installments ?? 1),
+  }
+}
+
 function defaultForm(): FormState {
   return {
     type: 'gasto',
@@ -44,6 +58,9 @@ export function EntryScreen() {
   const [form, setForm] = useState<FormState>(defaultForm())
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  // null = criando um lançamento novo; um id = editando aquele
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const descriptionRef = useRef<HTMLInputElement>(null)
 
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
@@ -86,6 +103,20 @@ export function EntryScreen() {
     })
   }
 
+  function startEditing(entry: EntryOut) {
+    setForm(formFromEntry(entry))
+    setEditingId(entry.id)
+    setFormError(null)
+    // no celular o formulário fica acima da lista, fora da tela; o foco o traz de volta
+    descriptionRef.current?.focus()
+  }
+
+  function stopEditing() {
+    setForm(defaultForm())
+    setEditingId(null)
+    setFormError(null)
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setSubmitting(true)
@@ -103,8 +134,12 @@ export function EntryScreen() {
             ? Number(form.installments)
             : 1,
       }
-      await api.createEntry(payload)
-      setForm(defaultForm())
+      if (editingId === null) {
+        await api.createEntry(payload)
+      } else {
+        await api.updateEntry(editingId, payload)
+      }
+      stopEditing()
       await loadData()
     } catch (e) {
       setFormError((e as Error).message)
@@ -119,7 +154,11 @@ export function EntryScreen() {
       setDeletingId(id)
       api
         .removeEntry(id)
-        .then(() => loadData())
+        .then(() => {
+          // apagou o que estava no formulário: não sobra nada para salvar
+          if (editingId === id) stopEditing()
+          return loadData()
+        })
         .catch((e: Error) => setListError(e.message))
         .finally(() => setDeletingId(null))
     } else {
@@ -152,7 +191,7 @@ export function EntryScreen() {
       <Card className="w-full max-w-sm">
         <form onSubmit={onSubmit}>
           <CardHeader>
-            <CardTitle>Novo lançamento</CardTitle>
+            <CardTitle>{editingId === null ? 'Novo lançamento' : 'Editar lançamento'}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex gap-2">
@@ -177,6 +216,7 @@ export function EntryScreen() {
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="description">Descrição</Label>
               <Input
+                ref={descriptionRef}
                 id="description"
                 type="text"
                 maxLength={200}
@@ -272,6 +312,11 @@ export function EntryScreen() {
             <Button type="submit" disabled={submitting}>
               {submitting ? 'Salvando...' : 'Salvar'}
             </Button>
+            {editingId !== null && (
+              <Button type="button" variant="outline" onClick={stopEditing}>
+                Cancelar
+              </Button>
+            )}
           </CardContent>
         </form>
       </Card>
@@ -293,19 +338,31 @@ export function EntryScreen() {
                   key={entry.id}
                   className="flex items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
                 >
-                  <div className="flex flex-col">
-                    <span className="text-foreground">{entry.description}</span>
+                  {/* min-w-0 + break-words: descrição de extrato traz palavra longa
+                      ("ESTABELECIMENTO") que, sem quebrar, empurra os botões para fora do card */}
+                  <div className="flex min-w-0 flex-col">
+                    <span className="break-words text-foreground">{entry.description}</span>
                     <span className="text-sm text-muted-foreground">
                       {entry.category} · {entry.type}
                       {entry.method === 'credito' &&
                         ` · crédito (parcelado em ${entry.installments}x)`}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-foreground">
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="whitespace-nowrap text-sm font-medium text-foreground">
                       {entry.type === 'gasto' ? '-' : '+'}R${' '}
                       {formatCurrency(entry.amount)}
                     </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-label={`Editar ${entry.description}`}
+                      title="Editar"
+                      onClick={() => startEditing(entry)}
+                    >
+                      <RiPencilLine />
+                    </Button>
                     <Button
                       type="button"
                       variant="destructive"

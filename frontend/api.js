@@ -58,6 +58,8 @@ export const api = {
   entries: (month) => req(`/entries${month ? `?month=${month}` : ''}`),
   createEntry: (data) =>
     req('/entries', { method: 'POST', body: JSON.stringify(data) }),
+  updateEntry: (id, data) =>
+    req(`/entries/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   removeEntry: (id) => req(`/entries/${id}`, { method: 'DELETE' }),
 
   previewImport: (file) => {

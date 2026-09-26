@@ -8,10 +8,10 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
-- Edição de lançamento pela API: dá para corrigir categoria, valor, descrição ou qualquer
-  outro campo sem apagar e lançar de novo. Um lançamento importado continua reconhecido
-  como importado depois de editado, então reimportar o extrato não o duplica. A tela de
-  edição ainda não existe
+- Edição de lançamento: o lápis em cada linha da tela de Lançamentos carrega o lançamento
+  no formulário para corrigir categoria, valor, descrição ou qualquer outro campo, sem
+  apagar e lançar de novo. Um lançamento importado continua reconhecido como importado
+  depois de editado, então reimportar o extrato não o duplica
 - Importação de extrato bancário em OFX: a aba Importar lê o arquivo que você baixa do app
   do banco, mostra tudo que veio para você conferir e escolher categoria, e só grava depois
   que você confirma. Lançamento que já entrou numa importação anterior aparece marcado e
