@@ -10,7 +10,8 @@ Leia antes de mexer em qualquer coisa em `service.py`.
 ## Conceitos
 
 **Lançamento** (`Entry`, tabela `lancamentos`) — qualquer movimento de dinheiro. Tem tipo,
-valor, descrição, categoria, data e forma de pagamento.
+valor, descrição, categoria, data e forma de pagamento. O que veio de um extrato importado
+guarda também a origem (`import_id`); o que foi digitado tem origem nula.
 
 **Tipo** — `gasto` (saída) ou `entrada` (receita).
 
@@ -113,6 +114,26 @@ Sem `until`, o servidor usa o mês atual **em UTC**: ele não conhece o fuso de 
 Quem se importa com o próprio fuso manda `until` — é o que a tela de tendência deve fazer
 quando existir (ver `docs/roadmap.md`).
 
+### Importação de extrato
+
+O app lê o extrato **de conta** em OFX (`backend/app/ofx.py`) e propõe um lançamento por
+linha. Nada é gravado antes de alguém conferir na tela de importação.
+
+- **Fatura de cartão é recusada.** A fatura já é calculada a partir dos lançamentos no
+  crédito; importar o OFX do cartão contaria a mesma compra duas vezes.
+- **O sinal do valor decide o tipo:** negativo é `gasto`, positivo é `entrada`. O `TRNTYPE` do
+  OFX é ignorado — é descritivo e cada banco usa de um jeito. Linha de valor zero é
+  descartada.
+- **A data é o dia no fuso de São Paulo.** O OFX traz o horário com o fuso do banco, e o
+  parser o converte para `America/Sao_Paulo` antes de ficar só com a data. Uma compra de
+  30/09 às 22h continua em setembro, em vez de virar 01/10 em UTC.
+- **Reimportar não duplica.** A origem é `BANKID:ACCTID:FITID` (o FITID só é único dentro de
+  uma conta) e é única por usuário — o mesmo extrato importado por duas contas do app entra
+  nas duas. Editar o lançamento depois não muda a origem.
+- **Toda linha entra com a categoria "Outros"**, e à vista, em parcela única: o dinheiro já
+  saiu da conta. A tela manda assim; o `POST /imports` aceita `method` como o
+  `POST /entries` e não força o à vista.
+
 ## Invariantes
 
 **Dinheiro é sempre `Decimal`, nunca `float`.** Da coluna `Numeric(12,2)` no banco, passando
@@ -134,9 +155,18 @@ do cliente.
 Coisas que estão assim de propósito ou por falta de tempo — não são bugs a corrigir sem
 conversar antes.
 
-- **Sem Alembic.** O schema é criado com `Base.metadata.create_all`, que cria tabelas novas mas
-  não altera as existentes. Mudar uma coluna hoje exige migração manual ou recriar o banco. Vale
-  trazer Alembic quando houver dado real que não pode ser perdido.
+- **Os testes não passam pelas migrações.** O schema pertence ao Alembic, mas o `conftest.py`
+  cria as tabelas a partir dos modelos (`create_all`). Uma mudança em `models.py` sem migração
+  passa em todos os testes e só quebra no deploy. A guarda é rodar `alembic check`, que falha
+  quando modelo e migrações divergem.
+- **O container da API não enxerga migração nova sem rebuild.** O `docker-compose.yml` monta
+  só `backend/app`; `backend/alembic` entra na imagem pelo `COPY`. Uma migração criada depois
+  do último build é ignorada pelo `alembic upgrade head` do boot até um
+  `docker compose up --build`.
+- **Arquivo OFX com conta e cartão juntos perde o cartão em silêncio.** O parser processa os
+  extratos de conta e ignora os de cartão, sem avisar. A recusa explícita só acontece quando o
+  arquivo não tem extrato de conta nenhum. Não acontece nos exports de Itaú e Nubank, que vêm
+  separados.
 - **`/summary`, `/summary/{month}/categories` e `/trend` carregam todos os lançamentos do
   usuário na memória** e filtram em Python, em vez de filtrar no SQL. Na escala de um usuário
   isso é irrelevante; é o primeiro lugar para olhar se ficar lento. A tela de resumo chama os
