@@ -78,7 +78,8 @@ export interface ImportPreviewItem {
   already_imported: boolean
 }
 
-export interface EntryImport extends EntryCreate {
+/** Sem method/installments: importado é sempre à vista, e o servidor recusa esses campos. */
+export interface EntryImport extends Omit<EntryCreate, 'method' | 'installments'> {
   import_id: string
 }
 

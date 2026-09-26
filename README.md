@@ -107,7 +107,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 111 testes, ~13s
+cd backend && pytest                          # 116 testes, ~14s
 
 cd frontend && npm test                       # 80 testes, ~5s
 ```
@@ -199,7 +199,7 @@ Todos exigem `Authorization: Bearer <token>`, exceto `/auth/register`, `/auth/to
 | GET | `/invoices/{month}` | itens e total da fatura que vence no mês |
 | GET | `/trend` | série dos últimos meses (`?months=6`, `?until=2026-09`) |
 | POST | `/imports/preview` | lê um extrato OFX (multipart, campo `file`) e devolve as linhas, sem gravar |
-| POST | `/imports` | grava as linhas revisadas, pulando as já importadas |
+| POST | `/imports` | grava as linhas revisadas (sempre à vista), pulando as já importadas |
 | GET | `/health` | status da API |
 
 Valores monetários trafegam como **string** no JSON (FastAPI serializa `Decimal` assim).

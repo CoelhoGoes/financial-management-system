@@ -53,8 +53,8 @@ def _owned_entry(session: Session, user: User, entry_id: int) -> Entry:
 
 
 def _reject_income_on_credit(data: EntryCreate) -> None:
-    """Invariante de domínio. Vive aqui, e não em cada endpoint, porque toda rota que
-    cria lançamento precisa dele — inclusive a importação."""
+    """Invariante de domínio, usado por criação e edição. A importação não precisa:
+    `EntryImport` nem tem `method`, então uma linha importada não chega ao crédito."""
     if data.type == "entrada" and data.method == "credito":
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Entrada não vai no crédito.")
 
@@ -219,7 +219,6 @@ def confirm_import(
     created: list[Entry] = []
     seen: set[str] = set()
     for item in data:
-        _reject_income_on_credit(item)
         # `seen` cobre o duplicado dentro do próprio lote; `known`, o de importação
         # anterior. Sem os dois, a restrição única estoura como erro 500.
         if item.import_id in known or item.import_id in seen:

@@ -399,17 +399,42 @@ class TestImportacao:
         assert len(r.json()["created"]) == 1
         assert r.json()["skipped"] == 1
 
-    def test_entrada_importada_no_credito_e_recusada(self, client, auth):
+    @pytest.mark.parametrize(
+        "campos",
+        [
+            {"method": "credito", "installments": 6},
+            {"method": "credito"},
+            {"installments": 3},
+            # até o valor que seria o padrão: o campo não existe neste endpoint
+            {"method": "avista"},
+        ],
+    )
+    def test_forma_e_parcelas_na_importacao_sao_recusadas(self, client, auth, campos):
+        """Linha de extrato já saiu da conta: crédito aqui a contaria de novo na fatura."""
         headers = auth()
-        (linha,) = self.enviar(
-            client, headers, account_statement([transaction(trntype="CREDIT", amount="1500.00")])
-        ).json()
+        (linha,) = self.enviar(client, headers, account_statement([transaction()])).json()
 
-        r = client.post(
-            "/imports", headers=headers, json=[revisada(linha, method="credito")]
-        )
+        r = client.post("/imports", headers=headers, json=[revisada(linha, **campos)])
 
         assert r.status_code == 422
+        assert client.get("/entries", headers=headers).json() == []
+
+    def test_contrato_publicado_nao_anuncia_forma_nem_parcelas(self, client):
+        """O /docs é o que um cliente novo (o app nativo) vai ler. Anunciar campos que
+        respondem 422 é documentação mentindo."""
+        campos = client.get("/openapi.json").json()["components"]["schemas"]["EntryImport"]
+
+        assert "method" not in campos["properties"]
+        assert "installments" not in campos["properties"]
+
+    def test_linha_importada_e_gravada_a_vista_em_parcela_unica(self, client, auth):
+        headers = auth()
+        (linha,) = self.enviar(client, headers, account_statement([transaction()])).json()
+
+        (criado,) = client.post("/imports", headers=headers, json=[revisada(linha)]).json()["created"]
+
+        assert criado["method"] == "avista"
+        assert criado["installments"] == 1
 
     def test_entrada_do_extrato_vira_lancamento_de_entrada(self, client, auth):
         headers = auth()

@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class UserCreate(BaseModel):
@@ -29,12 +29,17 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
-class EntryCreate(BaseModel):
+class EntryBase(BaseModel):
+    """O que todo lançamento tem, digitado ou importado."""
+
     type: Literal["gasto", "entrada"]
     amount: Decimal = Field(gt=0, decimal_places=2)
     description: str = Field(min_length=1, max_length=200)
     category: str = Field(min_length=1, max_length=50)
     date: date
+
+
+class EntryCreate(EntryBase):
     method: Literal["avista", "credito"] = "avista"
     installments: int = Field(default=1, ge=1, le=48)
 
@@ -123,10 +128,26 @@ class ImportPreviewItem(BaseModel):
     already_imported: bool
 
 
-class EntryImport(EntryCreate):
-    """Linha revisada, voltando para gravação. `import_id` é o que impede duplicata."""
+class EntryImport(EntryBase):
+    """Linha revisada, voltando para gravação. `import_id` é o que impede duplicata.
+
+    Sem `method` nem `installments`: linha de extrato é dinheiro que já saiu da conta,
+    então é sempre à vista e em parcela única — o banco aplica os padrões da coluna.
+    """
 
     import_id: str = Field(min_length=1, max_length=120)
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_payment_fields(cls, data):
+        # Recusa em vez de ignorar: sem isto o Pydantic descartaria os campos em silêncio,
+        # e um cliente que manda crédito aqui nunca saberia que o pedido foi reescrito.
+        if isinstance(data, dict) and {"method", "installments"} & data.keys():
+            raise ValueError(
+                "Lançamento importado é sempre à vista e em parcela única; "
+                "não envie method nem installments."
+            )
+        return data
 
 
 class ImportResult(BaseModel):

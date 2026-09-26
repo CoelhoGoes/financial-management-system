@@ -130,9 +130,10 @@ linha. Nada é gravado antes de alguém conferir na tela de importação.
 - **Reimportar não duplica.** A origem é `BANKID:ACCTID:FITID` (o FITID só é único dentro de
   uma conta) e é única por usuário — o mesmo extrato importado por duas contas do app entra
   nas duas. Editar o lançamento depois não muda a origem.
-- **Toda linha entra com a categoria "Outros"**, e à vista, em parcela única: o dinheiro já
-  saiu da conta. A tela manda assim; o `POST /imports` aceita `method` como o
-  `POST /entries` e não força o à vista.
+- **Linha importada é sempre à vista, em parcela única:** o dinheiro já saiu da conta, e
+  contá-la como parcela a somaria de novo numa fatura. O `POST /imports` nem tem `method` e
+  `installments` — responde 422 se vierem, em vez de ignorar. A categoria começa em
+  "Outros", escolhida pela tela.
 
 ## Invariantes
 
