@@ -21,6 +21,9 @@ export interface EntryCreate {
   installments?: number
 }
 
+/** PATCH /entries/{id}: só os campos enviados mudam. `import_id` não é editável. */
+export type EntryUpdate = Partial<EntryCreate>
+
 export interface EntryOut extends EntryCreate {
   id: number
 }

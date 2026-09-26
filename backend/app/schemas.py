@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 from decimal import Decimal
 from typing import Literal
@@ -36,6 +37,27 @@ class EntryCreate(BaseModel):
     date: date
     method: Literal["avista", "credito"] = "avista"
     installments: int = Field(default=1, ge=1, le=48)
+
+
+class EntryUpdate(BaseModel):
+    """Alteração parcial: só os campos enviados mudam.
+
+    Os limites de cada campo não se repetem aqui: o endpoint junta o que chegou com o
+    lançamento atual e valida o resultado inteiro como `EntryCreate`. É isso que pega o
+    PATCH que só troca `type` para entrada num lançamento que está no crédito.
+    `import_id` fica de fora de propósito — é a origem da linha, e mudá-lo quebraria a
+    deduplicação da importação.
+    """
+
+    type: Literal["gasto", "entrada"] | None = None
+    amount: Decimal | None = None
+    description: str | None = None
+    category: str | None = None
+    # `datetime.date`, não `date`: numa anotação com valor padrão o Python atribui o
+    # valor antes de avaliar a anotação, e o campo `date` já sombreia o tipo.
+    date: datetime.date | None = None
+    method: Literal["avista", "credito"] | None = None
+    installments: int | None = None
 
 
 class EntryOut(EntryCreate):

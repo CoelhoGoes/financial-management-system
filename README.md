@@ -182,6 +182,7 @@ Todos exigem `Authorization: Bearer <token>`, exceto `/auth/register`, `/auth/to
 | PUT | `/auth/me` | atualiza renda mensal e dia de fechamento |
 | POST | `/entries` | cria lançamento |
 | GET | `/entries` | lista lançamentos (filtro opcional `?month=2026-09`) |
+| PATCH | `/entries/{id}` | altera só os campos enviados; o resultado é validado como lançamento novo |
 | DELETE | `/entries/{id}` | remove lançamento |
 | GET | `/summary/{month}` | saldo, entradas e gastos do mês |
 | GET | `/summary/{month}/categories` | gasto por categoria, com os itens e o número da parcela |

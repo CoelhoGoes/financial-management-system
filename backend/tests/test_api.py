@@ -435,3 +435,86 @@ class TestImportacao:
 
         r = client.post("/imports", headers=bia, json=[revisada(para_bia)])
         assert len(r.json()["created"]) == 1
+
+
+class TestEdicao:
+    """PATCH muda só o que chegou, e o resultado precisa ser um lançamento válido."""
+
+    def criar(self, client, headers, **over):
+        return client.post("/entries", headers=headers, json={**LANCAMENTO, **over}).json()
+
+    def test_muda_so_o_campo_enviado(self, client, auth):
+        headers = auth()
+        entry = self.criar(client, headers)
+
+        r = client.patch(f"/entries/{entry['id']}", headers=headers, json={"category": "Lazer"})
+
+        assert r.status_code == 200
+        assert r.json() == {**entry, "category": "Lazer"}
+
+    def test_corpo_vazio_nao_muda_nada(self, client, auth):
+        headers = auth()
+        entry = self.criar(client, headers)
+
+        r = client.patch(f"/entries/{entry['id']}", headers=headers, json={})
+
+        assert r.json() == entry
+
+    def test_um_usuario_nao_edita_lancamento_do_outro(self, client, auth):
+        ana = auth(email="ana@b.co")
+        bia = auth(email="bia@b.co")
+        entry = self.criar(client, ana)
+
+        r = client.patch(f"/entries/{entry['id']}", headers=bia, json={"amount": "1.00"})
+
+        assert r.status_code == 404
+        assert client.get("/entries", headers=ana).json()[0]["amount"] == "150.50"
+
+    def test_lancamento_inexistente_responde_404(self, client, auth):
+        assert client.patch("/entries/999", headers=auth(), json={}).status_code == 404
+
+    def test_trocar_para_entrada_num_lancamento_no_credito_e_recusado(self, client, auth):
+        """O PATCH em si é válido; o lançamento que resultaria dele, não."""
+        headers = auth()
+        entry = self.criar(client, headers, method="credito", installments=3)
+
+        r = client.patch(f"/entries/{entry['id']}", headers=headers, json={"type": "entrada"})
+
+        assert r.status_code == 422
+        assert client.get("/entries", headers=headers).json()[0]["type"] == "gasto"
+
+    def test_valor_invalido_e_recusado_com_422(self, client, auth):
+        headers = auth()
+        entry = self.criar(client, headers)
+
+        r = client.patch(f"/entries/{entry['id']}", headers=headers, json={"amount": "0"})
+
+        assert r.status_code == 422
+
+    def test_null_explicito_e_recusado_com_422_e_nao_500(self, client, auth):
+        headers = auth()
+        entry = self.criar(client, headers)
+
+        r = client.patch(f"/entries/{entry['id']}", headers=headers, json={"category": None})
+
+        assert r.status_code == 422
+
+    def test_editar_linha_importada_nao_quebra_a_deduplicacao(self, client, auth):
+        """O caso de uso principal: importar com "Outros" e corrigir a categoria depois."""
+        headers = auth()
+        extrato = account_statement([transaction()])
+        (linha,) = client.post(
+            "/imports/preview", headers=headers, files={"file": ("e.ofx", extrato)}
+        ).json()
+        (criado,) = client.post("/imports", headers=headers, json=[revisada(linha)]).json()["created"]
+
+        # import_id no corpo é ignorado: a origem da linha não é editável
+        client.patch(
+            f"/entries/{criado['id']}",
+            headers=headers,
+            json={"category": "Mercado", "import_id": "outro:valor:qualquer"},
+        )
+
+        r = client.post("/imports", headers=headers, json=[revisada(linha)])
+        assert r.json() == {"created": [], "skipped": 1}
+        assert client.get("/entries", headers=headers).json()[0]["category"] == "Mercado"

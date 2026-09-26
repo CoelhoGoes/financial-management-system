@@ -2,6 +2,8 @@ from dataclasses import asdict
 from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,6 +15,7 @@ from ..schemas import (
     EntryCreate,
     EntryImport,
     EntryOut,
+    EntryUpdate,
     ImportPreviewItem,
     ImportResult,
     Invoice,
@@ -38,6 +41,15 @@ MAX_UPLOAD_BYTES = 2 * 1024 * 1024
 
 def _all(session: Session, user: User) -> list[Entry]:
     return list(session.scalars(select(Entry).where(Entry.user_id == user.id)))
+
+
+def _owned_entry(session: Session, user: User, entry_id: int) -> Entry:
+    """O lançamento, se for deste usuário. Lançamento alheio responde igual a
+    inexistente: 404 nos dois casos, para não confirmar que o id existe."""
+    entry = session.get(Entry, entry_id)
+    if not entry or entry.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Lançamento não encontrado.")
+    return entry
 
 
 def _reject_income_on_credit(data: EntryCreate) -> None:
@@ -88,16 +100,39 @@ def list_entries(
     return list(session.scalars(query.order_by(Entry.date.desc(), Entry.id.desc())))
 
 
+@router.patch("/entries/{entry_id}", response_model=EntryOut)
+def update(
+    entry_id: int,
+    data: EntryUpdate,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    entry = _owned_entry(session, user, entry_id)
+
+    # O lançamento resultante passa pela mesma validação de um novo. Validar só o que
+    # chegou deixaria passar um PATCH que troca `type` para entrada num lançamento
+    # que já está no crédito.
+    current = {field: getattr(entry, field) for field in EntryCreate.model_fields}
+    try:
+        merged = EntryCreate.model_validate(current | data.model_dump(exclude_unset=True))
+    except ValidationError as exc:
+        raise RequestValidationError(exc.errors()) from exc
+    _reject_income_on_credit(merged)
+
+    for field, value in merged.model_dump().items():
+        setattr(entry, field, value)
+    session.commit()
+    session.refresh(entry)
+    return entry
+
+
 @router.delete("/entries/{entry_id}", status_code=204)
 def remove(
     entry_id: int,
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    entry = session.get(Entry, entry_id)
-    if not entry or entry.user_id != user.id:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Lançamento não encontrado.")
-    session.delete(entry)
+    session.delete(_owned_entry(session, user, entry_id))
     session.commit()
 
 
