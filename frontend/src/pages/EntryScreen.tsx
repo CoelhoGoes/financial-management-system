@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Header } from '@/components/Header'
+import { MonthNav } from '@/components/MonthNav'
 
 function today() {
   return new Date().toISOString().slice(0, 10)
@@ -50,6 +51,11 @@ function defaultForm(): FormState {
 }
 
 export function EntryScreen() {
+  const [month, setMonth] = useState(currentMonth())
+  // salvar e excluir pedem recarga mudando esta chave, em vez de buscar direto: assim a
+  // busca sempre usa o mês que está na tela, mesmo se ele mudou durante o salvamento
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = () => setReloadKey((k) => k + 1)
   const [entries, setEntries] = useState<EntryOut[] | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
   const [listLoading, setListLoading] = useState(true)
@@ -65,26 +71,23 @@ export function EntryScreen() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
 
-  async function loadData() {
+  useEffect(() => {
+    let ativo = true
     setListLoading(true)
     setListError(null)
-    try {
-      const [entriesData, summaryData] = await Promise.all([
-        api.entries(currentMonth()),
-        api.summary(currentMonth()),
-      ])
-      setEntries(entriesData)
-      setSummary(summaryData)
-    } catch (e) {
-      setListError((e as Error).message)
-    } finally {
-      setListLoading(false)
+    Promise.all([api.entries(month), api.summary(month)])
+      .then(([entriesData, summaryData]: [EntryOut[], Summary]) => {
+        // dois cliques rápidos podem devolver fora de ordem: ignora o que já não é o mês da tela
+        if (!ativo) return
+        setEntries(entriesData)
+        setSummary(summaryData)
+      })
+      .catch((e: Error) => ativo && setListError(e.message))
+      .finally(() => ativo && setListLoading(false))
+    return () => {
+      ativo = false
     }
-  }
-
-  useEffect(() => {
-    loadData()
-  }, [])
+  }, [month, reloadKey])
 
   function updateForm<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => {
@@ -140,7 +143,7 @@ export function EntryScreen() {
         await api.updateEntry(editingId, payload)
       }
       stopEditing()
-      await loadData()
+      reload()
     } catch (e) {
       setFormError((e as Error).message)
     } finally {
@@ -157,7 +160,7 @@ export function EntryScreen() {
         .then(() => {
           // apagou o que estava no formulário: não sobra nada para salvar
           if (editingId === id) stopEditing()
-          return loadData()
+          reload()
         })
         .catch((e: Error) => setListError(e.message))
         .finally(() => setDeletingId(null))
@@ -179,7 +182,7 @@ export function EntryScreen() {
         <Card className="w-full max-w-sm">
           <CardContent>
             <dl className="flex items-center justify-between text-sm">
-              <dt className="text-muted-foreground">Saldo disponível</dt>
+              <dt className="text-muted-foreground">Saldo disponível — {month}</dt>
               <dd className="font-medium">
                 R$ {formatCurrency(summary.available_balance)}
               </dd>
@@ -323,7 +326,10 @@ export function EntryScreen() {
 
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Lançamentos — {currentMonth()}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Lançamentos — {month}</CardTitle>
+            <MonthNav month={month} onChange={setMonth} />
+          </div>
         </CardHeader>
         <CardContent>
           {listLoading && <p className="text-sm text-muted-foreground">Carregando...</p>}

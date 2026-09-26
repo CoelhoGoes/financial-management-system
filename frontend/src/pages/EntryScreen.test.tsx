@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '@/lib/auth-context'
+import { currentMonth, shiftMonth } from '@/lib/format'
 import { EntryScreen } from './EntryScreen'
 
 vi.mock('../../api.js', () => ({
@@ -274,6 +275,74 @@ describe('EntryScreen', () => {
 
       expect(await screen.findByText('Novo lançamento')).toBeInTheDocument()
       expect(screen.getByLabelText('Descrição')).toHaveValue('')
+    })
+  })
+
+  describe('a navegação entre meses', () => {
+    const anterior = shiftMonth(currentMonth(), -1)
+    const DO_MES_ANTERIOR = { ...LANCAMENTO, id: 2, description: 'aluguel de setembro' }
+
+    it('abre no mês corrente', async () => {
+      montar()
+
+      await waitFor(() => expect(api.entries).toHaveBeenCalledWith(currentMonth()))
+      expect(api.summary).toHaveBeenCalledWith(currentMonth())
+      expect(screen.getByText(`Lançamentos — ${currentMonth()}`)).toBeInTheDocument()
+    })
+
+    it('refaz lista e saldo ao ir para o mês anterior', async () => {
+      const user = userEvent.setup()
+      montar()
+      await screen.findByText('feira')
+      vi.mocked(api.entries).mockResolvedValue([DO_MES_ANTERIOR])
+
+      await user.click(screen.getByRole('button', { name: 'Mês anterior' }))
+
+      expect(await screen.findByText('aluguel de setembro')).toBeInTheDocument()
+      expect(screen.queryByText('feira')).not.toBeInTheDocument()
+      expect(api.summary).toHaveBeenLastCalledWith(anterior)
+      expect(screen.getByText(`Lançamentos — ${anterior}`)).toBeInTheDocument()
+      expect(screen.getByText(`Saldo disponível — ${anterior}`)).toBeInTheDocument()
+    })
+
+    it('resposta atrasada do mês que ficou para trás não sobrescreve a lista', async () => {
+      const user = userEvent.setup()
+      let responderMesCorrente: (v: unknown) => void = () => {}
+      vi.mocked(api.entries).mockImplementation((m: string) =>
+        m === currentMonth()
+          ? new Promise((resolve) => (responderMesCorrente = resolve))
+          : Promise.resolve([DO_MES_ANTERIOR]),
+      )
+      montar()
+
+      // troca de mês antes de o mês corrente responder...
+      await user.click(await screen.findByRole('button', { name: 'Mês anterior' }))
+      expect(await screen.findByText('aluguel de setembro')).toBeInTheDocument()
+      // ...e a resposta dele chega depois
+      responderMesCorrente([LANCAMENTO])
+
+      await new Promise((r) => setTimeout(r, 20))
+      expect(screen.queryByText('feira')).not.toBeInTheDocument()
+      expect(screen.getByText('aluguel de setembro')).toBeInTheDocument()
+    })
+
+    it('depois de salvar recarrega o mês que está na tela, não o corrente', async () => {
+      const user = userEvent.setup()
+      montar()
+      await screen.findByText('feira')
+      await user.click(screen.getByRole('button', { name: 'Mês anterior' }))
+      await waitFor(() => expect(api.entries).toHaveBeenLastCalledWith(anterior))
+      const chamadasAntes = vi.mocked(api.entries).mock.calls.length
+
+      await user.type(screen.getByLabelText('Descrição'), 'pão')
+      await user.selectOptions(screen.getByLabelText('Categoria'), 'Mercado')
+      await user.type(screen.getByLabelText('Valor'), '12.50')
+      await user.click(screen.getByRole('button', { name: 'Salvar' }))
+
+      await waitFor(() =>
+        expect(vi.mocked(api.entries).mock.calls.length).toBeGreaterThan(chamadasAntes),
+      )
+      expect(api.entries).toHaveBeenLastCalledWith(anterior)
     })
   })
 

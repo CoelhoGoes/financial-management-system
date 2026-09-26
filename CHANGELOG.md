@@ -8,6 +8,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Navegação entre meses na tela de lançamentos: as setas mostram a lista e o saldo de
+  outros meses, então dá para corrigir lançamentos antigos — como os que chegaram por um
+  extrato importado no mês seguinte
 - Edição de lançamento: o lápis em cada linha da tela de Lançamentos carrega o lançamento
   no formulário para corrigir categoria, valor, descrição ou qualquer outro campo, sem
   apagar e lançar de novo. Um lançamento importado continua reconhecido como importado
