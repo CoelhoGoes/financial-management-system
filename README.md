@@ -183,10 +183,12 @@ Todos exigem `Authorization: Bearer <token>`, exceto `/auth/register`, `/auth/to
 | POST | `/entries` | cria lançamento |
 | GET | `/entries` | lista lançamentos (filtro opcional `?month=2026-09`) |
 | DELETE | `/entries/{id}` | remove lançamento |
-| GET | `/summary/{month}` | saldo, entradas, gastos e categorias do mês |
+| GET | `/summary/{month}` | saldo, entradas e gastos do mês |
 | GET | `/summary/{month}/categories` | gasto por categoria, com os itens e o número da parcela |
 | GET | `/invoices/{month}` | itens e total da fatura que vence no mês |
 | GET | `/trend` | série dos últimos meses (`?months=6`, `?until=2026-09`) |
+| POST | `/imports/preview` | lê um extrato OFX (multipart, campo `file`) e devolve as linhas, sem gravar |
+| POST | `/imports` | grava as linhas revisadas, pulando as já importadas |
 | GET | `/health` | status da API |
 
 Valores monetários trafegam como **string** no JSON (FastAPI serializa `Decimal` assim).
