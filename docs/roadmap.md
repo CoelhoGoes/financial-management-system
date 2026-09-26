@@ -10,7 +10,7 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — a navegação entre meses acabou de sair)
+- [ ] (nada — importação de extrato e edição de lançamento acabaram de sair)
 
 ## Próximo
 
@@ -22,7 +22,6 @@ usuário é registrado no `CHANGELOG.md`.
       `EntryScreen` usa `<select>` nativo e botões de toggle hoje
 - [ ] Mover `api.js` para `src/api.ts` tipado
 - [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
-- [ ] Adicionar Alembic quando houver dado real que não possa ser perdido
 - [ ] Filtrar lançamentos no SQL em `/summary` e `/trend`, se ficar lento
 - [ ] Deploy: backend em Railway / Render / Fly.io; frontend na Vercel
 - [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.

@@ -12,7 +12,7 @@ duplicada no cliente.
 
 | Camada | Tecnologia |
 | --- | --- |
-| Backend | FastAPI, SQLAlchemy 2, Pydantic 2, PyJWT, bcrypt |
+| Backend | FastAPI, SQLAlchemy 2, Alembic, Pydantic 2, PyJWT, bcrypt, ofxtools (leitura de OFX) |
 | Banco | PostgreSQL 16 |
 | Frontend | React 19, TypeScript, Vite, React Router |
 | UI | Tailwind CSS v4, shadcn/ui sobre **Base UI** (não Radix), ícones Remix |
@@ -83,10 +83,12 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export DATABASE_URL='postgresql+psycopg://gf:senha@localhost:5432/gestao'
 export JWT_SECRET='...'
+alembic upgrade head          # cria/atualiza as tabelas — a API não cria schema sozinha
 uvicorn app.main:app --reload
 ```
 
-Precisa de um Postgres alcançável — o projeto não roda em SQLite.
+Precisa de um Postgres alcançável — o projeto não roda em SQLite. Pular o `alembic upgrade
+head` sobe uma API sem tabelas: desde a adoção do Alembic, o schema é das migrações.
 
 ### Checagem de código
 
@@ -105,14 +107,16 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 76 testes, ~5s
+cd backend && pytest                          # 111 testes, ~13s
 
-cd frontend && npm test                       # 60 testes, ~3s
+cd frontend && npm test                       # 80 testes, ~5s
 ```
 
-Os testes de `backend/tests/test_service.py` não precisam de banco — `service.py` é puro e os
-testes usam dublês. Os de `test_api.py` rodam em sqlite por padrão. Para rodar a mesma suíte
-contra o Postgres de verdade:
+Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
+`service.py` e `ofx.py` são puros. Os extratos usados em `test_ofx.py` são inventados e ficam
+como string dentro do arquivo: `*.ofx` está no `.gitignore`, porque extrato é dado bancário. Os
+de `test_api.py` rodam em sqlite por padrão. Para rodar a mesma suíte contra o Postgres de
+verdade:
 
 ```bash
 docker run --rm -d --name pg_test -e POSTGRES_PASSWORD=teste \
@@ -127,8 +131,11 @@ docker stop pg_test
 backend/
 ├── requirements.txt       dependências de runtime — é o que a imagem instala
 ├── requirements-dev.txt   pytest + httpx2, não entram na imagem
+├── alembic.ini
+├── alembic/               migrações — donas do schema; rodam no boot do container
 ├── tests/
 │   ├── test_service.py    regras de negócio, sem banco nenhum
+│   ├── test_ofx.py        leitura de extrato OFX, sem banco nenhum
 │   └── test_api.py        contrato HTTP, em sqlite ou Postgres
 └── app/
     ├── main.py            entrada, CORS, registro dos routers, /health
@@ -137,29 +144,32 @@ backend/
     ├── schemas.py         contratos de entrada/saída (Pydantic)
     ├── security.py        hash bcrypt, JWT e limite de tentativas de login
     ├── service.py         regras de fatura, saldo e tendência (funções puras)
+    ├── ofx.py             leitura de extrato OFX (função pura)
     └── routers/
         ├── auth.py        /auth/*
-        └── finance.py     /entries, /summary, /invoices, /trend
+        └── finance.py     /entries, /summary, /invoices, /trend, /imports
 
 frontend/
 ├── api.js             cliente HTTP (JWT, header, tratamento de 401)
 └── src/
     ├── main.tsx       monta o React dentro do BrowserRouter + AuthProvider
-    ├── App.tsx        tabela de rotas (/login, /, /lancamentos, /fatura, /configuracoes)
+    ├── App.tsx        tabela de rotas (/login, /, /lancamentos, /fatura, /importar,
+    │                  /configuracoes)
     ├── types.ts       espelho TypeScript de schemas.py
     ├── index.css      Tailwind v4 + tokens de tema do shadcn
-    ├── pages/         uma tela por arquivo (Login/Summary/Entry/Invoice/Config)
+    ├── pages/         uma tela por arquivo (Login/Summary/Entry/Invoice/Import/Config)
     ├── constants/
     │   └── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
     ├── components/
     │   ├── Header.tsx      navegação/header compartilhado entre as telas
-    │   ├── MonthNav.tsx    passo de mês, compartilhado por resumo e fatura
+    │   ├── MonthNav.tsx    passo de mês, compartilhado por resumo, lançamentos e fatura
     │   ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
-    │   └── ui/             componentes shadcn (button, card, chart, input, label, table)
+    │   └── ui/             componentes shadcn (badge, button, card, chart, checkbox, input,
+    │                       label, table)
     └── lib/
         ├── auth-context.tsx   AuthProvider / useAuth
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
-                               / shiftMonth()
+                               / shiftMonth() / formatMonthShort() / formatDayMonth()
 
 dev.sh                 na raiz — sobe tudo numa linha
 docker-compose.yml     na raiz

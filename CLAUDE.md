@@ -98,7 +98,10 @@ backend/
 ├── pyproject.toml            ruff + pytest config — not a package definition
 ├── requirements.txt          runtime only — this is what the image installs
 ├── requirements-dev.txt      pytest + httpx2, never shipped
-├── tests/                    test_service.py (no DB) and test_api.py (sqlite/Postgres)
+├── alembic.ini
+├── alembic/                  owns the schema; `alembic upgrade head` runs on container boot
+├── tests/                    test_service.py and test_ofx.py (no DB), test_api.py
+│                             (sqlite/Postgres)
 └── app/
     ├── main.py
     ├── database.py
@@ -106,6 +109,7 @@ backend/
     ├── schemas.py
     ├── security.py
     ├── service.py
+    ├── ofx.py                OFX statement parser, pure like service.py
     └── routers/
         ├── auth.py
         └── finance.py
@@ -115,23 +119,23 @@ frontend/
 ├── vite.config.ts            React + Tailwind v4 plugins, '@' alias → ./src
 └── src/
     ├── main.tsx               mounts App inside BrowserRouter + AuthProvider
-    ├── App.tsx                route table only (login/summary/entries/invoice/config)
+    ├── App.tsx                route table only (login/summary/entries/invoice/import/config)
     ├── types.ts               mirror of backend schemas.py
     ├── index.css              Tailwind v4 import + shadcn theme tokens
     ├── test-setup.ts          vitest setup (jest-dom matchers)
-    ├── pages/                 one file per screen (Login/Summary/Entry/Invoice/Config)
+    ├── pages/                 one file per screen (Login/Summary/Entry/Invoice/Import/Config)
     ├── constants/
     │   └── categories.ts      closed category lists, mirrors docs/dominio.md
     ├── components/
     │   ├── Header.tsx         shared nav header, used by every authenticated screen
-    │   ├── MonthNav.tsx       month stepper, shared by Summary and Invoice
+    │   ├── MonthNav.tsx       month stepper, shared by Summary, Entry and Invoice
     │   ├── TrendChart.tsx     trend chart, lazy-loaded so recharts stays out of the main bundle
-    │   └── ui/                shadcn components: button.tsx, card.tsx, input.tsx, label.tsx,
-    │                          table.tsx
+    │   └── ui/                shadcn components: badge, button, card, chart, checkbox,
+    │                          input, label, table
     └── lib/
         ├── auth-context.tsx  AuthProvider / useAuth
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
-                               / shiftMonth()
+                               / shiftMonth() / formatMonthShort() / formatDayMonth()
 docs/dominio.md               business rules in prose
 docker-compose.yml            repo root
 .env.example                  repo root (backend vars only)
@@ -177,14 +181,15 @@ npm run preview    # serve the production build
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 76 tests, ~5s
+cd backend && pytest                          # 111 tests, ~13s
 
-cd frontend && npm test                       # 60 tests, ~3s
+cd frontend && npm test                       # 80 tests, ~5s
 ```
 
-`backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use
-plain dataclass stubs instead of `Entry`/`User`. `test_api.py` does need one and runs on
-sqlite by default. Set `TEST_DATABASE_URL` to run the same suite against a real Postgres
+`backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain
+dataclass stubs instead of `Entry`/`User`. `test_ofx.py` needs none either — its OFX fixtures
+are strings inside the file, since `*.ofx` is gitignored. `test_api.py` does need one and runs
+on sqlite by default. Set `TEST_DATABASE_URL` to run the same suite against a real Postgres
 (command in `README.md`) — both are verified, but the everyday run is sqlite. The money math
 lives in the DB-free layer on purpose.
 
@@ -202,7 +207,9 @@ uvx pip-audit -r backend/requirements.txt   # known CVEs in dependencies
 
 To run the API without Docker: install `backend/requirements.txt` into a venv, export
 `DATABASE_URL` pointing at a reachable Postgres and `JWT_SECRET`, then run
-`uvicorn app.main:app --reload` from `backend/`.
+`alembic upgrade head` and `uvicorn app.main:app --reload` from `backend/`. The migration step
+is not optional — the app creates no schema on boot, so skipping it starts an API with no
+tables.
 
 ## Architecture
 
@@ -260,9 +267,8 @@ a próxima rodada.
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** nada; a navegação entre meses acabou de sair.
+**Em andamento:** nada; importação de extrato e edição de lançamento acabaram de sair.
 
-O backend está à frente do frontend: fatura, categorias e tendência já são calculadas e
-expostas em `/invoices/{month}`, `/summary/{month}` e `/trend`. O que falta nessas features
-é tela. Antes de propor "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas**
-no `dominio.md` — várias escolhas são deliberadas.
+Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
+"arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias
+escolhas são deliberadas.

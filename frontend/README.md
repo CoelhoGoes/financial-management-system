@@ -34,11 +34,11 @@ Instale pelo CLI (`npx shadcn@latest add button`) em vez de copiar de um blog.
 variáveis CSS em `src/index.css`. Se você procurar o arquivo de config, ele não existe — não é
 um erro.
 
-**Componentes shadcn instalados** (`Button`, `Input`, `Label`, `Card`, `Table`, `Chart`, em
-`src/components/ui/`). **Antes de escrever qualquer componente à mão, veja se o shadcn já
-tem** — é regra, não preferência; veja `.claude/rules/rules-frontend.md`. O `Chart` embrulha
-o recharts, por isso o `TrendChart` é carregado com `lazy`: importado direto, ele dobraria o
-bundle principal.
+**Componentes shadcn instalados** (`Button`, `Input`, `Label`, `Card`, `Table`, `Chart`,
+`Checkbox`, `Badge`, em `src/components/ui/`). **Antes de escrever qualquer componente à mão,
+veja se o shadcn já tem** — é regra, não preferência; veja `.claude/rules/rules-frontend.md`. O
+`Chart` embrulha o recharts, por isso o `TrendChart` é carregado com `lazy`: importado direto,
+ele dobraria o bundle principal.
 
 **O `cn` vem do pacote `cn`**, não de um helper local — é o pacote oficial do shadcn, que
 substitui `clsx` + `tailwind-merge`, e é assim que o CLI gera os imports desde o `Table`.
@@ -51,9 +51,9 @@ tema escuro funcionando. Já teve um bug de contraste por causa disso (veja o `C
 **Use o alias `@/`** para imports dentro de `src/`. A exceção é `api.js`, que fica fora de
 `src/` e é importado por caminho relativo.
 
-**Navegação é `react-router`** (rotas `/login`, `/`, `/lancamentos`, `/fatura` e
-`/configuracoes`, definidas em
-`App.tsx`).
+**Navegação é `react-router`** (rotas `/login`, `/`, `/lancamentos`, `/fatura`, `/importar`
+e `/configuracoes`, definidas em `App.tsx`). Tela nova precisa também da aba no `Header.tsx`
+— só a rota a deixa inalcançável.
 Dentro das telas, navegue com `useNavigate()`, não com `<Link>` — o `Button` do shadcn é
 baseado em `@base-ui/react/button` e não tem suporte confirmado a renderizar como outro
 elemento (o `asChild` do Radix), então um botão que navega usa `onClick={() => navigate(...)}`.
@@ -64,22 +64,24 @@ elemento (o `asChild` do Radix), então um botão que navega usa `onClick={() =>
 api.js                    cliente HTTP — JWT, header Authorization, tratamento de 401
 src/
 ├── main.tsx              monta o React dentro do BrowserRouter + AuthProvider
-├── App.tsx               tabela de rotas (/login, /, /lancamentos, /fatura, /configuracoes)
+├── App.tsx               tabela de rotas (/login, /, /lancamentos, /fatura, /importar,
+│                         /configuracoes)
 ├── types.ts              espelho manual de backend/app/schemas.py
 ├── index.css             import do Tailwind + tokens de tema
 ├── pages/                 uma tela por arquivo (LoginScreen, SummaryScreen, EntryScreen,
-│                          InvoiceScreen, ConfigScreen)
+│                          InvoiceScreen, ImportScreen, ConfigScreen)
 ├── constants/
 │   └── categories.ts     listas fechadas de categoria, espelha docs/dominio.md
 ├── components/
 │   ├── Header.tsx        header/navegação compartilhado entre as telas autenticadas
-│   ├── MonthNav.tsx      passo de mês, compartilhado por resumo e fatura
+│   ├── MonthNav.tsx      passo de mês, compartilhado por resumo, lançamentos e fatura
 │   ├── TrendChart.tsx    gráfico de tendência, carregado sob demanda
-│   └── ui/                componentes shadcn (button, card, chart, input, label, table)
+│   └── ui/                componentes shadcn (badge, button, card, chart, checkbox, input,
+│                          label, table)
 └── lib/
     ├── auth-context.tsx  AuthProvider / useAuth — estado de sessão
     └── format.ts         currentMonth() / formatCurrency() / formatPercent()
-                          / shiftMonth()
+                          / shiftMonth() / formatMonthShort() / formatDayMonth()
 ```
 
 ## Dinheiro chega como string

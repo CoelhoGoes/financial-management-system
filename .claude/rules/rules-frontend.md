@@ -23,14 +23,14 @@ paths:
   don't invent a new category here without updating `docs/dominio.md` too.
 - **`lib/format.ts`** — `currentMonth()` (`SummaryScreen`, `EntryScreen`, `InvoiceScreen`),
   `formatCurrency()` (those three plus `ImportScreen` and `TrendChart`), `formatPercent()`
-  (`SummaryScreen`), `shiftMonth()` (`MonthNav`, which is what both month steppers now go
+  (`SummaryScreen`), `shiftMonth()` (`MonthNav`, which every month stepper goes
   through), `formatMonthShort()` (`TrendChart`) and `formatDayMonth()` (`ImportScreen`, which
   shows a statement line as `21/09` — the year is noise inside one statement). Money and
   percentages go through `Intl.NumberFormat('pt-BR')`, so they read `4.057,30` and `49,4%` —
   never format a number inline in a screen.
-- **`components/`** (outside `ui/`) — `Header` is the nav bar every authenticated screen
-  mounts; its button row wraps (`flex-wrap`) because four tabs plus the gear and "Sair" do not
-  fit one line on a phone. `MonthNav` is the month stepper shared by `SummaryScreen` and
+- **`components/`** (outside `ui/`) — `Header` is the nav bar every authenticated screen mounts;
+  its button row wraps (`flex-wrap`) because four tabs plus the gear and "Sair" do not fit one
+  line on a phone. `MonthNav` is the month stepper shared by `SummaryScreen`, `EntryScreen` and
   `InvoiceScreen`, and deliberately does **not** use the shadcn `Pagination` — that one renders
   anchors, since it was built for pages that have a URL, and an anchor without `href` breaks
   keyboard and screen reader. `TrendChart` is lazy-loaded from `SummaryScreen` (`React.lazy` +
