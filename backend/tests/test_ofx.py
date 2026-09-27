@@ -224,6 +224,21 @@ def test_extrato_sem_transacoes_devolve_lista_vazia():
     assert parse_statement(account_statement([])) == []
 
 
+def mixed_statement():
+    """Extrato de conta e fatura de cartão no mesmo arquivo — o `ofxtools` aceita."""
+    conta = account_statement([transaction(fitid="C1", memo="PIX NA CONTA")]).decode()
+    cartao = card_statement().decode()
+    inicio = cartao.index("<CREDITCARDMSGSRSV1>")
+    fim = cartao.index("</CREDITCARDMSGSRSV1>") + len("</CREDITCARDMSGSRSV1>")
+    return conta.replace("</BANKMSGSRSV1>", "</BANKMSGSRSV1>\n" + cartao[inicio:fim]).encode()
+
+
+def test_arquivo_com_conta_e_fatura_juntas_e_recusado_inteiro():
+    """Importar só a conta perderia a parte do cartão sem ninguém ficar sabendo."""
+    with pytest.raises(OFXError, match="fatura de cartão"):
+        parse_statement(mixed_statement())
+
+
 def test_fatura_de_cartao_e_recusada_explicando_o_motivo():
     with pytest.raises(OFXError, match="fatura de cartão"):
         parse_statement(card_statement())

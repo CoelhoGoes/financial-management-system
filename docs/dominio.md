@@ -119,8 +119,10 @@ quando existir (ver `docs/roadmap.md`).
 O app lê o extrato **de conta** em OFX (`backend/app/ofx.py`) e propõe um lançamento por
 linha. Nada é gravado antes de alguém conferir na tela de importação.
 
-- **Fatura de cartão é recusada.** A fatura já é calculada a partir dos lançamentos no
-  crédito; importar o OFX do cartão contaria a mesma compra duas vezes.
+- **Fatura de cartão é recusada**, e o arquivo inteiro com ela — mesmo que traga também o
+  extrato da conta. A fatura já é calculada a partir dos lançamentos no crédito; importar o
+  OFX do cartão contaria a mesma compra duas vezes. Recusar o arquivo misto, em vez de
+  importar só a conta, evita perder a parte do cartão sem ninguém ficar sabendo.
 - **O sinal do valor decide o tipo:** negativo é `gasto`, positivo é `entrada`. O `TRNTYPE` do
   OFX é ignorado — é descritivo e cada banco usa de um jeito. Linha de valor zero é
   descartada.
@@ -164,10 +166,6 @@ conversar antes.
   só `backend/app`; `backend/alembic` entra na imagem pelo `COPY`. Uma migração criada depois
   do último build é ignorada pelo `alembic upgrade head` do boot até um
   `docker compose up --build`.
-- **Arquivo OFX com conta e cartão juntos perde o cartão em silêncio.** O parser processa os
-  extratos de conta e ignora os de cartão, sem avisar. A recusa explícita só acontece quando o
-  arquivo não tem extrato de conta nenhum. Não acontece nos exports de Itaú e Nubank, que vêm
-  separados.
 - **`/summary`, `/summary/{month}/categories` e `/trend` carregam todos os lançamentos do
   usuário na memória** e filtram em Python, em vez de filtrar no SQL. Na escala de um usuário
   isso é irrelevante; é o primeiro lugar para olhar se ficar lento. A tela de resumo chama os

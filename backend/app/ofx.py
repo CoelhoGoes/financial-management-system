@@ -5,7 +5,8 @@ banco, não grava nada e não escolhe categoria — quem importa revisa antes de
 
 Escopo deliberado: **extrato de conta**, nunca fatura de cartão. A fatura é calculada
 pelo app a partir dos lançamentos no crédito (ver `service.py`); importá-la contaria o
-mesmo gasto duas vezes. Arquivo de cartão é recusado com mensagem explicando isso.
+mesmo gasto duas vezes. Arquivo que traga fatura de cartão — sozinha ou junto de um
+extrato de conta — é recusado inteiro, com mensagem explicando isso.
 """
 
 from __future__ import annotations
@@ -66,14 +67,18 @@ def parse_statement(content: bytes) -> list[ImportedEntry]:
         ) from exc
 
     statements = document.statements or []
+    # Fatura de cartão recusa o arquivo inteiro, mesmo ao lado de um extrato de conta.
+    # Importar só a conta e ignorar o cartão seria perder dados em silêncio: a pessoa
+    # veria a importação dar certo sem saber que parte do arquivo ficou para trás.
+    if any(isinstance(s, CCSTMTRS) for s in statements):
+        raise OFXError(
+            "Este arquivo traz uma fatura de cartão, e fatura não entra aqui: ela já é "
+            "calculada a partir dos lançamentos no crédito, e importá-la contaria o mesmo "
+            "gasto duas vezes. Se o arquivo também tiver o extrato da conta, baixe só o "
+            "extrato da conta pelo app do banco."
+        )
     accounts = [s for s in statements if isinstance(s, STMTRS)]
     if not accounts:
-        if any(isinstance(s, CCSTMTRS) for s in statements):
-            raise OFXError(
-                "Este arquivo é uma fatura de cartão, não um extrato de conta. A fatura "
-                "já é calculada aqui a partir dos lançamentos no crédito — importá-la "
-                "contaria o mesmo gasto duas vezes."
-            )
         raise OFXError("Este arquivo não contém nenhum extrato de conta.")
 
     entries: list[ImportedEntry] = []
