@@ -20,7 +20,7 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   que você confirma. Lançamento que já entrou numa importação anterior aparece marcado e
   fora da seleção, então reimportar o mesmo extrato não duplica nada. Arquivo com fatura de
   cartão — sozinha ou junto do extrato — é recusado com o motivo: a fatura já é calculada a
-  partir dos seus lançamentos no crédito
+  partir dos seus lançamentos no crédito. Extrato de investimentos também é recusado
 - Navegação entre meses na tela de resumo: as setas movem saldo, categorias e o gráfico de
   tendência juntos, então a tela inteira passa a mostrar o mesmo mês
 - Gráfico de tendência na tela de resumo: barras empilhadas de gasto à vista e fatura mês a

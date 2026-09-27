@@ -224,19 +224,59 @@ def test_extrato_sem_transacoes_devolve_lista_vazia():
     assert parse_statement(account_statement([])) == []
 
 
-def mixed_statement():
-    """Extrato de conta e fatura de cartão no mesmo arquivo — o `ofxtools` aceita."""
-    conta = account_statement([transaction(fitid="C1", memo="PIX NA CONTA")]).decode()
+INVESTMENT_BLOCK = """<INVSTMTMSGSRSV1>
+<INVSTMTTRNRS>
+<TRNUID>1002
+<STATUS>
+<CODE>0
+<SEVERITY>INFO
+</STATUS>
+<INVSTMTRS>
+<DTASOF>20260930220000[-03:EST]
+<CURDEF>BRL
+<INVACCTFROM>
+<BROKERID>corretora.exemplo
+<ACCTID>5550001
+</INVACCTFROM>
+</INVSTMTRS>
+</INVSTMTTRNRS>
+</INVSTMTMSGSRSV1>"""
+
+
+def card_block():
     cartao = card_statement().decode()
     inicio = cartao.index("<CREDITCARDMSGSRSV1>")
     fim = cartao.index("</CREDITCARDMSGSRSV1>") + len("</CREDITCARDMSGSRSV1>")
-    return conta.replace("</BANKMSGSRSV1>", "</BANKMSGSRSV1>\n" + cartao[inicio:fim]).encode()
+    return cartao[inicio:fim]
+
+
+def with_account(bloco):
+    """Extrato de conta com outro bloco de mensagens no mesmo arquivo — o `ofxtools` aceita."""
+    conta = account_statement([transaction(fitid="C1", memo="PIX NA CONTA")]).decode()
+    return conta.replace("</BANKMSGSRSV1>", "</BANKMSGSRSV1>\n" + bloco).encode()
+
+
+def investment_only():
+    conta = account_statement().decode()
+    inicio = conta.index("<BANKMSGSRSV1>")
+    fim = conta.index("</BANKMSGSRSV1>") + len("</BANKMSGSRSV1>")
+    return (conta[:inicio] + INVESTMENT_BLOCK + conta[fim:]).encode()
 
 
 def test_arquivo_com_conta_e_fatura_juntas_e_recusado_inteiro():
     """Importar só a conta perderia a parte do cartão sem ninguém ficar sabendo."""
     with pytest.raises(OFXError, match="fatura de cartão"):
-        parse_statement(mixed_statement())
+        parse_statement(with_account(card_block()))
+
+
+def test_extrato_de_investimentos_e_recusado():
+    with pytest.raises(OFXError, match="investimentos"):
+        parse_statement(investment_only())
+
+
+def test_arquivo_com_conta_e_investimentos_juntos_e_recusado_inteiro():
+    with pytest.raises(OFXError, match="investimentos"):
+        parse_statement(with_account(INVESTMENT_BLOCK))
 
 
 def test_fatura_de_cartao_e_recusada_explicando_o_motivo():

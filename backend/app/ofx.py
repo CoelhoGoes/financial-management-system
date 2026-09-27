@@ -6,7 +6,8 @@ banco, não grava nada e não escolhe categoria — quem importa revisa antes de
 Escopo deliberado: **extrato de conta**, nunca fatura de cartão. A fatura é calculada
 pelo app a partir dos lançamentos no crédito (ver `service.py`); importá-la contaria o
 mesmo gasto duas vezes. Arquivo que traga fatura de cartão — sozinha ou junto de um
-extrato de conta — é recusado inteiro, com mensagem explicando isso.
+extrato de conta — é recusado inteiro, com mensagem explicando isso. O mesmo vale para
+extrato de investimentos.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from ofxtools.models import CCSTMTRS, STMTRS
+from ofxtools.models import CCSTMTRS, INVSTMTRS, STMTRS
 from ofxtools.Parser import OFXTree
 
 if TYPE_CHECKING:
@@ -76,6 +77,14 @@ def parse_statement(content: bytes) -> list[ImportedEntry]:
             "calculada a partir dos lançamentos no crédito, e importá-la contaria o mesmo "
             "gasto duas vezes. Se o arquivo também tiver o extrato da conta, baixe só o "
             "extrato da conta pelo app do banco."
+        )
+    # Mesmo raciocínio para investimento: o app não tem onde pôr aplicação e resgate, e
+    # ignorar essa parte de um arquivo misto seria a mesma perda silenciosa.
+    if any(isinstance(s, INVSTMTRS) for s in statements):
+        raise OFXError(
+            "Este arquivo traz um extrato de investimentos, que não entra aqui. Se o "
+            "arquivo também tiver o extrato da conta, baixe só o extrato da conta pelo app "
+            "do banco."
         )
     accounts = [s for s in statements if isinstance(s, STMTRS)]
     if not accounts:

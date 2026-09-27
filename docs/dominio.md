@@ -123,6 +123,9 @@ linha. Nada é gravado antes de alguém conferir na tela de importação.
   extrato da conta. A fatura já é calculada a partir dos lançamentos no crédito; importar o
   OFX do cartão contaria a mesma compra duas vezes. Recusar o arquivo misto, em vez de
   importar só a conta, evita perder a parte do cartão sem ninguém ficar sabendo.
+- **Extrato de investimentos também é recusado**, sozinho ou junto do extrato da conta, pelo
+  mesmo motivo: o app não registra aplicação e resgate, e ignorar essa parte seria perda
+  silenciosa.
 - **O sinal do valor decide o tipo:** negativo é `gasto`, positivo é `entrada`. O `TRNTYPE` do
   OFX é ignorado — é descritivo e cada banco usa de um jeito. Linha de valor zero é
   descartada.
