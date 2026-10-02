@@ -123,6 +123,12 @@ linha. Nada é gravado antes de alguém conferir na tela de importação.
   extrato da conta. A fatura já é calculada a partir dos lançamentos no crédito; importar o
   OFX do cartão contaria a mesma compra duas vezes. Recusar o arquivo misto, em vez de
   importar só a conta, evita perder a parte do cartão sem ninguém ficar sabendo.
+- **Formatos verificados em 02/10/2026**, com arquivos reais: Itaú e Nubank exportam o extrato
+  da conta corrente em OFX 1.02 (SGML), só com o extrato da conta — sem fatura de cartão nem
+  investimento no mesmo arquivo. O Itaú declara `CHARSET:1252`; o Nubank, `ENCODING:UTF-8`.
+  Os dois são lidos com os acentos corretos. Se o `FITID` de cada banco se mantém igual entre
+  dois downloads do mesmo período — e é isso que a deduplicação assume — ainda não foi
+  verificado.
 - **Extrato de investimentos também é recusado**, sozinho ou junto do extrato da conta, pelo
   mesmo motivo: o app não registra aplicação e resgate, e ignorar essa parte seria perda
   silenciosa.

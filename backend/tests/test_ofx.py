@@ -220,6 +220,28 @@ def test_lancamento_sem_memo_ganha_descricao_padrao():
     assert entry.description == "Lançamento importado"
 
 
+@pytest.mark.parametrize(
+    "encoding_header, charset_header, codec",
+    [
+        ("USASCII", "1252", "cp1252"),  # como o Itaú exporta
+        ("UTF-8", "NONE", "utf-8"),  # como o Nubank exporta
+    ],
+)
+def test_acento_na_descricao_sobrevive_aos_dois_cabecalhos(encoding_header, charset_header, codec):
+    memo = "Transferência recebida - Conceição"
+    documento = (
+        account_statement([transaction(memo=memo)])
+        .decode()
+        .replace("ENCODING:USASCII", f"ENCODING:{encoding_header}")
+        .replace("CHARSET:1252", f"CHARSET:{charset_header}")
+        .encode(codec)
+    )
+
+    (entry,) = parse_statement(documento)
+
+    assert entry.description == memo
+
+
 def test_extrato_sem_transacoes_devolve_lista_vazia():
     assert parse_statement(account_statement([])) == []
 
