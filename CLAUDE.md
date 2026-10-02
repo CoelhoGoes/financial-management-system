@@ -252,6 +252,16 @@ Quando eu pedir explicitamente para "lançar uma versão", promova o conteúdo d
 para uma seção `[X.Y.Z] - AAAA-MM-DD` nova, seguindo SemVer, e deixe `[Não lançado]` vazio para
 a próxima rodada.
 
+O número sobe conforme o tamanho da mudança, e **quem decide o tamanho sou eu** — se eu não
+disser, pergunte:
+
+- grande: `+1.x.x`
+- média: `x.+1.x`
+- pequena: `x.x.+1`
+
+Como no SemVer, os números à direita do que subiu voltam a zero. A primeira versão lançada foi
+a `0.1.0`, em 02/10/2026.
+
 ## Do not touch
 
 - `frontend/dist/` — build output, gitignored

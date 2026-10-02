@@ -7,6 +7,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [0.1.0] - 2026-10-02
+
 ### Adicionado
 - Navegação entre meses na tela de lançamentos: as setas mostram a lista e o saldo de
   outros meses, então dá para corrigir lançamentos antigos — como os que chegaram por um
@@ -85,9 +87,6 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   acessíveis adicionados aos campos de e-mail e senha
 - Navegação do frontend passou a usar `react-router` (rotas `/login`, `/` e `/lancamentos`) no
   lugar da troca manual de tela; `App.tsx` foi dividido em `src/pages/`
-
-### Removido
--
 
 <!--
 ## [0.1.0] - AAAA-MM-DD
