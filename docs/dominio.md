@@ -171,10 +171,13 @@ conversar antes.
   cria as tabelas a partir dos modelos (`create_all`). Uma mudança em `models.py` sem migração
   passa em todos os testes e só quebra no deploy. A guarda é rodar `alembic check`, que falha
   quando modelo e migrações divergem.
-- **O container da API não enxerga migração nova sem rebuild.** O `docker-compose.yml` monta
-  só `backend/app`; `backend/alembic` entra na imagem pelo `COPY`. Uma migração criada depois
-  do último build é ignorada pelo `alembic upgrade head` do boot até um
-  `docker compose up --build`.
+- **O container da API não enxerga dependência nova sem rebuild.** O `docker-compose.yml`
+  monta `backend/app` e `backend/alembic` do host, mas o `requirements.txt` só é instalado no
+  build da imagem. Código que importa uma dependência nova roda sobre a imagem antiga e a API
+  não sobe — aconteceu em 02/10/2026 com o `ofxtools`. O `./dev.sh` sempre reconstrói;
+  `docker compose up` sem `--build` e `docker compose restart` não. Migração nova, por outro
+  lado, já não precisa de build: o `alembic upgrade head` roda no boot, então basta um
+  `docker compose restart api`.
 - **`/summary`, `/summary/{month}/categories` e `/trend` carregam todos os lançamentos do
   usuário na memória** e filtram em Python, em vez de filtrar no SQL. Na escala de um usuário
   isso é irrelevante; é o primeiro lugar para olhar se ficar lento. A tela de resumo chama os

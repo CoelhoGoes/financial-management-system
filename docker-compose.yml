@@ -32,6 +32,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/code/app
+      # sem isto o container só vê as migrações copiadas no último build; com isto, uma
+      # migração nova é aplicada no próximo `docker compose restart api`
+      - ./backend/alembic:/code/alembic
 
 volumes:
   dados_postgres:
