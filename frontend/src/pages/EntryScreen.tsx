@@ -11,8 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Header } from '@/components/Header'
 import { MonthNav } from '@/components/MonthNav'
 
+/** Hoje no fuso de quem usa. Não use toISOString: ele dá a data em UTC, e no horário de
+ *  Brasília isso já é o dia seguinte a partir das 21h. */
 function today() {
-  return new Date().toISOString().slice(0, 10)
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${now.getFullYear()}-${month}-${day}`
 }
 
 interface FormState {

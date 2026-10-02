@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '@/lib/auth-context'
 import { currentMonth, shiftMonth } from '@/lib/format'
 import { EntryScreen } from './EntryScreen'
@@ -275,6 +275,26 @@ describe('EntryScreen', () => {
 
       expect(await screen.findByText('Novo lançamento')).toBeInTheDocument()
       expect(screen.getByLabelText('Descrição')).toHaveValue('')
+    })
+  })
+
+  describe('a data sugerida', () => {
+    beforeEach(() => {
+      // o bug só aparece a oeste de UTC: fixa o fuso para o teste não depender da máquina
+      vi.stubEnv('TZ', 'America/Sao_Paulo')
+      vi.useFakeTimers({ toFake: ['Date'] })
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+      vi.unstubAllEnvs()
+    })
+
+    it('é hoje no fuso local, mesmo depois das 21h', async () => {
+      // 23h30 de 30/09 em Brasília já é 01/10 em UTC
+      vi.setSystemTime(new Date('2026-09-30T23:30:00-03:00'))
+      montar()
+
+      expect(await screen.findByLabelText('Data')).toHaveValue('2026-09-30')
     })
   })
 
