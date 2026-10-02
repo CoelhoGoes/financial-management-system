@@ -40,31 +40,44 @@ paths:
   the date is converted to `America/Sao_Paulo` before `.date()` because `ofxtools` normalizes
   `DTPOSTED` to UTC and throws the declared offset away (a 30/09 22:00 purchase would land in
   October); and gasto/entrada comes from the sign of `TRNAMT`, not from `TRNTYPE`, which is
-  descriptive and varies between banks. A **credit-card** file is refused on purpose — the
-  fatura is already derived from `method == "credito"` entries, so importing it would count
-  the same expense twice.
+  descriptive and varies between banks. A file carrying a **credit-card** statement is refused
+  whole, even alongside an account statement — the fatura is already derived from
+  `method == "credito"` entries, so importing it would count the same expense twice, and
+  importing only the account part would drop the card part in silence. Investment statements
+  are refused the same way. Imported lines are always à vista: `EntryImport` has no `method`
+  or `installments`, and `POST /imports` answers 422 if they are sent.
 - **`tests/`** — `pytest` from `backend/` (config in `pyproject.toml`). `test_service.py` needs
   nothing and `test_ofx.py` needs nothing either — its OFX fixtures are strings inside the
   test file, not `.ofx` on disk, because `*.ofx` is gitignored (a statement is bank data and
   never enters the repository). `test_api.py` does need a database: it boots the app against
-  sqlite, or against Postgres when `TEST_DATABASE_URL` is set. Install with
+  sqlite, or against Postgres when `TEST_DATABASE_URL` is set. `test_migrations.py` runs only
+  on Postgres (skipped on sqlite) — see the `alembic/` item. Install with
   `pip install -r requirements-dev.txt` — dev dependencies live there and never reach the
   image.
 - **`routers/auth.py` / `routers/finance.py`** — mounted at `/auth` and root respectively.
   `finance.py` loads *all* of a user's `Entry` rows into memory (`_all`) and then
   filters/aggregates in Python via `service.py`, rather than doing month filtering in SQL for
   `/summary` and `/trend` — only `/entries` filters by month at the query level. Fine at
-  single-user scale; the first thing to revisit if it gets slow.
+  single-user scale; the first thing to revisit if it gets slow. Two helpers hold invariants
+  that every new endpoint must reuse rather than repeat: `_owned_entry` (an `Entry` that
+  belongs to the JWT user, 404 otherwise — used by `PATCH` and `DELETE`) and
+  `_reject_income_on_credit` (used by create and by `PATCH`, which validates the merged
+  entry, not just the fields sent).
 - **`main.py`** — app entrypoint; wires CORS from `ALLOWED_ORIGINS`, includes both routers,
   exposes `/health`. It creates **no** schema: `create_all` was removed on purpose, because
   running it alongside migrations lets the code's schema drift from the database in silence.
 - **`alembic/`** — owns the schema. `alembic upgrade head` runs from the Dockerfile `CMD`
   before uvicorn, so the container migrates itself on boot. Changing `models.py` means
   generating a migration in the same commit (`alembic revision --autogenerate -m "..."`), and
-  `alembic check` fails when a model change has no migration — worth running, since the tests
-  build their schema from the models and would not notice. `alembic/versions/` is excluded
-  from ruff (generated from a template) but `alembic/env.py` is linted; `env.py` imports
-  `DATABASE_URL` from `database.py` rather than repeating the connection string.
+  `alembic check` fails when a model change has no migration. The everyday sqlite suite builds
+  its schema from the models and would not notice, so two guards run that check: `./dev.sh`,
+  against the dev Postgres on every start (warns in red, does not block), and
+  `tests/test_migrations.py`, which applies the migrations to an empty database — Postgres
+  only, since the migrations do not run on sqlite. `backend/alembic` is mounted into the API
+  container, so a new migration needs only `docker compose restart api`; a new dependency in
+  `requirements.txt` still needs `--build`. `alembic/versions/` is excluded from ruff
+  (generated from a template) but `alembic/env.py` is linted; `env.py` imports `DATABASE_URL`
+  from `database.py` rather than repeating the connection string.
 
 ## Reminders that apply here
 
@@ -72,6 +85,7 @@ paths:
 - New business rules go in `service.py` as pure functions, never inline in a router.
 - Every `Entry` read/write scopes by `user.id` from the JWT.
 - Changing `models.py` means generating the Alembic migration in the same commit. Nothing
-  creates schema at boot any more, so a model without a migration only breaks in production.
+  creates schema at boot any more, so a model without a migration breaks the deploy —
+  `./dev.sh` warns about it on start, the sqlite test suite does not.
 - Changing a Pydantic schema means changing `frontend/src/types.ts` in the same commit.
 - Read `docs/dominio.md` before touching `service.py`.

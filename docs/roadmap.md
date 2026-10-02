@@ -10,19 +10,14 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Atualizar o `.claude/rules/rules-backend.md`: o item do `ofx.py` diz que só a fatura de
-      cartão é recusada, mas o arquivo misto e o extrato de investimentos também são; a lista de
-      testes não tem o `test_migrations.py`; e o item do `alembic/` ainda diz que os testes não
-      perceberiam um modelo sem migração. Editar `.claude/rules/` precisa de autorização
-      explícita
+- [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
+      `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
+      por um efeito dependente do mês, com flag `ativo` e chave de recarga
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
-      `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
-      por um efeito dependente do mês, com flag `ativo` e chave de recarga
 - [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
       explica o `alembic revision --autogenerate` e o `alembic check`
 - [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.

@@ -87,9 +87,3 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   acessíveis adicionados aos campos de e-mail e senha
 - Navegação do frontend passou a usar `react-router` (rotas `/login`, `/` e `/lancamentos`) no
   lugar da troca manual de tela; `App.tsx` foi dividido em `src/pages/`
-
-<!--
-## [0.1.0] - AAAA-MM-DD
-### Adicionado
-- ...
--->

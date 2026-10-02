@@ -231,8 +231,9 @@ apply everywhere and are not repeated there.
 - Business/invoice/balance logic belongs in `service.py` as pure functions (no DB access), not
   inline in routers and never in the frontend — this is what keeps it testable and shareable
   with a future native client.
-- `entrada` (income) entries cannot use `method == "credito"` (enforced in `finance.py`'s
-  `create` endpoint).
+- `entrada` (income) entries cannot use `method == "credito"` (enforced by
+  `_reject_income_on_credit` in `finance.py`, which both create and `PATCH` call; imported
+  entries have no `method` at all).
 - Every `Entry` mutation/read endpoint scopes by `user.id` from the JWT — never trust a
   client-supplied user id.
 - `frontend/src/types.ts` and `backend/app/schemas.py` change together.
@@ -284,8 +285,8 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** atualizar o `.claude/rules/rules-backend.md` (importação, `test_migrations.py`
-e o item do Alembic) — precisa de autorização para editar.
+**Em andamento:** `InvoiceScreen` — trocar o `useEffect` que não lista `loadData` nas
+dependências pelo padrão do `EntryScreen`.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias
