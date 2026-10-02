@@ -38,6 +38,19 @@ usuário é registrado no `CHANGELOG.md`.
       `[tool.deptry.package_module_name_map]` e `[tool.deptry.per_rule_ignores]`, mas a lista de
       ignorados vira mais uma coisa a manter em sincronia, e hoje a lista inteira de
       dependências cabe na cabeça
+- [ ] Limite de tamanho de corpo no servidor (uvicorn ou proxy) antes do deploy: o 413 do
+      upload de OFX só dispara depois que o corpo inteiro chegou — limita a memória do
+      processo, não o tráfego
+- [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
+      importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026
+- [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
+      `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
+      por um efeito dependente do mês, com flag `ativo` e chave de recarga
+- [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
+      explica o `alembic revision --autogenerate` e o `alembic check`
+- [ ] Atualizar o item do `ofx.py` em `.claude/rules/rules-backend.md`: diz que só a fatura de
+      cartão é recusada, mas o arquivo misto e o extrato de investimentos também são. Editar
+      `.claude/rules/` precisa de autorização explícita
 
 ## Manutenção
 
