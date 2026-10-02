@@ -10,26 +10,34 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] (nada — importação de extrato e edição de lançamento acabaram de sair)
+- [ ] Dívidas do Alembic: rodar `alembic check` na suíte de testes e montar `backend/alembic`
+      no `docker-compose.yml`. O porquê está em `docs/dominio.md` → Dívidas conhecidas; mexer
+      no compose precisa de aprovação
 
 ## Próximo
 
-- [ ] (vazio — nada priorizado; promova algo de **Depois** quando decidir o que vem)
+Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-## Depois
-
-- [ ] Rever `Select` do shadcn para campos de escolha fechada (categoria/tipo/método);
-      `EntryScreen` usa `<select>` nativo e botões de toggle hoje
-- [ ] Mover `api.js` para `src/api.ts` tipado
-- [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
-- [ ] Filtrar lançamentos no SQL em `/summary` e `/trend`, se ficar lento
-- [ ] Deploy: backend em Railway / Render / Fly.io; frontend na Vercel
+- [ ] Atualizar o item do `ofx.py` em `.claude/rules/rules-backend.md`: diz que só a fatura de
+      cartão é recusada, mas o arquivo misto e o extrato de investimentos também são. Editar
+      `.claude/rules/` precisa de autorização explícita
+- [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
+      `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
+      por um efeito dependente do mês, com flag `ativo` e chave de recarga
+- [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
+      explica o `alembic revision --autogenerate` e o `alembic check`
 - [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.
       Precisa de um toggle nas configurações do app e, por padrão, seguir a preferência do
       sistema (`prefers-color-scheme`), com a escolha manual sobrepondo o padrão
 - [ ] Endpoint de exclusão de conta: hoje dá para criar usuário e apagar lançamento, mas não
       apagar o próprio usuário — só com SQL direto no banco. Ficou evidente quando uma conta
       de teste entrou no banco de desenvolvimento e não teve como removê-la pela API
+- [ ] Rever `Select` do shadcn para campos de escolha fechada (categoria/tipo/método);
+      `EntryScreen` usa `<select>` nativo e botões de toggle hoje
+- [ ] Mover `api.js` para `src/api.ts` tipado
+- [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
+- [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
+      importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026
 - [ ] Reavaliar o `deptry` (dependências Python declaradas e nunca importadas) quando o
       `requirements.txt` crescer. Testado em 18/09/2026 com 8 dependências: 5 achados, 5 falsos
       positivos — `uvicorn` vem do `CMD` do Dockerfile, `psycopg` da string da `DATABASE_URL`,
@@ -38,19 +46,14 @@ usuário é registrado no `CHANGELOG.md`.
       `[tool.deptry.package_module_name_map]` e `[tool.deptry.per_rule_ignores]`, mas a lista de
       ignorados vira mais uma coisa a manter em sincronia, e hoje a lista inteira de
       dependências cabe na cabeça
+- [ ] Filtrar lançamentos no SQL em `/summary` e `/trend`, se ficar lento
+
+## Depois
+
+- [ ] Deploy: backend em Railway / Render / Fly.io; frontend na Vercel
 - [ ] Limite de tamanho de corpo no servidor (uvicorn ou proxy) antes do deploy: o 413 do
       upload de OFX só dispara depois que o corpo inteiro chegou — limita a memória do
       processo, não o tráfego
-- [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
-      importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026
-- [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
-      `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
-      por um efeito dependente do mês, com flag `ativo` e chave de recarga
-- [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
-      explica o `alembic revision --autogenerate` e o `alembic check`
-- [ ] Atualizar o item do `ofx.py` em `.claude/rules/rules-backend.md`: diz que só a fatura de
-      cartão é recusada, mas o arquivo misto e o extrato de investimentos também são. Editar
-      `.claude/rules/` precisa de autorização explícita
 
 ## Manutenção
 

@@ -267,7 +267,8 @@ a próxima rodada.
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** nada; importação de extrato e edição de lançamento acabaram de sair.
+**Em andamento:** dívidas do Alembic — `alembic check` na suíte e `backend/alembic` montado
+no `docker-compose.yml`.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias
