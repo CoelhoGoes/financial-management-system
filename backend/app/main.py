@@ -9,7 +9,7 @@ from .routers import auth, finance
 # que o CMD do Dockerfile roda antes do servidor). Não use create_all aqui: os dois
 # em paralelo fazem o schema do código divergir do banco em silêncio.
 
-app = FastAPI(title="Gestão Financeira", version="1.0.0")
+app = FastAPI(title="Gestão Financeira", version="0.1.0")
 
 allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")]
 app.add_middleware(

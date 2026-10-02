@@ -262,6 +262,10 @@ disser, pergunte:
 Como no SemVer, os números à direita do que subiu voltam a zero. A primeira versão lançada foi
 a `0.1.0`, em 02/10/2026.
 
+O número vive em três lugares, que mudam juntos no lançamento: o `CHANGELOG.md`, o `version`
+do `frontend/package.json` (o `package-lock.json` acompanha via `npm install`) e o `version=`
+do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra.
+
 ## Do not touch
 
 - `frontend/dist/` — build output, gitignored
