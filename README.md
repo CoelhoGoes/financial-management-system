@@ -107,7 +107,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 121 testes, ~14s
+cd backend && pytest                          # 122 testes (1 pulado em sqlite), ~14s
 
 cd frontend && npm test                       # 80 testes, ~5s
 ```
@@ -136,7 +136,8 @@ backend/
 ├── tests/
 │   ├── test_service.py    regras de negócio, sem banco nenhum
 │   ├── test_ofx.py        leitura de extrato OFX, sem banco nenhum
-│   └── test_api.py        contrato HTTP, em sqlite ou Postgres
+│   ├── test_api.py        contrato HTTP, em sqlite ou Postgres
+│   └── test_migrations.py migrações batem com os modelos — só em Postgres
 └── app/
     ├── main.py            entrada, CORS, registro dos routers, /health
     ├── database.py        engine e sessão do SQLAlchemy

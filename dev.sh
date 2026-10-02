@@ -70,6 +70,16 @@ if ! curl -sf -m 2 http://localhost:8000/health >/dev/null 2>&1; then
   exit 1
 fi
 
+# Os testes criam o schema a partir dos modelos, não das migrações, então um modelo alterado
+# sem migração passa neles. Aqui a comparação é contra o Postgres de verdade. Só avisa: um
+# modelo em andamento não deve impedir o trabalho de seguir.
+if docker compose exec -T api alembic check >/dev/null 2>&1; then
+  cinza "Modelos e migrações conferem (alembic check)."
+else
+  vermelho "Os modelos divergem das migrações — falta gerar uma migração. Para ver o que difere:"
+  vermelho "  docker compose exec api alembic check"
+fi
+
 # --- frontend -------------------------------------------------------------
 cd frontend
 [ -d node_modules ] || { cinza "Instalando dependências do frontend…"; npm install; }

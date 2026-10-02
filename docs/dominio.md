@@ -167,10 +167,12 @@ do cliente.
 Coisas que estão assim de propósito ou por falta de tempo — não são bugs a corrigir sem
 conversar antes.
 
-- **Os testes não passam pelas migrações.** O schema pertence ao Alembic, mas o `conftest.py`
-  cria as tabelas a partir dos modelos (`create_all`). Uma mudança em `models.py` sem migração
-  passa em todos os testes e só quebra no deploy. A guarda é rodar `alembic check`, que falha
-  quando modelo e migrações divergem.
+- **A suíte do dia a dia não passa pelas migrações.** O schema pertence ao Alembic, mas o
+  `conftest.py` cria as tabelas a partir dos modelos (`create_all`), e as migrações, geradas
+  para o Postgres, não rodam em sqlite. Uma mudança em `models.py` sem migração passa na
+  suíte padrão. Duas guardas cobrem o buraco: o `./dev.sh` roda `alembic check` contra o
+  Postgres de desenvolvimento e avisa em vermelho, e `tests/test_migrations.py` sobe as
+  migrações e roda o check quando a suíte é executada com `TEST_DATABASE_URL`.
 - **O container da API não enxerga dependência nova sem rebuild.** O `docker-compose.yml`
   monta `backend/app` e `backend/alembic` do host, mas o `requirements.txt` só é instalado no
   build da imagem. Código que importa uma dependência nova roda sobre a imagem antiga e a API

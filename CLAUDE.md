@@ -101,7 +101,7 @@ backend/
 ├── alembic.ini
 ├── alembic/                  owns the schema; `alembic upgrade head` runs on container boot
 ├── tests/                    test_service.py and test_ofx.py (no DB), test_api.py
-│                             (sqlite/Postgres)
+│                             (sqlite/Postgres), test_migrations.py (Postgres only)
 └── app/
     ├── main.py
     ├── database.py
@@ -181,7 +181,7 @@ npm run preview    # serve the production build
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 121 tests, ~14s
+cd backend && pytest                          # 122 tests (1 skipped on sqlite), ~14s
 
 cd frontend && npm test                       # 80 tests, ~5s
 ```
@@ -191,7 +191,10 @@ dataclass stubs instead of `Entry`/`User`. `test_ofx.py` needs none either — i
 are strings inside the file, since `*.ofx` is gitignored. `test_api.py` does need one and runs
 on sqlite by default. Set `TEST_DATABASE_URL` to run the same suite against a real Postgres
 (command in `README.md`) — both are verified, but the everyday run is sqlite. The money math
-lives in the DB-free layer on purpose.
+lives in the DB-free layer on purpose. `test_migrations.py` is the one test that only runs on
+Postgres: it applies the migrations to an empty database and runs `alembic check`, because
+the migrations don't run on sqlite. `./dev.sh` runs the same check against the dev database
+on every start and warns in red when models and migrations disagree.
 
 Other checks: `npm run build` (typecheck), `uvx ruff check backend/` (lint; config in
 `backend/pyproject.toml`) and `docker compose config` (validates the compose file, and also
@@ -281,8 +284,8 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** dívidas do Alembic — `alembic check` na suíte e `backend/alembic` montado
-no `docker-compose.yml`.
+**Em andamento:** atualizar o `.claude/rules/rules-backend.md` (importação, `test_migrations.py`
+e o item do Alembic) — precisa de autorização para editar.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

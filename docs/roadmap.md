@@ -10,17 +10,16 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Dívidas do Alembic: rodar `alembic check` na suíte de testes e montar `backend/alembic`
-      no `docker-compose.yml`. O porquê está em `docs/dominio.md` → Dívidas conhecidas; mexer
-      no compose precisa de aprovação
+- [ ] Atualizar o `.claude/rules/rules-backend.md`: o item do `ofx.py` diz que só a fatura de
+      cartão é recusada, mas o arquivo misto e o extrato de investimentos também são; a lista de
+      testes não tem o `test_migrations.py`; e o item do `alembic/` ainda diz que os testes não
+      perceberiam um modelo sem migração. Editar `.claude/rules/` precisa de autorização
+      explícita
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Atualizar o item do `ofx.py` em `.claude/rules/rules-backend.md`: diz que só a fatura de
-      cartão é recusada, mas o arquivo misto e o extrato de investimentos também são. Editar
-      `.claude/rules/` precisa de autorização explícita
 - [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
       `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
       por um efeito dependente do mês, com flag `ativo` e chave de recarga
