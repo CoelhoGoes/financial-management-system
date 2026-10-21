@@ -12,6 +12,7 @@ from ..domain.service import (
     calculate_category_breakdown,
     calculate_invoice,
     calculate_summary,
+    is_income_on_credit,
     month_key,
     shift_month,
 )
@@ -53,9 +54,9 @@ def _owned_entry(session: Session, user: User, entry_id: int) -> Entry:
 
 
 def _reject_income_on_credit(data: EntryCreate) -> None:
-    """Invariante de domínio, usado por criação e edição. A importação não precisa:
+    """Traduz a regra do domínio em 422, para criação e edição. A importação não precisa:
     `EntryImport` nem tem `method`, então uma linha importada não chega ao crédito."""
-    if data.type == "entrada" and data.method == "credito":
+    if is_income_on_credit(data.type, data.method):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Entrada não vai no crédito.")
 
 

@@ -47,8 +47,8 @@ Assinaturas, Outros
 ### Uma entrada nunca é no crédito
 
 Lançamento com `type == "entrada"` não pode ter `method == "credito"`. Não faz sentido receber
-dinheiro no cartão de crédito neste modelo. Validado no endpoint de criação em
-`api/finance.py`.
+dinheiro no cartão de crédito neste modelo. A regra é `is_income_on_credit` em
+`domain/service.py`; criação e edição em `api/finance.py` a consultam e respondem 422.
 
 ### Em que fatura uma compra cai
 

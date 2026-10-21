@@ -145,7 +145,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 122 testes (1 pulado em sqlite), ~14s
+cd backend && pytest                          # 127 testes (1 pulado em sqlite), ~14s
 
 cd frontend && npm test                       # 82 testes, ~5s
 ```

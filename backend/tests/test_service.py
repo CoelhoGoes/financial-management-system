@@ -9,6 +9,7 @@ from app.domain.service import (
     calculate_invoice,
     calculate_summary,
     invoice_for_purchase,
+    is_income_on_credit,
     shift_month,
     split_installments,
 )
@@ -29,6 +30,18 @@ class TestShiftMonth:
     def test_ida_e_volta_sempre_retorna_ao_mesmo_mes(self):
         for n in range(-30, 31):
             assert shift_month(shift_month("2026-06", n), -n) == "2026-06"
+
+
+class TestIsIncomeOnCredit:
+    @pytest.mark.parametrize("tipo,metodo,esperado", [
+        ("entrada", "credito", True),   # o único caso proibido
+        ("entrada", "avista", False),
+        ("gasto", "credito", False),
+        ("gasto", "avista", False),
+        ("entrada", None, False),       # linha importada não tem método
+    ])
+    def test_so_entrada_no_credito_e_proibida(self, tipo, metodo, esperado):
+        assert is_income_on_credit(tipo, metodo) is esperado
 
 
 class TestInvoiceForPurchase:

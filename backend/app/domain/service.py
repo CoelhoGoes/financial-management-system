@@ -80,6 +80,11 @@ def shift_month(key: str, n: int) -> str:
     return f"{total // 12:04d}-{total % 12 + 1:02d}"
 
 
+def is_income_on_credit(entry_type: str, method: str | None) -> bool:
+    """An entrada never goes on the credit card — receiving money on it makes no sense here."""
+    return entry_type == "entrada" and method == "credito"
+
+
 def invoice_for_purchase(d: date, closing_day: int) -> str:
     """A purchase before the closing day lands on next month's invoice;
     on/after that day it skips to the month after."""

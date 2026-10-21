@@ -187,7 +187,7 @@ npm run preview    # serve the production build
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 122 tests (1 skipped on sqlite), ~14s
+cd backend && pytest                          # 127 tests (1 skipped on sqlite), ~14s
 
 cd frontend && npm test                       # 82 tests, ~5s
 ```
@@ -259,9 +259,9 @@ apply everywhere and are not repeated there.
 - Business/invoice/balance logic belongs in `domain/service.py` as pure functions (no DB
   access), not inline in routers and never in the frontend — this is what keeps it testable and
   shareable with a future native client.
-- `entrada` (income) entries cannot use `method == "credito"` (enforced by
-  `_reject_income_on_credit` in `finance.py`, which both create and `PATCH` call; imported
-  entries have no `method` at all).
+- `entrada` (income) entries cannot use `method == "credito"` (the rule is `is_income_on_credit`
+  in `domain/service.py`; `_reject_income_on_credit` in `finance.py` turns it into a 422 and
+  both create and `PATCH` call it; imported entries have no `method` at all).
 - Every `Entry` mutation/read endpoint scopes by `user.id` from the JWT — never trust a
   client-supplied user id.
 - `frontend/src/shared/types.ts` and `backend/app/api/schemas.py` change together — and when
