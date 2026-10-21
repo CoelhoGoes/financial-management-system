@@ -10,16 +10,14 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
-      explica o `alembic revision --autogenerate` e o `alembic check`
+- [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.
+      Precisa de um toggle nas configurações do app e, por padrão, seguir a preferência do
+      sistema (`prefers-color-scheme`), com a escolha manual sobrepondo o padrão
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.
-      Precisa de um toggle nas configurações do app e, por padrão, seguir a preferência do
-      sistema (`prefers-color-scheme`), com a escolha manual sobrepondo o padrão
 - [ ] Endpoint de exclusão de conta: hoje dá para criar usuário e apagar lançamento, mas não
       apagar o próprio usuário — só com SQL direto no banco. Ficou evidente quando uma conta
       de teste entrou no banco de desenvolvimento e não teve como removê-la pela API

@@ -90,6 +90,44 @@ uvicorn app.main:app --reload
 Precisa de um Postgres alcançável — o projeto não roda em SQLite. Pular o `alembic upgrade
 head` sobe uma API sem tabelas: desde a adoção do Alembic, o schema é das migrações.
 
+### Criar uma migração
+
+Toda mudança em `backend/app/models.py` vem com uma migração no mesmo commit. Nada cria
+tabela no boot: modelo sem migração quebra o deploy.
+
+Com os containers de pé (`./dev.sh` ou `docker compose up`), a partir da raiz:
+
+```bash
+# 1. gera o arquivo comparando models.py com o banco de desenvolvimento
+docker compose exec --user "$(id -u):$(id -g)" api \
+  alembic revision --autogenerate -m "id de importacao em lancamentos"
+
+# 2. aplica (o container roda `alembic upgrade head` ao subir)
+docker compose restart api
+
+# 3. confere que modelos e migrações batem: termina em "No new upgrade operations detected."
+docker compose exec api alembic check
+```
+
+- **O `--user` importa:** o container roda como root, e sem ele o arquivo novo em
+  `backend/alembic/versions/` fica com dono root no seu disco.
+- **Leia o arquivo gerado antes de aplicar.** O autogenerate compara o estado, não a intenção:
+  uma coluna renomeada vira `drop_column` + `add_column`, e os dados da coluna antiga somem.
+  Nesse caso troque pelo `op.alter_column(..., new_column_name=...)` à mão. Confira também o
+  `downgrade()`.
+- A mensagem segue as que já existem: português, minúsculas, sem acento — ela vira o nome do
+  arquivo.
+- O banco precisa estar em `head` antes do passo 1, senão o autogenerate compara com um schema
+  velho. Basta o container ter subido depois do último `git pull`.
+
+Sem Docker, os mesmos comandos rodam de dentro de `backend/`, com o venv e as variáveis da seção
+acima: `alembic revision --autogenerate -m "..."`, `alembic upgrade head`, `alembic check`.
+
+Duas coisas conferem isso depois: o `./dev.sh` roda o `alembic check` a cada início e avisa em
+vermelho, e o `tests/test_migrations.py` aplica as migrações num banco vazio — só roda contra
+Postgres (ver [Testes](#testes)). A suíte do dia a dia, em sqlite, monta o schema a partir dos
+modelos e não percebe migração faltando.
+
 ### Checagem de código
 
 As ferramentas rodam por `uvx`/`npx`: não são instaladas, não entram no `requirements.txt` nem
@@ -109,7 +147,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 122 testes (1 pulado em sqlite), ~14s
 
-cd frontend && npm test                       # 80 testes, ~5s
+cd frontend && npm test                       # 82 testes, ~5s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -229,13 +267,14 @@ Antes de expor na internet:
 ## Estado atual
 
 **Funciona:** registro, login, sessão persistida em `localStorage`, roteamento multi-página
-(`/login`, `/`, `/lancamentos`, `/fatura`, `/configuracoes`), tela de resumo mensal (saldo,
-renda, fatura e gasto por categoria com barra de proporção), tela de lançamentos (criar,
-listar e excluir gastos/entradas do mês), tela de fatura (consulta por mês, com navegação
-entre meses) e tela de configuração (renda mensal e dia de fechamento). Backend completo com
-todos os endpoints acima.
+(`/login`, `/`, `/lancamentos`, `/fatura`, `/importar`, `/configuracoes`), tela de resumo
+mensal (saldo, renda, fatura, gasto por categoria com barra de proporção e gráfico de tendência
+dos últimos meses), tela de lançamentos (criar, editar, listar e excluir gastos/entradas do
+mês), tela de fatura (consulta por mês, com navegação entre meses), importação de extrato OFX
+com conferência antes de gravar, e tela de configuração (renda mensal e dia de fechamento).
+Backend completo com todos os endpoints acima; o schema é das migrações Alembic.
 
-**Ainda não existe:** gráfico de tendência, Alembic
-(o schema é criado com `create_all`, que não altera tabelas existentes).
+**Ainda não existe:** tema escuro e exclusão da própria conta pela API, entre outros — a fila
+completa está em [`docs/roadmap.md`](docs/roadmap.md).
 
 Mudanças notáveis ficam registradas em [`CHANGELOG.md`](CHANGELOG.md).
