@@ -5,14 +5,12 @@ from sqlalchemy.orm import Session
 
 from ..infra.database import get_session
 from ..infra.models import User
-from ..infra.security import (
+from ..infra.security import create_token, hash_password, verify_password
+from .deps import (
     clear_failed_logins,
-    create_token,
     current_user,
     ensure_login_allowed,
-    hash_password,
     record_failed_login,
-    verify_password,
 )
 from .schemas import Token, UserConfig, UserCreate, UserOut
 

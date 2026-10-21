@@ -17,7 +17,7 @@ from ..domain.service import (
 )
 from ..infra.database import get_session
 from ..infra.models import Entry, User
-from ..infra.security import current_user
+from .deps import current_user
 from .schemas import (
     CategoryBreakdown,
     EntryCreate,
