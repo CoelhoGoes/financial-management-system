@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '@/state/auth-context'
+import type { ImportPreviewItem } from '@/shared/types'
 import { ImportScreen } from './ImportScreen'
 
 vi.mock('@/data/api', () => ({
@@ -17,7 +18,7 @@ vi.mock('@/data/api', () => ({
 
 const { api } = await import('@/data/api')
 
-const linha = (over = {}) => ({
+const linha = (over: Partial<ImportPreviewItem> = {}): ImportPreviewItem => ({
   type: 'gasto',
   amount: '20.00',
   description: 'PIX FULANO',
@@ -153,7 +154,7 @@ describe('ImportScreen', () => {
     const user = userEvent.setup()
     vi.mocked(api.previewImport).mockResolvedValue([linha()])
     vi.mocked(api.confirmImport).mockResolvedValue({
-      created: [{ id: 1, ...linha() }],
+      created: [{ id: 1, ...linha(), category: 'Outros', method: 'avista', installments: 1 }],
       skipped: 2,
     })
     montar()

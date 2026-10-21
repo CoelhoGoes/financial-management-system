@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       await api.login(email, password)
-      const data = (await api.me()) as User
+      const data = await api.me()
       setUser(data)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não deu para entrar.')

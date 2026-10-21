@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '@/data/api'
 import { useAuth } from '@/state/auth-context'
-import type { User } from '@/shared/types'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
@@ -24,7 +23,7 @@ export function ConfigScreen() {
     setError(null)
     setSaved(false)
     try {
-      const updated = (await api.saveConfig(monthlyIncome, Number(closingDay))) as User
+      const updated = await api.saveConfig(monthlyIncome, Number(closingDay))
       updateUser(updated)
       setSaved(true)
     } catch (e) {

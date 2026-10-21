@@ -1,10 +1,23 @@
 // Cliente da API. Troque a URL pelo endereço do backend em produção.
+import type {
+  CategoryBreakdown,
+  EntryCreate,
+  EntryImport,
+  EntryOut,
+  EntryUpdate,
+  ImportPreviewItem,
+  ImportResult,
+  Invoice,
+  Summary,
+  User,
+} from '@/shared/types'
+
 const BASE = import.meta.env?.VITE_API_URL || 'http://localhost:8000';
 const TOKEN_KEY = 'gf:token';
 
 const token = () => localStorage.getItem(TOKEN_KEY);
 
-async function req(path, options = {}) {
+async function req<T>(path: string, options: RequestInit = {}): Promise<T> {
   // Upload de arquivo vai como FormData: quem define o Content-Type é o navegador,
   // que precisa anexar o boundary do multipart. Declarar JSON aqui quebraria o envio.
   const isUpload = options.body instanceof FormData;
@@ -25,11 +38,11 @@ async function req(path, options = {}) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.detail || 'Não deu para completar a operação.');
   }
-  return response.status === 204 ? null : response.json();
+  return response.status === 204 ? (null as T) : response.json();
 }
 
 export const api = {
-  async login(email, password) {
+  async login(email: string, password: string): Promise<void> {
     const body = new URLSearchParams({ username: email, password });
     const r = await fetch(`${BASE}/auth/token`, {
       method: 'POST',
@@ -45,32 +58,32 @@ export const api = {
     localStorage.setItem(TOKEN_KEY, access_token);
   },
 
-  register: (email, password) =>
-    req('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  register: (email: string, password: string) =>
+    req<User>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
   logout: () => localStorage.removeItem(TOKEN_KEY),
   isAuthenticated: () => Boolean(token()),
 
-  me: () => req('/auth/me'),
-  saveConfig: (monthly_income, closing_day) =>
-    req('/auth/me', { method: 'PUT', body: JSON.stringify({ monthly_income, closing_day }) }),
+  me: () => req<User>('/auth/me'),
+  saveConfig: (monthly_income: string, closing_day: number) =>
+    req<User>('/auth/me', { method: 'PUT', body: JSON.stringify({ monthly_income, closing_day }) }),
 
-  entries: (month) => req(`/entries${month ? `?month=${month}` : ''}`),
-  createEntry: (data) =>
-    req('/entries', { method: 'POST', body: JSON.stringify(data) }),
-  updateEntry: (id, data) =>
-    req(`/entries/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  removeEntry: (id) => req(`/entries/${id}`, { method: 'DELETE' }),
+  entries: (month?: string) => req<EntryOut[]>(`/entries${month ? `?month=${month}` : ''}`),
+  createEntry: (data: EntryCreate) =>
+    req<EntryOut>('/entries', { method: 'POST', body: JSON.stringify(data) }),
+  updateEntry: (id: number, data: EntryUpdate) =>
+    req<EntryOut>(`/entries/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  removeEntry: (id: number) => req<null>(`/entries/${id}`, { method: 'DELETE' }),
 
-  previewImport: (file) => {
+  previewImport: (file: File) => {
     const body = new FormData();
     body.append('file', file);
-    return req('/imports/preview', { method: 'POST', body });
+    return req<ImportPreviewItem[]>('/imports/preview', { method: 'POST', body });
   },
-  confirmImport: (lines) => req('/imports', { method: 'POST', body: JSON.stringify(lines) }),
+  confirmImport: (lines: EntryImport[]) => req<ImportResult>('/imports', { method: 'POST', body: JSON.stringify(lines) }),
 
-  summary: (month) => req(`/summary/${month}`),
-  categories: (month) => req(`/summary/${month}/categories`),
-  invoice: (month) => req(`/invoices/${month}`),
-  trend: (months = 6, until) => req(`/trend?months=${months}${until ? `&until=${until}` : ''}`),
+  summary: (month: string) => req<Summary>(`/summary/${month}`),
+  categories: (month: string) => req<CategoryBreakdown[]>(`/summary/${month}/categories`),
+  invoice: (month: string) => req<Invoice>(`/invoices/${month}`),
+  trend: (months = 6, until?: string) => req<Summary[]>(`/trend?months=${months}${until ? `&until=${until}` : ''}`),
 };

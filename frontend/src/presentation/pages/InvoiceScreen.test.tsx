@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '@/state/auth-context'
 import { currentMonth, shiftMonth } from '@/shared/format'
+import type { Invoice } from '@/shared/types'
 import { InvoiceScreen } from './InvoiceScreen'
 
 vi.mock('@/data/api', () => ({
@@ -85,7 +86,7 @@ describe('InvoiceScreen', () => {
 
   it('ignora a resposta de um mês que já saiu da tela', async () => {
     const user = userEvent.setup()
-    let resolverAtual!: (v: unknown) => void
+    let resolverAtual!: (v: Invoice) => void
     vi.mocked(api.invoice)
       .mockReturnValueOnce(new Promise((r) => { resolverAtual = r }))
       .mockResolvedValueOnce(vazia(shiftMonth(currentMonth(), -1)))

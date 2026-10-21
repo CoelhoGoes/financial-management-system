@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '@/state/auth-context'
 import { currentMonth, shiftMonth } from '@/shared/format'
+import type { EntryOut } from '@/shared/types'
 import { EntryScreen } from './EntryScreen'
 
 vi.mock('@/data/api', () => ({
@@ -24,7 +25,7 @@ const RESUMO = {
   month: '2026-09', monthly_income: '5000.00', extra_income: '0', cash_expenses: '0',
   invoice: '0', total_spent: '0', available_balance: '4000.00',
 }
-const LANCAMENTO = {
+const LANCAMENTO: EntryOut = {
   id: 1, description: 'feira', amount: '150.50', type: 'gasto',
   category: 'Mercado', method: 'avista', date: '2026-09-05', installments: 1,
 }
@@ -327,8 +328,8 @@ describe('EntryScreen', () => {
 
     it('resposta atrasada do mês que ficou para trás não sobrescreve a lista', async () => {
       const user = userEvent.setup()
-      let responderMesCorrente: (v: unknown) => void = () => {}
-      vi.mocked(api.entries).mockImplementation((m: string) =>
+      let responderMesCorrente: (v: EntryOut[]) => void = () => {}
+      vi.mocked(api.entries).mockImplementation((m) =>
         m === currentMonth()
           ? new Promise((resolve) => (responderMesCorrente = resolve))
           : Promise.resolve([DO_MES_ANTERIOR]),
