@@ -34,22 +34,22 @@ Instale pelo CLI (`npx shadcn@latest add button`) em vez de copiar de um blog.
 variáveis CSS em `src/index.css`. Se você procurar o arquivo de config, ele não existe — não é
 um erro.
 
-**Componentes shadcn instalados** (`Button`, `Input`, `Label`, `Card`, `Table`, `Chart`,
-`Checkbox`, `Badge`, em `src/components/ui/`). **Antes de escrever qualquer componente à mão,
-veja se o shadcn já tem** — é regra, não preferência; veja `.claude/rules/rules-frontend.md`. O
-`Chart` embrulha o recharts, por isso o `TrendChart` é carregado com `lazy`: importado direto,
-ele dobraria o bundle principal.
+**Componentes shadcn instalados** (`Button`, `Input`, `Label`, `Card`, `Table`, `Chart`, `Checkbox`,
+`Badge`, em `src/presentation/components/ui/`). **Antes de escrever qualquer componente à mão, veja
+se o shadcn já tem** — é regra, não preferência; veja `.claude/rules/rules-frontend.md`. O `Chart`
+embrulha o recharts, por isso o `TrendChart` é carregado com `lazy`: importado direto, ele dobraria
+o bundle principal.
 
 **O `cn` vem do pacote `cn`**, não de um helper local — é o pacote oficial do shadcn, que
 substitui `clsx` + `tailwind-merge`, e é assim que o CLI gera os imports desde o `Table`.
-Não recrie um `src/lib/utils.ts`.
+Não recrie um `utils.ts` (o alias `lib` do shadcn aponta para `src/shared/`).
 
 **Cores vêm dos tokens semânticos.** `bg-background`, `text-foreground`, `border-border`,
 `text-destructive`. Nunca hex nem classes de paleta bruta (`bg-neutral-900`) — é o que mantém o
 tema escuro funcionando. Já teve um bug de contraste por causa disso (veja o `CHANGELOG.md`).
 
-**Use o alias `@/`** para imports dentro de `src/`. A exceção é `api.js`, que fica fora de
-`src/` e é importado por caminho relativo.
+**Use o alias `@/`** para imports dentro de `src/`, sem exceção (`@/data/api`,
+`@/presentation/components/ui/button`).
 
 **Navegação é `react-router`** (rotas `/login`, `/`, `/lancamentos`, `/fatura`, `/importar`
 e `/configuracoes`, definidas em `App.tsx`). Tela nova precisa também da aba no `Header.tsx`
@@ -60,29 +60,41 @@ elemento (o `asChild` do Radix), então um botão que navega usa `onClick={() =>
 
 ## Estrutura
 
+Arquitetura em camadas: cada uma só importa a de baixo. `shared/` não importa nenhuma das
+outras.
+
 ```
-api.js                    cliente HTTP — JWT, header Authorization, tratamento de 401
+presentation/  ──▶  state/  ──▶  data/        (todas podem usar shared/)
+```
+
+```
 src/
 ├── main.tsx              monta o React dentro do BrowserRouter + AuthProvider
 ├── App.tsx               tabela de rotas (/login, /, /lancamentos, /fatura, /importar,
 │                         /configuracoes)
-├── types.ts              espelho manual de backend/app/schemas.py
 ├── index.css             import do Tailwind + tokens de tema
-├── pages/                 uma tela por arquivo (LoginScreen, SummaryScreen, EntryScreen,
-│                          InvoiceScreen, ImportScreen, ConfigScreen)
-├── constants/
-│   └── categories.ts     listas fechadas de categoria, espelha docs/dominio.md
-├── components/
-│   ├── Header.tsx        header/navegação compartilhado entre as telas autenticadas
-│   ├── MonthNav.tsx      passo de mês, compartilhado por resumo, lançamentos e fatura
-│   ├── TrendChart.tsx    gráfico de tendência, carregado sob demanda
-│   └── ui/                componentes shadcn (badge, button, card, chart, checkbox, input,
-│                          label, table)
-└── lib/
-    ├── auth-context.tsx  AuthProvider / useAuth — estado de sessão
+├── presentation/         o que aparece na tela
+│   ├── pages/            uma tela por arquivo (LoginScreen, SummaryScreen, EntryScreen,
+│   │                     InvoiceScreen, ImportScreen, ConfigScreen)
+│   └── components/
+│       ├── Header.tsx    header/navegação compartilhado entre as telas autenticadas
+│       ├── MonthNav.tsx  passo de mês, compartilhado por resumo, lançamentos e fatura
+│       ├── TrendChart.tsx gráfico de tendência, carregado sob demanda
+│       └── ui/           componentes shadcn (badge, button, card, chart, checkbox, input,
+│                         label, table)
+├── state/
+│   └── auth-context.tsx  AuthProvider / useAuth — estado de sessão
+├── data/
+│   └── api.ts            cliente HTTP tipado — JWT, header Authorization, tratamento de 401
+└── shared/
+    ├── types.ts          espelho manual de backend/app/api/schemas.py
+    ├── categories.ts     listas fechadas de categoria, espelha docs/dominio.md
     └── format.ts         currentMonth() / formatCurrency() / formatPercent()
                           / shiftMonth() / formatMonthShort() / formatDayMonth()
 ```
+
+As telas chamam `data/api.ts` direto para buscar dados (pular `state/` é permitido — é
+descer, não subir), mas o estado de sessão vem só de `useAuth()`.
 
 ## Dinheiro chega como string
 
@@ -92,6 +104,6 @@ mande float de volta para a API.
 
 ## Sessão
 
-Toda leitura de estado de autenticação passa por `useAuth()`, nunca por `api.js` direto. O token
-fica em `localStorage` sob a chave `gf:token`. Em qualquer `401`, o `api.js` limpa o token e
+Toda leitura de estado de autenticação passa por `useAuth()`, nunca por `api.ts` direto. O token
+fica em `localStorage` sob a chave `gf:token`. Em qualquer `401`, o `api.ts` limpa o token e
 lança — o chamador redireciona para o login.

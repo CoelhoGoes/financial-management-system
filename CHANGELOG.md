@@ -7,6 +7,11 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Alterado
+- Código do servidor e do app reorganizado em camadas, sem mudança de comportamento: quem
+  for mexer no projeto encontra regra de negócio, acesso a banco e telas cada um no seu
+  lugar, com a regra de quem pode chamar quem escrita no README
+
 ### Corrigido
 - Trocar de mês rápido na tela de fatura podia deixar na tela as parcelas do mês anterior,
   quando a resposta dele chegava depois da do mês escolhido

@@ -38,12 +38,12 @@ descartado uma vez; reportar de novo só faz o usuário perder tempo.
 | Achado | Por que é falso positivo |
 | --- | --- |
 | `ruff B008` em `Depends(get_session)`, `Query(...)` | É a forma obrigatória de injeção de dependência do FastAPI. 19 dos 20 achados de ruff são isto. |
-| Endpoints de `routers/` reportados como função não usada | Registrados por decorator `@router.get/post/...`, nunca chamados por nome. |
-| Campos de `schemas.py` reportados como variável não usada | São campos de modelo Pydantic, lidos por metaclasse. |
+| Endpoints de `backend/app/api/` reportados como função não usada | Registrados por decorator `@router.get/post/...`, nunca chamados por nome. |
+| Campos de `api/schemas.py` (ou das dataclasses de `domain/service.py`) reportados como variável não usada | São campos de modelo Pydantic, lidos por metaclasse — e as dataclasses do domínio são lidas campo a campo pelo `response_model`. |
 | `@remixicon/react` sem referência em `src/` | Declarado em `components.json` como `iconLibrary`. O CLI do shadcn gera os imports quando componentes forem instalados. Remover quebra o próximo `npx shadcn add`. |
 | `oxlint` reportado como dependência não usada | É usado em `npm run lint`. O knip erra isso quando `node_modules` não está instalado. |
-| Interfaces de `types.ts` sem import por nome (`InvoiceInstallment`, `CategoryItem`, …) | `types.ts` é espelho manual de `schemas.py`, por invariante do `CLAUDE.md`. Tipos aninhados são usados estruturalmente (`items: CategoryItem[]`), nunca importados soltos. Esperado, não abandono. |
-| Exportações de `src/components/ui/` sem uso | Componentes shadcn existem por convenção da biblioteca, não por demanda atual. |
+| Interfaces de `src/shared/types.ts` sem import por nome (`InvoiceInstallment`, `CategoryItem`, …) | `types.ts` é espelho manual de `schemas.py`, por invariante do `CLAUDE.md`. Tipos aninhados são usados estruturalmente (`items: CategoryItem[]`), nunca importados soltos. Esperado, não abandono. |
+| Exportações de `src/presentation/components/ui/` sem uso | Componentes shadcn existem por convenção da biblioteca, não por demanda atual. |
 
 **A regra por trás da tabela:** ferramentas de análise estática não leem arquivos de
 configuração que declaram coisas. Antes de chamar uma dependência de morta, confira quem a
@@ -75,7 +75,7 @@ Se precisar mexer em qualquer coisa sob `.claude/`, peça autorização explíci
 ## O que procurar
 
 1. **Vulnerabilidades conhecidas em dependências** — é o único item desta lista que não se acha
-   lendo código. Ler `security.py` não substitui consulta a banco de CVE.
+   lendo código. Ler `infra/security.py` não substitui consulta a banco de CVE.
 2. Código morto: funções, arquivos, componentes, rotas, variáveis, imports, dependências
 3. Lógica duplicada que deveria ser consolidada
 4. Implementações complexas demais para o que fazem

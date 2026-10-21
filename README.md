@@ -92,7 +92,7 @@ head` sobe uma API sem tabelas: desde a adoção do Alembic, o schema é das mig
 
 ### Criar uma migração
 
-Toda mudança em `backend/app/models.py` vem com uma migração no mesmo commit. Nada cria
+Toda mudança em `backend/app/infra/models.py` vem com uma migração no mesmo commit. Nada cria
 tabela no boot: modelo sem migração quebra o deploy.
 
 Com os containers de pé (`./dev.sh` ou `docker compose up`), a partir da raiz:
@@ -176,47 +176,65 @@ backend/
 │   ├── test_ofx.py        leitura de extrato OFX, sem banco nenhum
 │   ├── test_api.py        contrato HTTP, em sqlite ou Postgres
 │   └── test_migrations.py migrações batem com os modelos — só em Postgres
-└── app/
+└── app/                   em camadas: api → domain → infra (veja Arquitetura abaixo)
     ├── main.py            entrada, CORS, registro dos routers, /health
-    ├── database.py        engine e sessão do SQLAlchemy
-    ├── models.py          tabelas usuarios e lancamentos
-    ├── schemas.py         contratos de entrada/saída (Pydantic)
-    ├── security.py        hash bcrypt, JWT e limite de tentativas de login
-    ├── service.py         regras de fatura, saldo e tendência (funções puras)
-    ├── ofx.py             leitura de extrato OFX (função pura)
-    └── routers/
-        ├── auth.py        /auth/*
-        └── finance.py     /entries, /summary, /invoices, /trend, /imports
+    ├── api/               HTTP: rotas, contratos e dependências do FastAPI
+    │   ├── auth.py        /auth/*
+    │   ├── finance.py     /entries, /summary, /invoices, /trend, /imports
+    │   ├── schemas.py     contratos de entrada/saída (Pydantic)
+    │   └── deps.py        current_user e limite de tentativas de login
+    ├── domain/            regras de negócio, funções puras, sem banco nem HTTP
+    │   ├── service.py     fatura, saldo e tendência
+    │   └── ofx.py         leitura de extrato OFX
+    └── infra/             o que fala com o mundo de fora
+        ├── database.py    engine e sessão do SQLAlchemy
+        ├── models.py      tabelas usuarios e lancamentos
+        └── security.py    hash bcrypt e JWT
 
 frontend/
-├── api.js             cliente HTTP (JWT, header, tratamento de 401)
-└── src/
+└── src/               em camadas: presentation → state → data, e shared para todas
     ├── main.tsx       monta o React dentro do BrowserRouter + AuthProvider
     ├── App.tsx        tabela de rotas (/login, /, /lancamentos, /fatura, /importar,
     │                  /configuracoes)
-    ├── types.ts       espelho TypeScript de schemas.py
     ├── index.css      Tailwind v4 + tokens de tema do shadcn
-    ├── pages/         uma tela por arquivo (Login/Summary/Entry/Invoice/Import/Config)
-    ├── constants/
-    │   └── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
-    ├── components/
-    │   ├── Header.tsx      navegação/header compartilhado entre as telas
-    │   ├── MonthNav.tsx    passo de mês, compartilhado por resumo, lançamentos e fatura
-    │   ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
-    │   └── ui/             componentes shadcn (badge, button, card, chart, checkbox, input,
-    │                       label, table)
-    └── lib/
-        ├── auth-context.tsx   AuthProvider / useAuth
-        └── format.ts          currentMonth() / formatCurrency() / formatPercent()
-                               / shiftMonth() / formatMonthShort() / formatDayMonth()
+    ├── presentation/  o que aparece na tela
+    │   ├── pages/     uma tela por arquivo (Login/Summary/Entry/Invoice/Import/Config)
+    │   └── components/
+    │       ├── Header.tsx      navegação/header compartilhado entre as telas
+    │       ├── MonthNav.tsx    passo de mês, compartilhado por resumo, lançamentos e fatura
+    │       ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
+    │       └── ui/             componentes shadcn (badge, button, card, chart, checkbox,
+    │                           input, label, table)
+    ├── state/
+    │   └── auth-context.tsx    AuthProvider / useAuth
+    ├── data/
+    │   └── api.ts     cliente HTTP tipado (JWT, header, tratamento de 401)
+    └── shared/        usado por qualquer camada, não depende de nenhuma
+        ├── types.ts        espelho TypeScript de backend/app/api/schemas.py
+        ├── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
+        └── format.ts       currentMonth() / formatCurrency() / formatPercent()
+                            / shiftMonth() / formatMonthShort() / formatDayMonth()
 
 dev.sh                 na raiz — sobe tudo numa linha
 docker-compose.yml     na raiz
 .env.example           na raiz (backend); o frontend usa frontend/.env
 ```
 
-`service.py` não importa o banco de propósito: as regras são funções puras, testáveis sem
-subir Postgres.
+### Arquitetura
+
+Os dois lados seguem a **arquitetura em camadas clássica**: cada camada só chama a de baixo,
+nunca a de cima.
+
+| Backend (`backend/app/`) | Frontend (`frontend/src/`) | Papel |
+|---|---|---|
+| `api/` | `presentation/` | entrada: HTTP no backend, tela no frontend |
+| `domain/` | `state/` | regra ou estado da aplicação |
+| `infra/` | `data/` | fala com o mundo de fora: banco e segredo, ou a API |
+| — | `shared/` | tipos e helpers puros que qualquer camada usa |
+
+`domain/` não importa o banco nem o FastAPI: as regras são funções puras, testáveis sem
+subir Postgres, e devolvem dataclasses próprias. É o `response_model` das rotas que as
+converte nos schemas de `api/schemas.py`.
 
 ## Endpoints
 

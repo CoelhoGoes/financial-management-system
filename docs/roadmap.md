@@ -23,7 +23,6 @@ Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do 
       de teste entrou no banco de desenvolvimento e não teve como removê-la pela API
 - [ ] Rever `Select` do shadcn para campos de escolha fechada (categoria/tipo/método);
       `EntryScreen` usa `<select>` nativo e botões de toggle hoje
-- [ ] Mover `api.js` para `src/api.ts` tipado
 - [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
 - [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
       importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026

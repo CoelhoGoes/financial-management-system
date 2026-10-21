@@ -1,7 +1,7 @@
 # Domínio — Gestão Financeira
 
 As regras de negócio deste projeto, em português e em prosa. O código em
-`backend/app/service.py` é a implementação; este arquivo é o significado. Quando os dois
+`backend/app/domain/service.py` é a implementação; este arquivo é o significado. Quando os dois
 divergirem, **este arquivo está certo e o código tem um bug** — ou este arquivo está
 desatualizado e precisa ser corrigido junto.
 
@@ -48,7 +48,7 @@ Assinaturas, Outros
 
 Lançamento com `type == "entrada"` não pode ter `method == "credito"`. Não faz sentido receber
 dinheiro no cartão de crédito neste modelo. Validado no endpoint de criação em
-`routers/finance.py`.
+`api/finance.py`.
 
 ### Em que fatura uma compra cai
 
@@ -116,7 +116,7 @@ quando existir (ver `docs/roadmap.md`).
 
 ### Importação de extrato
 
-O app lê o extrato **de conta** em OFX (`backend/app/ofx.py`) e propõe um lançamento por
+O app lê o extrato **de conta** em OFX (`backend/app/domain/ofx.py`) e propõe um lançamento por
 linha. Nada é gravado antes de alguém conferir na tela de importação.
 
 - **Fatura de cartão é recusada**, e o arquivo inteiro com ela — mesmo que traga também o
@@ -186,12 +186,18 @@ conversar antes.
   dois primeiros em paralelo, então são **duas varreduras completas e dois cálculos de fatura**
   a cada mês visitado — não só no carregamento, já que a navegação entre meses refaz as buscas.
   Quem for fazer o filtro em SQL ganha o dobro do que parece.
-- **`frontend/api.js` é JavaScript puro e vive fora de `src/`.** O resto do frontend é
-  TypeScript. Isso significa que as respostas da API chegam como `any` e os tipos em `types.ts`
-  são aplicados manualmente na chamada. Mover para `src/api.ts` tipado resolveria, mas quebra os
-  imports existentes.
-- **`frontend/src/types.ts` é um espelho manual de `backend/app/schemas.py`.** Nada garante que
-  os dois estejam sincronizados. Gerar os tipos a partir do OpenAPI do FastAPI resolveria.
+- **`frontend/src/shared/types.ts` é um espelho manual de `backend/app/api/schemas.py`.** Nada
+  garante que os dois estejam sincronizados. Gerar os tipos a partir do OpenAPI do FastAPI
+  resolveria.
+- **As saídas do domínio são declaradas três vezes.** `Summary`, `Invoice`,
+  `InvoiceInstallment`, `CategoryBreakdown` e `CategoryItem` existem como dataclass em
+  `domain/service.py`, como schema Pydantic em `api/schemas.py` e como interface em
+  `types.ts`. Isso é o preço da regra das camadas: o domínio não pode importar a API, então
+  não pode devolver o schema dela. O `response_model` converte por nome de campo, e
+  `test_api.py` quebra se um campo some de um lado só — mas renomear exige mexer nos três.
+- **`domain/` → `infra/` é só de tipo.** `domain/service.py` importa `Entry` e `User` de
+  `infra/models.py` apenas sob `TYPE_CHECKING`, para anotar os parâmetros. Em tempo de
+  execução o domínio não carrega o SQLAlchemy, e os testes passam dataclasses no lugar.
 - **`shiftMonth` no frontend duplica `shift_month` do `service.py`.** Os dois somam e subtraem
   mês no formato `YYYY-MM`. O do frontend só decide qual mês pedir na navegação entre telas —
   é presentação, não cálculo de dinheiro — mas fica na fronteira da regra de não ter lógica no

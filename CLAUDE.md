@@ -43,9 +43,10 @@ acompanhou, escreva que não foi possível determinar o motivo, em vez de deduzi
 ## Project
 
 Personal finance app ("Gestão Financeira") — FastAPI + PostgreSQL backend, React + Vite
-frontend. All invoice (fatura)/balance/trend math lives server-side in `backend/app/service.py`
-so the web frontend and a future native app compute identical results. `frontend/api.js` is the
-JS client (stores the JWT, injects the `Authorization` header, handles 401).
+frontend. All invoice (fatura)/balance/trend math lives server-side in
+`backend/app/domain/service.py` so the web frontend and a future native app compute identical
+results. `frontend/src/data/api.ts` is the typed client (stores the JWT, injects the
+`Authorization` header, handles 401).
 
 Business rules in prose: see `docs/dominio.md`. Read it before changing anything in
 `service.py`.
@@ -102,38 +103,43 @@ backend/
 ├── alembic/                  owns the schema; `alembic upgrade head` runs on container boot
 ├── tests/                    test_service.py and test_ofx.py (no DB), test_api.py
 │                             (sqlite/Postgres), test_migrations.py (Postgres only)
-└── app/
+└── app/                      layered: api → domain → infra (see Architecture)
     ├── main.py
-    ├── database.py
-    ├── models.py
-    ├── schemas.py
-    ├── security.py
-    ├── service.py
-    ├── ofx.py                OFX statement parser, pure like service.py
-    └── routers/
-        ├── auth.py
-        └── finance.py
+    ├── api/                  HTTP: routers, Pydantic contracts, FastAPI dependencies
+    │   ├── auth.py
+    │   ├── finance.py
+    │   ├── schemas.py
+    │   └── deps.py           current_user + login attempt limiter
+    ├── domain/               business rules, pure — no DB, no HTTP
+    │   ├── service.py
+    │   └── ofx.py            OFX statement parser, pure like service.py
+    └── infra/                database and secrets
+        ├── database.py
+        ├── models.py
+        └── security.py       bcrypt + JWT only — no HTTP
 frontend/
-├── api.js                    HTTP client (plain JS, lives OUTSIDE src/ — see Frontend notes)
-├── components.json           shadcn config
+├── components.json           shadcn config — aliases point into src/presentation/
 ├── vite.config.ts            React + Tailwind v4 plugins, '@' alias → ./src
-└── src/
+└── src/                      layered: presentation → state → data, shared for all
     ├── main.tsx               mounts App inside BrowserRouter + AuthProvider
     ├── App.tsx                route table only (login/summary/entries/invoice/import/config)
-    ├── types.ts               mirror of backend schemas.py
     ├── index.css              Tailwind v4 import + shadcn theme tokens
     ├── test-setup.ts          vitest setup (jest-dom matchers)
-    ├── pages/                 one file per screen (Login/Summary/Entry/Invoice/Import/Config)
-    ├── constants/
-    │   └── categories.ts      closed category lists, mirrors docs/dominio.md
-    ├── components/
-    │   ├── Header.tsx         shared nav header, used by every authenticated screen
-    │   ├── MonthNav.tsx       month stepper, shared by Summary, Entry and Invoice
-    │   ├── TrendChart.tsx     trend chart, lazy-loaded so recharts stays out of the main bundle
-    │   └── ui/                shadcn components: badge, button, card, chart, checkbox,
+    ├── presentation/
+    │   ├── pages/             one file per screen (Login/Summary/Entry/Invoice/Import/Config)
+    │   └── components/
+    │       ├── Header.tsx     shared nav header, used by every authenticated screen
+    │       ├── MonthNav.tsx   month stepper, shared by Summary, Entry and Invoice
+    │       ├── TrendChart.tsx trend chart, lazy-loaded so recharts stays out of the main bundle
+    │       └── ui/            shadcn components: badge, button, card, chart, checkbox,
     │                          input, label, table
-    └── lib/
-        ├── auth-context.tsx  AuthProvider / useAuth
+    ├── state/
+    │   └── auth-context.tsx   AuthProvider / useAuth
+    ├── data/
+    │   └── api.ts             typed HTTP client
+    └── shared/
+        ├── types.ts           mirror of backend api/schemas.py
+        ├── categories.ts      closed category lists, mirrors docs/dominio.md
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
                                / shiftMonth() / formatMonthShort() / formatDayMonth()
 docs/dominio.md               business rules in prose
@@ -216,7 +222,29 @@ tables.
 
 ## Architecture
 
-Split into path-scoped rules so each loads only when relevant:
+Both halves follow the **classic layered architecture**. A layer may import the layers below
+it, never the ones above:
+
+| Backend (`backend/app/`) | Frontend (`frontend/src/`) | Role |
+|---|---|---|
+| `api/` | `presentation/` | entry point: HTTP / screen |
+| `domain/` | `state/` | business rules / app state |
+| `infra/` | `data/` | outside world: DB and secrets / the API |
+| — | `shared/` | types and pure helpers any layer may use; imports none of them |
+
+Skipping a layer downwards is fine (a router reads `infra/models.py`, a screen calls
+`data/api.ts`). Going upwards is the violation to watch for. In practice:
+
+- `domain/` never imports from `api/` — it returns its own dataclasses, and the router's
+  `response_model` turns them into the `api/schemas.py` models by field name. Its only link to
+  `infra/` is `Entry`/`User` under `TYPE_CHECKING`.
+- `infra/` never imports FastAPI. Anything that raises an `HTTPException` or is a `Depends`
+  lives in `api/` (that's why `current_user` is in `api/deps.py`, not `infra/security.py`).
+- `data/` and `shared/` never import React components or `state/`.
+
+Known costs of this layout are under **Dívidas conhecidas** in `docs/dominio.md`.
+
+Details per half are split into path-scoped rules so each loads only when relevant:
 
 - `.claude/rules/rules-backend.md` — loads when a file under `backend/` enters context
 - `.claude/rules/rules-frontend.md` — loads when a file under `frontend/` enters context
@@ -228,15 +256,16 @@ apply everywhere and are not repeated there.
 
 - Money is always `Decimal`/`Numeric(12,2)`, never `float`, from DB column through Pydantic
   schema to arithmetic in `service.py`.
-- Business/invoice/balance logic belongs in `service.py` as pure functions (no DB access), not
-  inline in routers and never in the frontend — this is what keeps it testable and shareable
-  with a future native client.
+- Business/invoice/balance logic belongs in `domain/service.py` as pure functions (no DB
+  access), not inline in routers and never in the frontend — this is what keeps it testable and
+  shareable with a future native client.
 - `entrada` (income) entries cannot use `method == "credito"` (enforced by
   `_reject_income_on_credit` in `finance.py`, which both create and `PATCH` call; imported
   entries have no `method` at all).
 - Every `Entry` mutation/read endpoint scopes by `user.id` from the JWT — never trust a
   client-supplied user id.
-- `frontend/src/types.ts` and `backend/app/schemas.py` change together.
+- `frontend/src/shared/types.ts` and `backend/app/api/schemas.py` change together — and when
+  the schema is one of the domain outputs, so does its dataclass in `domain/service.py`.
 
 ## Changelog
 
