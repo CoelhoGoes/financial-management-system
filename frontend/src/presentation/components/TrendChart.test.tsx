@@ -2,8 +2,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TrendChart } from './TrendChart'
 
-vi.mock('../../api.js', () => ({ api: { trend: vi.fn() } }))
-const { api } = await import('../../api.js')
+vi.mock('@/data/api', () => ({ api: { trend: vi.fn() } }))
+const { api } = await import('@/data/api')
 
 const mes = (month: string, cash: string, invoice: string, saldo: string) => ({
   month,

@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis } from 'recharts'
-import { api } from '../../api.js'
-import { formatCurrency, formatMonthShort } from '@/lib/format'
-import type { Summary } from '@/types'
-import { Button } from '@/components/ui/button'
+import { api } from '@/data/api'
+import { formatCurrency, formatMonthShort } from '@/shared/format'
+import type { Summary } from '@/shared/types'
+import { Button } from '@/presentation/components/ui/button'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart'
+} from '@/presentation/components/ui/chart'
 
 const PRESETS = [3, 6, 12] as const
 

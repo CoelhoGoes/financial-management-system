@@ -2,11 +2,11 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthProvider } from '@/lib/auth-context'
-import { currentMonth, shiftMonth } from '@/lib/format'
+import { AuthProvider } from '@/state/auth-context'
+import { currentMonth, shiftMonth } from '@/shared/format'
 import { EntryScreen } from './EntryScreen'
 
-vi.mock('../../api.js', () => ({
+vi.mock('@/data/api', () => ({
   api: {
     isAuthenticated: () => true,
     me: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock('../../api.js', () => ({
     logout: vi.fn(),
   },
 }))
-const { api } = await import('../../api.js')
+const { api } = await import('@/data/api')
 
 const RESUMO = {
   month: '2026-09', monthly_income: '5000.00', extra_income: '0', cash_expenses: '0',

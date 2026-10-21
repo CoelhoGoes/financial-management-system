@@ -1,4 +1,4 @@
-// Espelha backend/app/schemas.py. Campos Decimal (dinheiro) chegam como string no JSON
+// Espelha backend/app/api/schemas.py. Campos Decimal (dinheiro) chegam como string no JSON
 // (FastAPI serializa Decimal como string) — use Number(valor) antes de formatar/somar.
 
 export interface User {

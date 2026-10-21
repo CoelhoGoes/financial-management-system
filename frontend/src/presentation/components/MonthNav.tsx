@@ -1,6 +1,6 @@
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
-import { shiftMonth } from '@/lib/format'
-import { Button } from '@/components/ui/button'
+import { shiftMonth } from '@/shared/format'
+import { Button } from '@/presentation/components/ui/button'
 
 interface MonthNavProps {
   month: string

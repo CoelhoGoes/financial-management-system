@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { api } from '../../api.js'
-import { currentMonth, formatCurrency } from '@/lib/format'
-import type { Invoice } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { api } from '@/data/api'
+import { currentMonth, formatCurrency } from '@/shared/format'
+import type { Invoice } from '@/shared/types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
 import {
   Table,
   TableHeader,
@@ -10,9 +10,9 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from '@/components/ui/table'
-import { Header } from '@/components/Header'
-import { MonthNav } from '@/components/MonthNav'
+} from '@/presentation/components/ui/table'
+import { Header } from '@/presentation/components/Header'
+import { MonthNav } from '@/presentation/components/MonthNav'
 
 export function InvoiceScreen() {
   const [month, setMonth] = useState(currentMonth())

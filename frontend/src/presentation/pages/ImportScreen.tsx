@@ -1,13 +1,13 @@
 import { useState, type ChangeEvent } from 'react'
-import { api } from '../../api.js'
-import { formatCurrency, formatDayMonth } from '@/lib/format'
-import { GASTO_CATEGORIES, ENTRADA_CATEGORIES } from '@/constants/categories'
-import type { EntryImport, ImportPreviewItem, ImportResult } from '@/types'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Header } from '@/components/Header'
+import { api } from '@/data/api'
+import { formatCurrency, formatDayMonth } from '@/shared/format'
+import { GASTO_CATEGORIES, ENTRADA_CATEGORIES } from '@/shared/categories'
+import type { EntryImport, ImportPreviewItem, ImportResult } from '@/shared/types'
+import { Button } from '@/presentation/components/ui/button'
+import { Badge } from '@/presentation/components/ui/badge'
+import { Checkbox } from '@/presentation/components/ui/checkbox'
+import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
+import { Header } from '@/presentation/components/Header'
 
 /** Categoria inicial de toda linha lida. Um extrato tem dezenas de lançamentos;
  *  exigir escolha em cada um antes de importar transformaria a tela em trabalho. */

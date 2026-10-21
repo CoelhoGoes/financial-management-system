@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router'
-import { useAuth } from '@/lib/auth-context'
-import { LoginScreen } from '@/pages/LoginScreen'
-import { SummaryScreen } from '@/pages/SummaryScreen'
-import { EntryScreen } from '@/pages/EntryScreen'
-import { InvoiceScreen } from '@/pages/InvoiceScreen'
-import { ImportScreen } from '@/pages/ImportScreen'
-import { ConfigScreen } from '@/pages/ConfigScreen'
+import { useAuth } from '@/state/auth-context'
+import { LoginScreen } from '@/presentation/pages/LoginScreen'
+import { SummaryScreen } from '@/presentation/pages/SummaryScreen'
+import { EntryScreen } from '@/presentation/pages/EntryScreen'
+import { InvoiceScreen } from '@/presentation/pages/InvoiceScreen'
+import { ImportScreen } from '@/presentation/pages/ImportScreen'
+import { ConfigScreen } from '@/presentation/pages/ConfigScreen'
 
 function App() {
   const { user, loading } = useAuth()

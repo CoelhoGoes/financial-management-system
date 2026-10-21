@@ -2,10 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthProvider, useAuth } from '@/lib/auth-context'
+import { AuthProvider, useAuth } from '@/state/auth-context'
 import { ConfigScreen } from './ConfigScreen'
 
-vi.mock('../../api.js', () => ({
+vi.mock('@/data/api', () => ({
   api: {
     isAuthenticated: () => true,
     me: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock('../../api.js', () => ({
     logout: vi.fn(),
   },
 }))
-const { api } = await import('../../api.js')
+const { api } = await import('@/data/api')
 
 const USUARIO = { id: 1, email: 'a@b.co', monthly_income: '6500.00', closing_day: 15 }
 

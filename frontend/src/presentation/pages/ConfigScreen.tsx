@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { api } from '../../api.js'
-import { useAuth } from '@/lib/auth-context'
-import type { User } from '@/types'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Header } from '@/components/Header'
+import { api } from '@/data/api'
+import { useAuth } from '@/state/auth-context'
+import type { User } from '@/shared/types'
+import { Button } from '@/presentation/components/ui/button'
+import { Input } from '@/presentation/components/ui/input'
+import { Label } from '@/presentation/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
+import { Header } from '@/presentation/components/Header'
 
 export function ConfigScreen() {
   const { user, updateUser } = useAuth()

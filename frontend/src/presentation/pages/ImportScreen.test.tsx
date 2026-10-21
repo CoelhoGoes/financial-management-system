@@ -2,10 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthProvider } from '@/lib/auth-context'
+import { AuthProvider } from '@/state/auth-context'
 import { ImportScreen } from './ImportScreen'
 
-vi.mock('../../api.js', () => ({
+vi.mock('@/data/api', () => ({
   api: {
     isAuthenticated: () => true,
     me: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('../../api.js', () => ({
   },
 }))
 
-const { api } = await import('../../api.js')
+const { api } = await import('@/data/api')
 
 const linha = (over = {}) => ({
   type: 'gasto',

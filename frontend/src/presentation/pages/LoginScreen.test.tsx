@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthProvider } from '@/lib/auth-context'
+import { AuthProvider } from '@/state/auth-context'
 import { LoginScreen } from './LoginScreen'
 
-vi.mock('../../api.js', () => ({
+vi.mock('@/data/api', () => ({
   api: {
     isAuthenticated: () => false,
     me: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock('../../api.js', () => ({
     logout: vi.fn(),
   },
 }))
-const { api } = await import('../../api.js')
+const { api } = await import('@/data/api')
 
 const USUARIO = { id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 25 }
 

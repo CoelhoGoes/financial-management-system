@@ -7,9 +7,9 @@ import {
   RiSettings3Line,
   RiLogoutBoxRLine,
 } from '@remixicon/react'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/state/auth-context'
 import { cn } from 'cn'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/presentation/components/ui/button'
 
 type Screen = 'resumo' | 'lancamentos' | 'fatura' | 'importar' | 'configuracoes'
 

@@ -2,11 +2,11 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthProvider } from '@/lib/auth-context'
-import { currentMonth, shiftMonth } from '@/lib/format'
+import { AuthProvider } from '@/state/auth-context'
+import { currentMonth, shiftMonth } from '@/shared/format'
 import { InvoiceScreen } from './InvoiceScreen'
 
-vi.mock('../../api.js', () => ({
+vi.mock('@/data/api', () => ({
   api: {
     isAuthenticated: () => true,
     me: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('../../api.js', () => ({
     logout: vi.fn(),
   },
 }))
-const { api } = await import('../../api.js')
+const { api } = await import('@/data/api')
 
 const PARCELA = {
   entry_id: 1, description: 'Televisão', category: 'Lazer',

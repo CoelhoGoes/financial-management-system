@@ -5,8 +5,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { api } from '../../api.js'
-import type { User } from '../types'
+import { api } from '@/data/api'
+import type { User } from '@/shared/types'
 
 interface AuthContextValue {
   user: User | null

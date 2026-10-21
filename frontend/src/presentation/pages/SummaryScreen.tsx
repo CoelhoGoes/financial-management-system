@@ -1,16 +1,16 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { RiInformationLine } from '@remixicon/react'
-import { api } from '../../api.js'
-import { currentMonth, formatCurrency, formatPercent } from '@/lib/format'
-import type { CategoryBreakdown, Summary } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Header } from '@/components/Header'
-import { MonthNav } from '@/components/MonthNav'
+import { api } from '@/data/api'
+import { currentMonth, formatCurrency, formatPercent } from '@/shared/format'
+import type { CategoryBreakdown, Summary } from '@/shared/types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
+import { Button } from '@/presentation/components/ui/button'
+import { Header } from '@/presentation/components/Header'
+import { MonthNav } from '@/presentation/components/MonthNav'
 // recharts é pesado e só esta seção usa: carrega em separado, sem bloquear a tela
 const TrendChart = lazy(() =>
-  import('@/components/TrendChart').then((m) => ({ default: m.TrendChart })),
+  import('@/presentation/components/TrendChart').then((m) => ({ default: m.TrendChart })),
 )
 
 function Money({ value, signal }: { value: string; signal?: '+' | '-' }) {
