@@ -6,20 +6,65 @@ compute exactly the same thing.
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from ..api.schemas import (
-    CategoryBreakdown,
-    CategoryItem,
-    Invoice,
-    InvoiceInstallment,
-    Summary,
-)
-
 if TYPE_CHECKING:  # avoids depending on the DB: the rules below are testable on their own
     from ..infra.models import Entry, User
+
+
+# Results of the rules below. Plain dataclasses, not Pydantic: the domain does not know
+# the API exists. The routers return them as-is and `response_model` turns them into the
+# matching schemas in `api/schemas.py`, which keep the same field names.
+
+
+@dataclass
+class InvoiceInstallment:
+    entry_id: int
+    description: str
+    category: str
+    purchase_date: date
+    installment: int
+    total_installments: int
+    installment_amount: Decimal
+
+
+@dataclass
+class Invoice:
+    month: str
+    total: Decimal
+    items: list[InvoiceInstallment]
+
+
+@dataclass
+class CategoryItem:
+    """One line inside a category. `installment` is None for cash expenses."""
+
+    description: str
+    amount: Decimal
+    installment: int | None = None
+    total_installments: int | None = None
+
+
+@dataclass
+class CategoryBreakdown:
+    category: str
+    total: Decimal
+    share: Decimal
+    items: list[CategoryItem]
+
+
+@dataclass
+class Summary:
+    month: str
+    monthly_income: Decimal
+    extra_income: Decimal
+    cash_expenses: Decimal
+    invoice: Decimal
+    total_spent: Decimal
+    available_balance: Decimal
 
 CENT = Decimal("0.01")
 SHARE = Decimal("0.0001")
