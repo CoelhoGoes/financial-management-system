@@ -11,6 +11,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 - Código do servidor e do app reorganizado em camadas, sem mudança de comportamento: quem
   for mexer no projeto encontra regra de negócio, acesso a banco e telas cada um no seu
   lugar, com a regra de quem pode chamar quem escrita no README
+- Biblioteca de tokens de sessão (PyJWT) atualizada para a 2.15.0, que corrige duas falhas de
+  segurança conhecidas. Nenhuma das duas era explorável na forma como o app usa os tokens
 
 ### Corrigido
 - Trocar de mês rápido na tela de fatura podia deixar na tela as parcelas do mês anterior,
