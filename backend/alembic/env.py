@@ -8,8 +8,8 @@ from alembic import context
 
 # o pacote `app` vive um nível acima desta pasta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.database import DATABASE_URL, Base
-from app.models import Entry, User  # noqa: F401  (registram as tabelas no metadata)
+from app.infra.database import DATABASE_URL, Base
+from app.infra.models import Entry, User  # noqa: F401  (registram as tabelas no metadata)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,7 +26,7 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
-# A mesma URL que a aplicação usa, importada de app.database — nunca do alembic.ini,
+# A mesma URL que a aplicação usa, importada de app.infra.database — nunca do alembic.ini,
 # que é versionado e não pode conter credencial. Repetir o valor padrão aqui faria a
 # migração e a aplicação apontarem para bancos diferentes sem ninguém perceber.
 config.set_main_option("sqlalchemy.url", DATABASE_URL)

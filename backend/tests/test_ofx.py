@@ -9,7 +9,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.ofx import OFXError, parse_statement
+from app.domain.ofx import OFXError, parse_statement
 
 HEADER = """OFXHEADER:100
 DATA:OFXSGML

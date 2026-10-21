@@ -7,10 +7,18 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..database import get_session
-from ..models import Entry, User
-from ..ofx import OFXError, parse_statement
-from ..schemas import (
+from ..domain.ofx import OFXError, parse_statement
+from ..domain.service import (
+    calculate_category_breakdown,
+    calculate_invoice,
+    calculate_summary,
+    month_key,
+    shift_month,
+)
+from ..infra.database import get_session
+from ..infra.models import Entry, User
+from ..infra.security import current_user
+from .schemas import (
     CategoryBreakdown,
     EntryCreate,
     EntryImport,
@@ -20,14 +28,6 @@ from ..schemas import (
     ImportResult,
     Invoice,
     Summary,
-)
-from ..security import current_user
-from ..service import (
-    calculate_category_breakdown,
-    calculate_invoice,
-    calculate_summary,
-    month_key,
-    shift_month,
 )
 
 router = APIRouter(tags=["finance"])

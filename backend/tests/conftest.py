@@ -66,7 +66,7 @@ def client(monkeypatch, tmp_path):
     # Schema limpo a cada teste. No sqlite o `tmp_path` já daria isolamento, mas
     # contra um Postgres compartilhado as linhas se acumulariam entre os testes —
     # e o isolamento passaria a depender de qual banco está em uso.
-    from app.database import Base, engine
+    from app.infra.database import Base, engine
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 

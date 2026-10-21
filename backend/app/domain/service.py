@@ -10,7 +10,7 @@ from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from .schemas import (
+from ..api.schemas import (
     CategoryBreakdown,
     CategoryItem,
     Invoice,
@@ -19,7 +19,7 @@ from .schemas import (
 )
 
 if TYPE_CHECKING:  # avoids depending on the DB: the rules below are testable on their own
-    from .models import Entry, User
+    from ..infra.models import Entry, User
 
 CENT = Decimal("0.01")
 SHARE = Decimal("0.0001")

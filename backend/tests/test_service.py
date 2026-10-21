@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.service import (
+from app.domain.service import (
     calculate_category_breakdown,
     calculate_invoice,
     calculate_summary,

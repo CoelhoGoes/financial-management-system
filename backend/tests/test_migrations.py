@@ -23,8 +23,8 @@ pytestmark = pytest.mark.skipif(not URL, reason="as migrações só rodam em Pos
 
 def _empty_database():
     """Nem tabela dos modelos nem marca de versão do Alembic — os outros testes deixam as duas."""
-    import app.models  # noqa: F401 — sem isto o metadata está vazio e o drop_all não apaga nada
-    from app.database import Base
+    import app.infra.models  # noqa: F401 — sem isto o metadata está vazio e o drop_all não apaga nada
+    from app.infra.database import Base
 
     engine = create_engine(URL)
     Base.metadata.drop_all(bind=engine)
@@ -38,7 +38,7 @@ def test_migracoes_e_modelos_descrevem_o_mesmo_schema(monkeypatch):
 
     from alembic import command
 
-    # o env.py lê a URL de app.database, que a captura no import: recarrega apontando para cá
+    # o env.py lê a URL de app.infra.database, que a captura no import: recarrega apontando para cá
     monkeypatch.setenv("DATABASE_URL", URL)
     for mod in [m for m in sys.modules if m == "app" or m.startswith("app.")]:
         del sys.modules[mod]
