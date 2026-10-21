@@ -83,6 +83,22 @@ describe('InvoiceScreen', () => {
     await waitFor(() => expect(api.invoice).toHaveBeenCalledWith(shiftMonth(atual, 1)))
   })
 
+  it('ignora a resposta de um mês que já saiu da tela', async () => {
+    const user = userEvent.setup()
+    let resolverAtual!: (v: unknown) => void
+    vi.mocked(api.invoice)
+      .mockReturnValueOnce(new Promise((r) => { resolverAtual = r }))
+      .mockResolvedValueOnce(vazia(shiftMonth(currentMonth(), -1)))
+    montar()
+
+    await user.click(screen.getByRole('button', { name: 'Mês anterior' }))
+    expect(await screen.findByText('Nenhuma parcela nesta fatura.')).toBeInTheDocument()
+
+    resolverAtual(comItens(currentMonth()))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(screen.queryByText('Televisão')).not.toBeInTheDocument()
+  })
+
   it('avisa quando o mês não tem parcela, em vez de mostrar tabela vazia', async () => {
     vi.mocked(api.invoice).mockResolvedValue(vazia(currentMonth()))
     montar()

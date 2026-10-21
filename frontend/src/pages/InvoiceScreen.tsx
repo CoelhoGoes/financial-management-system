@@ -20,21 +20,21 @@ export function InvoiceScreen() {
   const [listLoading, setListLoading] = useState(true)
   const [listError, setListError] = useState<string | null>(null)
 
-  async function loadData() {
+  useEffect(() => {
+    let ativo = true
     setListLoading(true)
     setListError(null)
-    try {
-      const data = await api.invoice(month)
-      setInvoice(data)
-    } catch (e) {
-      setListError((e as Error).message)
-    } finally {
-      setListLoading(false)
+    api
+      .invoice(month)
+      .then((data: Invoice) => {
+        // dois cliques rápidos podem devolver fora de ordem: ignora o que já não é o mês da tela
+        if (ativo) setInvoice(data)
+      })
+      .catch((e: Error) => ativo && setListError(e.message))
+      .finally(() => ativo && setListLoading(false))
+    return () => {
+      ativo = false
     }
-  }
-
-  useEffect(() => {
-    loadData()
   }, [month])
 
   return (

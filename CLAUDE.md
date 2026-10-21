@@ -183,7 +183,7 @@ npm run preview    # serve the production build
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 122 tests (1 skipped on sqlite), ~14s
 
-cd frontend && npm test                       # 80 tests, ~5s
+cd frontend && npm test                       # 82 tests, ~5s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain
@@ -285,8 +285,8 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** `InvoiceScreen` — trocar o `useEffect` que não lista `loadData` nas
-dependências pelo padrão do `EntryScreen`.
+**Em andamento:** guia de "como criar uma migração" no README — hoje só o
+`.claude/rules/rules-backend.md` explica o `alembic revision --autogenerate` e o `alembic check`.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

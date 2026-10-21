@@ -7,6 +7,10 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido
+- Trocar de mês rápido na tela de fatura podia deixar na tela as parcelas do mês anterior,
+  quando a resposta dele chegava depois da do mês escolhido
+
 ## [0.1.0] - 2026-10-02
 
 ### Adicionado

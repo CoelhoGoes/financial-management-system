@@ -10,16 +10,13 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] `InvoiceScreen`: o `useEffect` não lista `loadData` nas dependências (aviso
-      `exhaustive-deps` do oxlint). Funciona hoje, mas é o padrão que o `EntryScreen` trocou
-      por um efeito dependente do mês, com flag `ativo` e chave de recarga
+- [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
+      explica o `alembic revision --autogenerate` e o `alembic check`
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Guia de "como criar uma migração" no README: hoje só o `.claude/rules/rules-backend.md`
-      explica o `alembic revision --autogenerate` e o `alembic check`
 - [ ] Tema escuro: os tokens `.dark` já existem em `src/index.css`, mas nada aplica a classe.
       Precisa de um toggle nas configurações do app e, por padrão, seguir a preferência do
       sistema (`prefers-color-scheme`), com a escolha manual sobrepondo o padrão
