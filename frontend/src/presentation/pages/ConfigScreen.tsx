@@ -1,11 +1,19 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '@/data/api'
 import { useAuth } from '@/state/auth-context'
+import { getTheme, setTheme, type Theme } from '@/state/theme'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
+import { ToggleGroup, ToggleGroupItem } from '@/presentation/components/ui/toggle-group'
 import { Header } from '@/presentation/components/Header'
+
+const THEMES: { value: Theme; label: string }[] = [
+  { value: 'system', label: 'Sistema' },
+  { value: 'light', label: 'Claro' },
+  { value: 'dark', label: 'Escuro' },
+]
 
 export function ConfigScreen() {
   const { user, updateUser } = useAuth()
@@ -16,6 +24,12 @@ export function ConfigScreen() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [theme, setThemeState] = useState(getTheme)
+
+  function chooseTheme(next: Theme) {
+    setTheme(next)
+    setThemeState(next)
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -87,6 +101,32 @@ export function ConfigScreen() {
               {saving ? 'Salvando...' : 'Salvar'}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Aparência</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1.5">
+          <Label id="theme-label">Tema</Label>
+          <ToggleGroup
+            aria-labelledby="theme-label"
+            variant="outline"
+            spacing={0}
+            value={[theme]}
+            // clicar no já escolhido devolve []: o tema nunca fica sem valor
+            onValueChange={(v) => v[0] && chooseTheme(v[0] as Theme)}
+          >
+            {THEMES.map((t) => (
+              <ToggleGroupItem key={t.value} value={t.value}>
+                {t.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          <p className="text-xs text-muted-foreground">
+            Vale só para este aparelho. "Sistema" acompanha o modo claro ou escuro do aparelho.
+          </p>
         </CardContent>
       </Card>
     </div>

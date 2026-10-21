@@ -7,6 +7,10 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado
+- Tema escuro. Por padrão o app segue o modo claro ou escuro do aparelho; em Configurações
+  dá para fixar claro ou escuro, e a escolha vale só para aquele aparelho
+
 ### Alterado
 - Código do servidor e do app reorganizado em camadas, sem mudança de comportamento: quem
   for mexer no projeto encontra regra de negócio, acesso a banco e telas cada um no seu

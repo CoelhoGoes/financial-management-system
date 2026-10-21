@@ -95,4 +95,48 @@ describe('ConfigScreen', () => {
     expect(await screen.findByText('Sessão expirada.')).toBeInTheDocument()
     expect(screen.queryByText('Configurações salvas.')).not.toBeInTheDocument()
   })
+
+  describe('o tema', () => {
+    // o jsdom não tem matchMedia: aqui o sistema está sempre em modo escuro
+    beforeEach(() => {
+      localStorage.clear()
+      document.documentElement.classList.remove('dark')
+      vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    })
+
+    const botao = (nome: string) => screen.getByRole('button', { name: nome })
+
+    it('começa em "Sistema" quando nada foi escolhido', async () => {
+      montar()
+      await waitFor(() => expect(botao('Sistema')).toHaveAttribute('aria-pressed', 'true'))
+    })
+
+    it('a escolha manual vale na hora e fica salva no aparelho', async () => {
+      const user = userEvent.setup()
+      montar()
+      await user.click(await screen.findByRole('button', { name: 'Claro' }))
+      expect(document.documentElement).not.toHaveClass('dark')
+      expect(localStorage.getItem('gf:theme')).toBe('light')
+
+      await user.click(botao('Escuro'))
+      expect(document.documentElement).toHaveClass('dark')
+      expect(localStorage.getItem('gf:theme')).toBe('dark')
+    })
+
+    it('"Sistema" apaga a escolha e volta a seguir o aparelho', async () => {
+      const user = userEvent.setup()
+      localStorage.setItem('gf:theme', 'light')
+      montar()
+      await user.click(await screen.findByRole('button', { name: 'Sistema' }))
+      expect(localStorage.getItem('gf:theme')).toBeNull()
+      expect(document.documentElement).toHaveClass('dark')
+    })
+
+    it('clicar de novo no tema escolhido não o desmarca', async () => {
+      const user = userEvent.setup()
+      montar()
+      await user.click(await screen.findByRole('button', { name: 'Sistema' }))
+      expect(botao('Sistema')).toHaveAttribute('aria-pressed', 'true')
+    })
+  })
 })

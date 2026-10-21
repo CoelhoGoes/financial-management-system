@@ -147,7 +147,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 127 testes (1 pulado em sqlite), ~14s
 
-cd frontend && npm test                       # 82 testes, ~5s
+cd frontend && npm test                       # 88 testes, ~5s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -204,9 +204,10 @@ frontend/
     │       ├── MonthNav.tsx    passo de mês, compartilhado por resumo, lançamentos e fatura
     │       ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
     │       └── ui/             componentes shadcn (badge, button, card, chart, checkbox,
-    │                           input, label, table)
+    │                           input, label, table, toggle, toggle-group)
     ├── state/
-    │   └── auth-context.tsx    AuthProvider / useAuth
+    │   ├── auth-context.tsx    AuthProvider / useAuth
+    │   └── theme.ts            tema claro/escuro/sistema, por aparelho no localStorage
     ├── data/
     │   └── api.ts     cliente HTTP tipado (JWT, header, tratamento de 401)
     └── shared/        usado por qualquer camada, não depende de nenhuma
@@ -289,10 +290,11 @@ Antes de expor na internet:
 mensal (saldo, renda, fatura, gasto por categoria com barra de proporção e gráfico de tendência
 dos últimos meses), tela de lançamentos (criar, editar, listar e excluir gastos/entradas do
 mês), tela de fatura (consulta por mês, com navegação entre meses), importação de extrato OFX
-com conferência antes de gravar, e tela de configuração (renda mensal e dia de fechamento).
+com conferência antes de gravar, e tela de configuração (renda mensal, dia de fechamento e tema claro/escuro, seguindo o
+sistema por padrão).
 Backend completo com todos os endpoints acima; o schema é das migrações Alembic.
 
-**Ainda não existe:** tema escuro e exclusão da própria conta pela API, entre outros — a fila
+**Ainda não existe:** exclusão da própria conta pela API, entre outros — a fila
 completa está em [`docs/roadmap.md`](docs/roadmap.md).
 
 Mudanças notáveis ficam registradas em [`CHANGELOG.md`](CHANGELOG.md).

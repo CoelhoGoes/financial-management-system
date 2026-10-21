@@ -132,9 +132,10 @@ frontend/
     │       ├── MonthNav.tsx   month stepper, shared by Summary, Entry and Invoice
     │       ├── TrendChart.tsx trend chart, lazy-loaded so recharts stays out of the main bundle
     │       └── ui/            shadcn components: badge, button, card, chart, checkbox,
-    │                          input, label, table
+    │                          input, label, table, toggle, toggle-group
     ├── state/
-    │   └── auth-context.tsx   AuthProvider / useAuth
+    │   ├── auth-context.tsx   AuthProvider / useAuth
+    │   └── theme.ts           light/dark/system, per device in localStorage
     ├── data/
     │   └── api.ts             typed HTTP client
     └── shared/
@@ -189,7 +190,7 @@ npm run preview    # serve the production build
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 127 tests (1 skipped on sqlite), ~14s
 
-cd frontend && npm test                       # 82 tests, ~5s
+cd frontend && npm test                       # 88 tests, ~5s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain
@@ -314,8 +315,8 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** tema escuro — os tokens `.dark` já existem em `src/index.css`, mas nada
-aplica a classe. Toggle nas configurações, seguindo `prefers-color-scheme` por padrão.
+**Em andamento:** endpoint de exclusão de conta — hoje só dá para apagar o próprio usuário
+com SQL direto no banco.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

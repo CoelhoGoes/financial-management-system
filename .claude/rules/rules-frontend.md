@@ -20,6 +20,10 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
   `useAuth()` throws outside the provider. All screens read auth state from here, never from
   `data/api.ts` directly. `updateUser(user)` applies the `UserOut` returned by a `PUT /auth/me`
   (used by `ConfigScreen`) so the provider stays fresh without a second `GET`.
+- **`state/theme.ts`** — light/dark/system, saved per device in `localStorage` under
+  `gf:theme` (no key = follow `prefers-color-scheme`). The inline script in `index.html` repeats
+  the same rule so the `.dark` class is on `<html>` before the first paint — change one, change
+  the other. `followSystemTheme()` runs once in `main.tsx`.
 - **`shared/types.ts`** — hand-maintained mirror of `backend/app/api/schemas.py`. **When you
   change a Pydantic schema, update this file in the same commit** — nothing enforces the
   correspondence.
@@ -78,7 +82,7 @@ back — the backend expects a string or number it can parse into `Decimal` exac
   This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
   from being written when `Chart` exists.
 - **Installed so far**: `Button`, `Input`, `Label`, `Card`, `Table`, `Chart`, `Checkbox`,
-  `Badge` (`src/presentation/components/ui/`). `Chart` wraps recharts — that is why
+  `Badge`, `Toggle`, `ToggleGroup` (`src/presentation/components/ui/`). `Chart` wraps recharts — that is why
   `TrendChart` is lazy-loaded (see the `presentation/components/` item above).
   Install more with the shadcn CLI (`npx shadcn@latest add <name>`) rather than writing them by
   hand. Closed-choice fields (category/type/method in `EntryScreen`) still use a native
