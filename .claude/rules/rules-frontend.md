@@ -82,11 +82,19 @@ back — the backend expects a string or number it can parse into `Decimal` exac
   This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
   from being written when `Chart` exists.
 - **Installed so far**: `Button`, `Input`, `Label`, `Card`, `Table`, `Chart`, `Checkbox`,
-  `Badge`, `Toggle`, `ToggleGroup` (`src/presentation/components/ui/`). `Chart` wraps recharts — that is why
-  `TrendChart` is lazy-loaded (see the `presentation/components/` item above).
-  Install more with the shadcn CLI (`npx shadcn@latest add <name>`) rather than writing them by
-  hand. Closed-choice fields (category/type/method in `EntryScreen`) still use a native
-  `<select>`/toggle `Button`s, not shadcn `Select` — see the item in `docs/roadmap.md`.
+  `Badge`, `NativeSelect`, `Toggle`, `ToggleGroup` (`src/presentation/components/ui/`). `Chart`
+  wraps recharts — that is why `TrendChart` is lazy-loaded (see the `presentation/components/`
+  item above). Install more with the shadcn CLI (`npx shadcn@latest add <name>`) rather than
+  writing them by hand.
+- **Closed-choice fields**: category (in `EntryScreen` and on each `ImportScreen` line) is a
+  `NativeSelect`, not the Base UI `Select` popup — a real `<select>` keeps the phone's native
+  picker, the form's `required` and `selectOptions` in tests. Two-option choices (type, method,
+  theme) are a `ToggleGroup` with a group label; `onValueChange` ignores the empty array a
+  second click on the chosen item sends, so the field never ends up empty.
+- **Local edits to shadcn files** — re-apply them if a component is reinstalled with
+  `--overwrite`: `native-select.tsx` uses `text-base md:text-sm` like `Input` (shadcn ships
+  `text-sm`, and below 16px iOS Safari zooms the page on focus); `toggle.tsx` styles the pressed
+  item as filled `primary`, like `Button`'s default, instead of shadcn's faint `bg-muted`.
 - Use the `@/` alias for every import inside `src/` (`@/presentation/components/ui/button`,
   `@/data/api`). `components.json` aliases point into `src/presentation/`, so the shadcn CLI
   writes new components there.

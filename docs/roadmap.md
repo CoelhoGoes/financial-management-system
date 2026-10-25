@@ -10,14 +10,12 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Rever `Select` do shadcn para campos de escolha fechada (categoria/tipo/método);
-      `EntryScreen` usa `<select>` nativo e botões de toggle hoje
+- [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
 - [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
       importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026
 - [ ] Reavaliar o `deptry` (dependências Python declaradas e nunca importadas) quando o

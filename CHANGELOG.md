@@ -15,6 +15,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   dá para fixar claro ou escuro, e a escolha vale só para aquele aparelho
 
 ### Alterado
+- Na tela de lançamentos, a opção escolhida em tipo (gasto/entrada) e forma (à vista/crédito)
+  agora é anunciada por leitores de tela, e o seletor de categoria ganhou o visual do resto
+  do app, também na importação de extrato
 - Código do servidor e do app reorganizado em camadas, sem mudança de comportamento: quem
   for mexer no projeto encontra regra de negócio, acesso a banco e telas cada um no seu
   lugar, com a regra de quem pode chamar quem escrita no README

@@ -132,7 +132,8 @@ frontend/
     │       ├── MonthNav.tsx   month stepper, shared by Summary, Entry and Invoice
     │       ├── TrendChart.tsx trend chart, lazy-loaded so recharts stays out of the main bundle
     │       └── ui/            shadcn components: badge, button, card, chart, checkbox,
-    │                          input, label, table, toggle, toggle-group
+    │                          input, label, native-select, table, toggle,
+    │                          toggle-group
     ├── state/
     │   ├── auth-context.tsx   AuthProvider / useAuth
     │   └── theme.ts           light/dark/system, per device in localStorage
@@ -190,7 +191,7 @@ npm run preview    # serve the production build
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 135 tests (1 skipped on sqlite), ~14s
 
-cd frontend && npm test                       # 91 tests, ~5s
+cd frontend && npm test                       # 93 tests, ~5s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain
@@ -315,8 +316,7 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** rever o `Select` do shadcn para os campos de escolha fechada do
-`EntryScreen` (categoria/tipo/método), que hoje usam `<select>` nativo e botões de toggle.
+**Em andamento:** gerar `types.ts` a partir do OpenAPI do FastAPI.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

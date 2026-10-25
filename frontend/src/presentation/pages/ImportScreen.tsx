@@ -5,6 +5,7 @@ import { GASTO_CATEGORIES, ENTRADA_CATEGORIES } from '@/shared/categories'
 import type { EntryImport, ImportPreviewItem, ImportResult } from '@/shared/types'
 import { Button } from '@/presentation/components/ui/button'
 import { Badge } from '@/presentation/components/ui/badge'
+import { NativeSelect, NativeSelectOption } from '@/presentation/components/ui/native-select'
 import { Checkbox } from '@/presentation/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
 import { Header } from '@/presentation/components/Header'
@@ -178,20 +179,20 @@ export function ImportScreen() {
                     </div>
 
                     {include && (
-                      <select
+                      <NativeSelect
                         aria-label={`Categoria de ${line.description}`}
-                        className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                        className="w-full"
                         value={category}
                         onChange={(e) => update(line.import_id, { category: e.target.value })}
                       >
                         {(line.type === 'gasto' ? GASTO_CATEGORIES : ENTRADA_CATEGORIES).map(
                           (c) => (
-                            <option key={c} value={c}>
+                            <NativeSelectOption key={c} value={c}>
                               {c}
-                            </option>
+                            </NativeSelectOption>
                           ),
                         )}
-                      </select>
+                      </NativeSelect>
                     )}
                   </li>
                 ))}

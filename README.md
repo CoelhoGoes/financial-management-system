@@ -147,7 +147,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 135 testes (1 pulado em sqlite), ~14s
 
-cd frontend && npm test                       # 91 testes, ~5s
+cd frontend && npm test                       # 93 testes, ~5s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -204,7 +204,8 @@ frontend/
     │       ├── MonthNav.tsx    passo de mês, compartilhado por resumo, lançamentos e fatura
     │       ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
     │       └── ui/             componentes shadcn (badge, button, card, chart, checkbox,
-    │                           input, label, table, toggle, toggle-group)
+    │                           input, label, native-select, table, toggle,
+    │                           toggle-group)
     ├── state/
     │   ├── auth-context.tsx    AuthProvider / useAuth
     │   └── theme.ts            tema claro/escuro/sistema, por aparelho no localStorage

@@ -7,6 +7,8 @@ import type { EntryCreate, EntryMethod, EntryOut, EntryType, Summary } from '@/s
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
+import { NativeSelect, NativeSelectOption } from '@/presentation/components/ui/native-select'
+import { ToggleGroup, ToggleGroupItem } from '@/presentation/components/ui/toggle-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
 import { Header } from '@/presentation/components/Header'
 import { MonthNav } from '@/presentation/components/MonthNav'
@@ -202,24 +204,22 @@ export function EntryScreen() {
             <CardTitle>{editingId === null ? 'Novo lançamento' : 'Editar lançamento'}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                className="flex-1"
-                variant={form.type === 'gasto' ? 'default' : 'outline'}
-                onClick={() => updateForm('type', 'gasto')}
-              >
+            {/* clicar no já escolhido devolve []: o campo nunca fica sem valor */}
+            <ToggleGroup
+              aria-label="Tipo"
+              variant="outline"
+              spacing={0}
+              className="w-full"
+              value={[form.type]}
+              onValueChange={(v) => v[0] && updateForm('type', v[0] as EntryType)}
+            >
+              <ToggleGroupItem value="gasto" className="flex-1">
                 Gasto
-              </Button>
-              <Button
-                type="button"
-                className="flex-1"
-                variant={form.type === 'entrada' ? 'default' : 'outline'}
-                onClick={() => updateForm('type', 'entrada')}
-              >
+              </ToggleGroupItem>
+              <ToggleGroupItem value="entrada" className="flex-1">
                 Entrada
-              </Button>
-            </div>
+              </ToggleGroupItem>
+            </ToggleGroup>
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="description">Descrição</Label>
@@ -236,20 +236,20 @@ export function EntryScreen() {
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="category">Categoria</Label>
-              <select
+              <NativeSelect
                 id="category"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                className="w-full"
                 value={form.category}
                 onChange={(e) => updateForm('category', e.target.value)}
                 required
               >
-                <option value="">Selecione</option>
+                <NativeSelectOption value="">Selecione</NativeSelectOption>
                 {categories.map((c) => (
-                  <option key={c} value={c}>
+                  <NativeSelectOption key={c} value={c}>
                     {c}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -278,25 +278,22 @@ export function EntryScreen() {
 
             {form.type === 'gasto' && (
               <div className="flex flex-col gap-1.5">
-                <Label>Forma</Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    className="flex-1"
-                    variant={form.method === 'avista' ? 'default' : 'outline'}
-                    onClick={() => updateForm('method', 'avista')}
-                  >
+                <Label id="method-label">Forma</Label>
+                <ToggleGroup
+                  aria-labelledby="method-label"
+                  variant="outline"
+                  spacing={0}
+                  className="w-full"
+                  value={[form.method]}
+                  onValueChange={(v) => v[0] && updateForm('method', v[0] as EntryMethod)}
+                >
+                  <ToggleGroupItem value="avista" className="flex-1">
                     À vista
-                  </Button>
-                  <Button
-                    type="button"
-                    className="flex-1"
-                    variant={form.method === 'credito' ? 'default' : 'outline'}
-                    onClick={() => updateForm('method', 'credito')}
-                  >
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="credito" className="flex-1">
                     Crédito
-                  </Button>
-                </div>
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
             )}
 

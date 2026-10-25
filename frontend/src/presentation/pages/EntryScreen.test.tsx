@@ -115,6 +115,30 @@ describe('EntryScreen', () => {
   })
 
   describe('o formulário', () => {
+    it('tipo e forma são grupos rotulados que dizem qual opção está escolhida', async () => {
+      const user = userEvent.setup()
+      montar()
+      await screen.findByText('feira')
+
+      const tipo = screen.getByRole('group', { name: 'Tipo' })
+      expect(within(tipo).getByRole('button', { name: 'Gasto' })).toHaveAttribute('aria-pressed', 'true')
+      expect(within(tipo).getByRole('button', { name: 'Entrada' })).toHaveAttribute('aria-pressed', 'false')
+
+      await user.click(screen.getByRole('button', { name: 'Crédito' }))
+      const forma = screen.getByRole('group', { name: 'Forma' })
+      expect(within(forma).getByRole('button', { name: 'Crédito' })).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('clicar de novo na opção escolhida não a desmarca', async () => {
+      const user = userEvent.setup()
+      montar()
+      await screen.findByText('feira')
+      await user.click(screen.getByRole('button', { name: 'Gasto' }))
+      expect(screen.getByRole('button', { name: 'Gasto' })).toHaveAttribute('aria-pressed', 'true')
+      // a forma só aparece para gasto: se o tipo tivesse ficado vazio, ela sumiria
+      expect(screen.getByRole('group', { name: 'Forma' })).toBeInTheDocument()
+    })
+
     it('troca a lista de categorias junto com o tipo', async () => {
       const user = userEvent.setup()
       montar()
