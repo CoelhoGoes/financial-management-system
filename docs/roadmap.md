@@ -17,13 +17,6 @@ usuário é registrado no `CHANGELOG.md`.
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Organizar as skills do projeto (`.claude/skills/`). Escopo ainda a refinar. O que existe
-      em 25/10/2026: quatro skills próprias versionadas (`commits-granulares`,
-      `documentacao-sincronizada`, `registro-de-feature`, `revisao-estrutural`) e dois links
-      simbólicos versionados (`shadcn`, `migrate-radix-to-base`) que apontam para `.agents/`,
-      que é gitignorado — num clone novo os links ficam quebrados até o shadcn CLI rodar. Três
-      das próprias têm homônimas instaladas fora do repositório (`anthropic-skills:`), e a
-      `revisao-estrutural` convive com a genérica `revisao-de-codigo` do usuário
 - [ ] Reavaliar o `deptry` (dependências Python declaradas e nunca importadas) quando o
       `requirements.txt` crescer. Testado em 18/09/2026 com 8 dependências: 5 achados, 5 falsos
       positivos — `uvicorn` vem do `CMD` do Dockerfile, `psycopg` da string da `DATABASE_URL`,

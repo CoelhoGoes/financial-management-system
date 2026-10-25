@@ -1,9 +1,20 @@
 ---
-name: commits-granulares
-description: Organiza as alterações pendentes do repositório em uma sequência de commits atômicos no padrão Conventional Commits, separando por hunks quando necessário, rodando os checks antes de cada commit e sempre apresentando o plano de commits para aprovação antes de executar. Use sempre que o usuário mencionar commitar, commit, git, subir alterações, organizar mudanças ou "pode salvar isso", e sempre que terminar uma feature ou refactor com várias mudanças no working directory. Ao concluir qualquer trabalho de código, ofereça esta organização mesmo sem o usuário pedir.
+name: 7-commits-granulares
+description: Etapa 7 de 7 do fluxo de desenvolvimento deste projeto — organiza as alterações pendentes em commits atômicos no padrão Conventional Commits, separando por hunks quando necessário, rodando os checks antes de cada commit e apresentando o plano para aprovação antes de executar; depois, e só com um sim explícito, faz push para o repositório remoto. Use depois da etapa 6, e sempre que o usuário mencionar commitar, commit, push, git, subir alterações, mandar para o remoto, organizar mudanças ou "pode salvar isso". Também serve para commitar no meio do trabalho, sem push. Ao terminar o fluxo, indica o próximo item do roadmap e a etapa 1 (/1-usecasesrefinement).
 ---
 
-# Commits granulares
+# Etapa 7 — Commits e envio ao remoto
+
+1. `/1-usecasesrefinement` — casos de uso e de falha
+2. `/2-technicalrefinement` — opções técnicas e decisões
+3. `/3-implementation` — implementar o que foi decidido
+4. `/4-revisao-estrutural` — código morto, duplicação, dívida
+5. `/5-securitycheck` — segurança do que foi implementado
+6. `/6-documentacao-sincronizada` — docs e registro da feature
+7. **`/7-commits-granulares`** — commits e push ← você está aqui
+
+Esta skill também roda fora do fluxo, só para commitar no meio do trabalho. Nesse caso,
+pare no passo 7 e não ofereça push.
 
 Um commit por mudança lógica. Isso não é preciosismo: é o que permite reverter uma coisa sem
 reverter as outras, fazer `bisect` quando algo quebra, e revisar um diff que cabe na cabeça.
@@ -127,4 +138,38 @@ Ao final, mostre o resultado para revisão:
 git log --oneline -<n>
 ```
 
-**Não faça push.** O push é decisão do usuário — apresente o log e espere.
+### 8. Push — só com um sim explícito
+
+Push publica o trabalho e é difícil de desfazer. Nunca faça por conta própria, nem porque o
+fluxo chegou aqui. Mostre exatamente o que vai sair:
+
+```bash
+git status -sb                                  # branch e se está à frente do remoto
+git log --oneline @{upstream}..HEAD             # os commits que vão subir
+```
+
+E pergunte: **"Faço push destes <n> commits para `<remoto>/<branch>`?"** Só com um sim a esta
+pergunta — não a uma anterior, não a um "pode seguir" genérico — rode `git push`.
+
+- **Nunca** `--force` nem `--force-with-lease` sem o usuário pedir com essas palavras.
+- **Push recusado** (o remoto tem commits que você não tem): pare e mostre. Não faça `pull`,
+  `rebase` nem `merge` sozinho — diga o que encontrou e pergunte como ele quer integrar.
+- **Sem upstream configurado:** mostre o comando (`git push -u origin <branch>`) e confirme o
+  remoto e o nome da branch antes de rodar.
+- Depois do push, mostre o `git status -sb` de novo para confirmar que está em dia.
+
+## Ao terminar
+
+Dentro do fluxo, encerre sempre com este bloco:
+
+```
+Etapa 7 de 7 concluída — <n> commits enviados para <remoto>/<branch>.
+Fluxo concluído para "<item>".
+Próximo item do roadmap: "<o que agora está em Em andamento no docs/roadmap.md>".
+Próximo passo: 1 — casos de uso e de falha (/1-usecasesrefinement).
+```
+
+Se o usuário não quis push, diga isso no bloco ("commits locais, sem push").
+
+E pergunte: **"Começo a etapa 1 do próximo item?"** Com um sim, chame a skill
+`1-usecasesrefinement`. Com um não, pare.
