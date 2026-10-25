@@ -4,11 +4,13 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,14 +19,29 @@ from .database import Base
 
 class User(Base):
     __tablename__ = "usuarios"
+    # e-mail único só entre contas ativas: uma conta excluída libera o e-mail para recadastro
+    __table_args__ = (
+        Index(
+            "uq_usuarios_email_ativo",
+            "email",
+            unique=True,
+            postgresql_where=text("excluido_em IS NULL"),
+            sqlite_where=text("excluido_em IS NULL"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    email: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column("senha_hash", String(255))
     monthly_income: Mapped[float] = mapped_column("renda_mensal", Numeric(12, 2), default=0)
     closing_day: Mapped[int] = mapped_column("dia_fechamento", Integer, default=25)
     created_at: Mapped[datetime] = mapped_column(
         "criado_em", DateTime(timezone=True), server_default=func.now()
+    )
+    # Exclusão lógica: preenchida, a conta some para a API, mas usuário e lançamentos ficam
+    # no banco. Desfazer é só por SQL (ver docs/dominio.md).
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        "excluido_em", DateTime(timezone=True), nullable=True, default=None
     )
 
     entries: Mapped[list["Entry"]] = relationship(

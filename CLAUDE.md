@@ -188,9 +188,9 @@ npm run preview    # serve the production build
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 127 tests (1 skipped on sqlite), ~14s
+cd backend && pytest                          # 135 tests (1 skipped on sqlite), ~14s
 
-cd frontend && npm test                       # 88 tests, ~5s
+cd frontend && npm test                       # 91 tests, ~5s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain
@@ -315,8 +315,8 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** endpoint de exclusão de conta — hoje só dá para apagar o próprio usuário
-com SQL direto no banco.
+**Em andamento:** rever o `Select` do shadcn para os campos de escolha fechada do
+`EntryScreen` (categoria/tipo/método), que hoje usam `<select>` nativo e botões de toggle.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

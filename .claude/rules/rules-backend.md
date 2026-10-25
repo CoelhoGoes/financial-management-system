@@ -17,7 +17,12 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
   `Numeric(12,2)`, never float. `Entry.import_id` (`id_importacao`) holds the origin of an imported
   line (`BANKID:ACCTID:FITID`) and is null for a typed entry; the `uq_lancamento_importacao`
   constraint on (`usuario_id`, `id_importacao`) is what stops a re-imported statement from
-  duplicating rows — nulls don't collide in Postgres.
+  duplicating rows — nulls don't collide in Postgres. `User.deleted_at` (`excluido_em`) is the
+  soft delete: filled in, the account is gone for the API but the row and its entries stay.
+  That is why `email` has no plain `unique`: the partial index `uq_usuarios_email_ativo`
+  (`WHERE excluido_em IS NULL`) keeps it unique only among active accounts, so a deleted
+  account's email can register again. Any lookup by email must filter `deleted_at IS NULL` —
+  there can be more than one row with it (`_active_user` in `api/auth.py`).
 - **`api/schemas.py`** — Pydantic request/response contracts, using `Decimal` for all money fields
   (mirrors the DB `Numeric` columns — never switch these to `float`). `Summary`, `Invoice`,
   `InvoiceInstallment`, `CategoryBreakdown` and `CategoryItem` have a twin dataclass in
@@ -29,11 +34,14 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
   `JWT_SECRET` is missing or shorter than `MIN_SECRET_BYTES` (32, the RFC 7518 floor for HS256), so
   the app cannot start signing tokens with a predictable value.
 - **`api/deps.py`** — the FastAPI dependencies built on top of it. `current_user` resolves the
-  current user from the bearer token (401 otherwise); every protected endpoint depends on it.
+  current user from the bearer token (401 otherwise, also for a deleted account); every
+  protected endpoint depends on it.
   It also holds the login attempt limiter (`ensure_login_allowed` / `record_failed_login` /
   `clear_failed_logins`): 5 failures per origin+account inside a 15-minute window, counted in
   memory — one process only, resets on restart. It lives here, not in `infra/`, because it
-  answers 429.
+  answers 429. `DELETE /auth/me` checks the password again and feeds the same key, so a wrong
+  password there counts against login too (and answers 403, not 401, which would make the
+  frontend drop the session).
 - **`domain/service.py`** — the business rules, written as pure functions with no DB import
   (`Entry`/`User` are only imported under `TYPE_CHECKING`) and no API import (results are its own
   dataclasses, not Pydantic), so they're unit-testable without a running Postgres.

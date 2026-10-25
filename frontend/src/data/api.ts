@@ -67,6 +67,8 @@ export const api = {
   me: () => req<User>('/auth/me'),
   saveConfig: (monthly_income: string, closing_day: number) =>
     req<User>('/auth/me', { method: 'PUT', body: JSON.stringify({ monthly_income, closing_day }) }),
+  deleteAccount: (password: string) =>
+    req<null>('/auth/me', { method: 'DELETE', body: JSON.stringify({ password }) }),
 
   entries: (month?: string) => req<EntryOut[]>(`/entries${month ? `?month=${month}` : ''}`),
   createEntry: (data: EntryCreate) =>

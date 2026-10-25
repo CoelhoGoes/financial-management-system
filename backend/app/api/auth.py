@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
@@ -12,15 +14,27 @@ from .deps import (
     ensure_login_allowed,
     record_failed_login,
 )
-from .schemas import Token, UserConfig, UserCreate, UserOut
+from .schemas import AccountDelete, Token, UserConfig, UserCreate, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _active_user(session: Session, email: str) -> User | None:
+    # Conta excluída libera o e-mail, então pode haver mais de uma linha com ele: só a
+    # ativa conta.
+    return session.scalar(select(User).where(User.email == email, User.deleted_at.is_(None)))
+
+
+def _attempt_key(request: Request, email: str) -> str:
+    # Keyed by origin *and* account: one attacker cannot lock every account out, and one
+    # account cannot be hammered from a single origin.
+    origin = request.client.host if request.client else "unknown"
+    return f"{origin}|{email.strip().lower()}"
+
+
 @router.post("/register", response_model=UserOut, status_code=201)
 def register(data: UserCreate, session: Session = Depends(get_session)):
-    existing = session.scalar(select(User).where(User.email == data.email))
-    if existing:
+    if _active_user(session, data.email):
         raise HTTPException(
             status.HTTP_409_CONFLICT, "Não foi possível criar a conta com esses dados."
         )
@@ -38,13 +52,10 @@ def login(
     form: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
 ):
-    # Keyed by origin *and* account: one attacker cannot lock every account out, and one
-    # account cannot be hammered from a single origin.
-    origin = request.client.host if request.client else "unknown"
-    attempt_key = f"{origin}|{form.username.strip().lower()}"
+    attempt_key = _attempt_key(request, form.username)
     ensure_login_allowed(attempt_key)
 
-    user = session.scalar(select(User).where(User.email == form.username))
+    user = _active_user(session, form.username)
     if not user or not verify_password(form.password, user.password_hash):
         record_failed_login(attempt_key)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-mail ou senha não conferem.")
@@ -69,3 +80,22 @@ def update_config(
     session.commit()
     session.refresh(user)
     return user
+
+
+@router.delete("/me", status_code=204)
+def delete_account(
+    data: AccountDelete,
+    request: Request,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    # Mesmo limitador do login: quem tem o token não ganha um segundo lote de tentativas.
+    attempt_key = _attempt_key(request, user.email)
+    ensure_login_allowed(attempt_key)
+    if not verify_password(data.password, user.password_hash):
+        record_failed_login(attempt_key)
+        # 403, não 401: o 401 faz o frontend derrubar a sessão por um erro de digitação
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Senha não confere.")
+
+    user.deleted_at = datetime.now(UTC)
+    session.commit()

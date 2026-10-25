@@ -16,6 +16,10 @@ class UserConfig(BaseModel):
     closing_day: int = Field(ge=1, le=28)
 
 
+class AccountDelete(BaseModel):
+    password: str
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

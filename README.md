@@ -145,9 +145,9 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 127 testes (1 pulado em sqlite), ~14s
+cd backend && pytest                          # 135 testes (1 pulado em sqlite), ~14s
 
-cd frontend && npm test                       # 88 testes, ~5s
+cd frontend && npm test                       # 91 testes, ~5s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -248,6 +248,7 @@ Todos exigem `Authorization: Bearer <token>`, exceto `/auth/register`, `/auth/to
 | POST | `/auth/token` | login (form-urlencoded), devolve JWT |
 | GET | `/auth/me` | dados do usuário |
 | PUT | `/auth/me` | atualiza renda mensal e dia de fechamento |
+| DELETE | `/auth/me` | exclui a conta (pede `password` no corpo); exclusão lógica, os dados ficam no banco |
 | POST | `/entries` | cria lançamento |
 | GET | `/entries` | lista lançamentos (filtro opcional `?month=2026-09`) |
 | PATCH | `/entries/{id}` | altera só os campos enviados; o resultado é validado como lançamento novo |
@@ -290,11 +291,11 @@ Antes de expor na internet:
 mensal (saldo, renda, fatura, gasto por categoria com barra de proporção e gráfico de tendência
 dos últimos meses), tela de lançamentos (criar, editar, listar e excluir gastos/entradas do
 mês), tela de fatura (consulta por mês, com navegação entre meses), importação de extrato OFX
-com conferência antes de gravar, e tela de configuração (renda mensal, dia de fechamento e tema claro/escuro, seguindo o
-sistema por padrão).
+com conferência antes de gravar, e tela de configuração (renda mensal, dia de fechamento, tema
+claro/escuro seguindo o sistema por padrão, e exclusão da conta).
 Backend completo com todos os endpoints acima; o schema é das migrações Alembic.
 
-**Ainda não existe:** exclusão da própria conta pela API, entre outros — a fila
+**Ainda não existe:** exportar os dados, trocar e-mail ou senha, entre outros — a fila
 completa está em [`docs/roadmap.md`](docs/roadmap.md).
 
 Mudanças notáveis ficam registradas em [`CHANGELOG.md`](CHANGELOG.md).

@@ -48,6 +48,72 @@ class TestAutenticacao:
         assert "Retry-After" in r.headers
 
 
+def _excluir(client, headers, password="senha12345"):
+    # o TestClient não aceita json= no .delete(); DELETE com corpo vai pelo .request()
+    return client.request("DELETE", "/auth/me", headers=headers, json={"password": password})
+
+
+class TestExclusaoDeConta:
+    def test_com_a_senha_certa_a_conta_some_para_a_api(self, client, auth):
+        h = auth()
+        assert _excluir(client, h).status_code == 204
+        assert client.get("/auth/me", headers=h).status_code == 401
+        assert client.get("/entries", headers=h).status_code == 401
+
+    def test_senha_errada_responde_403_e_nao_exclui(self, client, auth):
+        h = auth()
+        r = _excluir(client, h, password="errada")
+        # 403, não 401: o 401 faria o frontend derrubar a sessão
+        assert r.status_code == 403
+        assert client.get("/auth/me", headers=h).status_code == 200
+
+    def test_sem_senha_e_recusado(self, client, auth):
+        h = auth()
+        assert client.request("DELETE", "/auth/me", headers=h).status_code == 422
+
+    def test_login_em_conta_excluida_parece_senha_errada(self, client, auth):
+        _excluir(client, auth())
+        r = client.post("/auth/token", data={"username": "a@b.co", "password": "senha12345"})
+        assert r.status_code == 401
+        assert r.json()["detail"] == "E-mail ou senha não conferem."
+
+    def test_exclusao_e_logica_usuario_e_lancamentos_ficam_no_banco(self, client, auth):
+        from sqlalchemy import func, select
+
+        from app.infra.database import engine
+        from app.infra.models import Entry, User
+
+        h = auth()
+        client.post("/entries", headers=h, json=LANCAMENTO)
+        _excluir(client, h)
+        with engine.connect() as conn:
+            assert conn.scalar(select(User.deleted_at)) is not None
+            assert conn.scalar(select(func.count()).select_from(Entry)) == 1
+
+    def test_o_email_fica_livre_para_um_cadastro_novo_e_vazio(self, client, auth):
+        h = auth()
+        client.post("/entries", headers=h, json=LANCAMENTO)
+        _excluir(client, h)
+
+        novo = auth()
+        assert client.get("/auth/me", headers=novo).status_code == 200
+        assert client.get("/entries", headers=novo).json() == []
+
+    def test_dois_cadastros_ativos_com_o_mesmo_email_continuam_proibidos(self, client, auth):
+        _excluir(client, auth())
+        auth()
+        r = client.post("/auth/register", json={"email": "a@b.co", "password": "senha12345"})
+        assert r.status_code == 409
+
+    def test_senha_errada_conta_no_mesmo_limitador_do_login(self, client, auth):
+        h = auth()
+        for _ in range(5):
+            _excluir(client, h, password="errada")
+        assert _excluir(client, h).status_code == 429
+        r = client.post("/auth/token", data={"username": "a@b.co", "password": "senha12345"})
+        assert r.status_code == 429
+
+
 class TestEscopoPorUsuario:
     """O invariante mais importante: nenhum endpoint confia em id vindo do cliente."""
 

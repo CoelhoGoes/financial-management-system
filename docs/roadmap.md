@@ -10,16 +10,13 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Endpoint de exclusão de conta: hoje dá para criar usuário e apagar lançamento, mas não
-      apagar o próprio usuário — só com SQL direto no banco. Ficou evidente quando uma conta
-      de teste entrou no banco de desenvolvimento e não teve como removê-la pela API
+- [ ] Rever `Select` do shadcn para campos de escolha fechada (categoria/tipo/método);
+      `EntryScreen` usa `<select>` nativo e botões de toggle hoje
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Rever `Select` do shadcn para campos de escolha fechada (categoria/tipo/método);
-      `EntryScreen` usa `<select>` nativo e botões de toggle hoje
 - [ ] Gerar `types.ts` a partir do OpenAPI do FastAPI
 - [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
       importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026

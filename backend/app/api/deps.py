@@ -55,7 +55,7 @@ def current_user(
 ) -> User:
     user_id = user_id_from_token(token)
     user = session.get(User, user_id) if user_id is not None else None
-    if user is None:
+    if user is None or user.deleted_at is not None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sessão inválida ou expirada. Entre novamente.",

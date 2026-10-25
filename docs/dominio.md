@@ -29,6 +29,15 @@ ninguém mudar.
 lançamento; é um campo do usuário, somado automaticamente em todo mês do resumo. Começa em
 **0**, então uma conta recém-criada mostra saldo como se não houvesse renda até alguém informá-la.
 
+**Conta excluída** — usuário com `excluido_em` preenchido. A exclusão é lógica: a linha e os
+lançamentos continuam no banco, mas a conta some para a API — o token deixa de valer, o login
+responde como senha errada, e nenhum lançamento é alcançável, porque todo acesso passa pelo
+usuário. Excluir pede a senha de novo (`DELETE /auth/me`); senha errada conta no mesmo
+limite de tentativas do login. O e-mail fica livre: o único é só entre contas ativas, então
+um cadastro novo com ele cria outra conta, vazia. Desfazer é só por SQL
+(`UPDATE usuarios SET excluido_em = NULL`) — antes, confira se o e-mail não foi recadastrado,
+senão ficam duas contas ativas com ele.
+
 Os dois valores padrão vivem no `default=` de `models.py` — é de lá que eles devem ser lidos, não
 repetidos em outro lugar.
 
@@ -203,6 +212,10 @@ conversar antes.
   é presentação, não cálculo de dinheiro — mas fica na fronteira da regra de não ter lógica no
   cliente. **Monitorar:** se ele começar a decidir algo além de qual mês buscar, virou regra de
   negócio no lugar errado e precisa voltar para o servidor.
+- **Conta excluída nunca é apagada de verdade.** A exclusão só marca `excluido_em`; usuário e
+  lançamentos ficam no banco indefinidamente. Não há expurgo automático (o app não tem
+  agendador) nem comando documentado — apagar de vez é um `DELETE FROM usuarios` à mão, e o
+  `ON DELETE CASCADE` leva os lançamentos junto. Decidido em 23/10/2026.
 - **A camada de API roda em sqlite por padrão.** `backend/tests/test_api.py` sobe o app contra
   um sqlite temporário: rápido e sem container. A mesma suíte roda contra Postgres apontando
   `TEST_DATABASE_URL` (veja o README), e foi verificada nos dois — mas a execução do dia a dia é

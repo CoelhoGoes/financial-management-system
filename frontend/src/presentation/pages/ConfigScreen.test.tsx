@@ -10,6 +10,7 @@ vi.mock('@/data/api', () => ({
     isAuthenticated: () => true,
     me: vi.fn(),
     saveConfig: vi.fn(),
+    deleteAccount: vi.fn(),
     logout: vi.fn(),
   },
 }))
@@ -137,6 +138,42 @@ describe('ConfigScreen', () => {
       montar()
       await user.click(await screen.findByRole('button', { name: 'Sistema' }))
       expect(botao('Sistema')).toHaveAttribute('aria-pressed', 'true')
+    })
+  })
+
+  describe('excluir a conta', () => {
+    const excluir = () => screen.getByRole('button', { name: 'Excluir minha conta' })
+
+    it('manda a senha digitada e sai do app', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.deleteAccount).mockResolvedValue(null)
+      montar()
+      await user.type(await screen.findByLabelText('Confirme com sua senha'), 'senha12345')
+      await user.click(excluir())
+
+      expect(api.deleteAccount).toHaveBeenCalledWith('senha12345')
+      // sem usuário, o portão do teste (como o App) desmonta a tela
+      await waitFor(() => expect(screen.queryByText('Excluir conta')).not.toBeInTheDocument())
+      expect(api.logout).toHaveBeenCalled()
+    })
+
+    it('senha errada mostra o erro e continua logado', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.deleteAccount).mockRejectedValue(new Error('Senha não confere.'))
+      montar()
+      await user.type(await screen.findByLabelText('Confirme com sua senha'), 'errada')
+      await user.click(excluir())
+
+      expect(await screen.findByText('Senha não confere.')).toBeInTheDocument()
+      expect(excluir()).toBeEnabled()
+      expect(api.logout).not.toHaveBeenCalled()
+    })
+
+    it('não envia sem senha', async () => {
+      const user = userEvent.setup()
+      montar()
+      await user.click(await screen.findByRole('button', { name: 'Excluir minha conta' }))
+      expect(api.deleteAccount).not.toHaveBeenCalled()
     })
   })
 })

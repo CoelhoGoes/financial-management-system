@@ -17,6 +17,8 @@ interface AuthContextValue {
   logout: () => void
   /** Aplica o usuário devolvido por um PUT /auth/me, sem refazer o GET. */
   updateUser: (user: User) => void
+  /** Exclui a conta (pede a senha de novo) e encerra a sessão. */
+  deleteAccount: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -66,9 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  async function deleteAccount(password: string) {
+    await api.deleteAccount(password)
+    logout()
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, register, logout, updateUser: setUser }}
+      value={{ user, loading, error, login, register, logout, updateUser: setUser, deleteAccount }}
     >
       {children}
     </AuthContext.Provider>

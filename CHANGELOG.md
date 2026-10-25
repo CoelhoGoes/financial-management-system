@@ -8,6 +8,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Excluir a própria conta em Configurações, confirmando com a senha. A conta para de
+  funcionar na hora e o e-mail fica livre para um cadastro novo; os dados não são apagados
+  do servidor, só deixam de ser acessíveis
 - Tema escuro. Por padrão o app segue o modo claro ou escuro do aparelho; em Configurações
   dá para fixar claro ou escuro, e a escolha vale só para aquele aparelho
 
