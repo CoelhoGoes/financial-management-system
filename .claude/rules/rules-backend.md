@@ -27,7 +27,7 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
   (mirrors the DB `Numeric` columns — never switch these to `float`). `Summary`, `Invoice`,
   `InvoiceInstallment`, `CategoryBreakdown` and `CategoryItem` have a twin dataclass in
   `domain/service.py` with the same field names: the router returns the dataclass and
-  `response_model` converts it. Rename a field and you rename it in both (and in `types.ts`).
+  `response_model` converts it. Rename a field and you rename it in both, then regenerate the frontend types.
 - **`infra/security.py`** — bcrypt password hashing and JWT issuance/verification (`JWT_SECRET` env
   var, `HS256`, 7-day expiry). No FastAPI import: `user_id_from_token` returns `None` for a bad
   token and lets the caller decide the HTTP answer. The module **refuses to import** when
@@ -105,5 +105,8 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
 - Changing `infra/models.py` means generating the Alembic migration in the same commit. Nothing
   creates schema at boot any more, so a model without a migration breaks the deploy —
   `./dev.sh` warns about it on start, the sqlite test suite does not.
-- Changing a Pydantic schema means changing `frontend/src/shared/types.ts` in the same commit.
+- Changing a Pydantic schema means regenerating `frontend/src/shared/api-schema.d.ts` in the same
+  commit: `docker compose restart api` (the container runs without `--reload`, so it still
+  serves the old OpenAPI), then `cd frontend && npm run gen:types`. A note about a field goes in
+  `Field(description=...)` — it reaches `/docs` and the generated type.
 - Read `docs/dominio.md` before touching `service.py`.

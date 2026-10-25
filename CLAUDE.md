@@ -140,7 +140,8 @@ frontend/
     ├── data/
     │   └── api.ts             typed HTTP client
     └── shared/
-        ├── types.ts           mirror of backend api/schemas.py
+        ├── api-schema.d.ts    generated from the API's OpenAPI — never edit by hand
+        ├── types.ts           short names for the generated types
         ├── categories.ts      closed category lists, mirrors docs/dominio.md
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
                                / shiftMonth() / formatMonthShort() / formatDayMonth()
@@ -183,6 +184,7 @@ npm run dev        # Vite dev server on :5173
 npm run build      # tsc -b && vite build  — this is also the typecheck
 npm run lint       # oxlint
 npm run preview    # serve the production build
+npm run gen:types  # regenerate src/shared/api-schema.d.ts from the running API
 ```
 
 **Running the tests:**
@@ -266,8 +268,9 @@ apply everywhere and are not repeated there.
   both create and `PATCH` call it; imported entries have no `method` at all).
 - Every `Entry` mutation/read endpoint scopes by `user.id` from the JWT — never trust a
   client-supplied user id.
-- `frontend/src/shared/types.ts` and `backend/app/api/schemas.py` change together — and when
-  the schema is one of the domain outputs, so does its dataclass in `domain/service.py`.
+- Changing `backend/app/api/schemas.py` means running `npm run gen:types` (API up) and
+  committing the regenerated `frontend/src/shared/api-schema.d.ts` with it — and when the schema
+  is one of the domain outputs, its dataclass in `domain/service.py` changes too.
 
 ## Changelog
 
@@ -316,8 +319,7 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** gerar `types.ts` a partir do OpenAPI do FastAPI com `openapi-typescript`;
-as decisões estão no item do `docs/roadmap.md`.
+**Em andamento:** acelerar os 8 testes de `TestFailFastDoSegredo`.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

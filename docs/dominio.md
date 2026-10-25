@@ -195,15 +195,18 @@ conversar antes.
   dois primeiros em paralelo, então são **duas varreduras completas e dois cálculos de fatura**
   a cada mês visitado — não só no carregamento, já que a navegação entre meses refaz as buscas.
   Quem for fazer o filtro em SQL ganha o dobro do que parece.
-- **`frontend/src/shared/types.ts` é um espelho manual de `backend/app/api/schemas.py`.** Nada
-  garante que os dois estejam sincronizados. Gerar os tipos a partir do OpenAPI do FastAPI
-  resolveria.
+- **Os tipos do frontend são gerados, mas a geração não roda sozinha.** O
+  `frontend/src/shared/api-schema.d.ts` sai do OpenAPI da API (`npm run gen:types`) e é
+  versionado, para o build não depender da API no ar. Mudar um schema sem regenerar passa no
+  typecheck; quem pega é o `./dev.sh`, que compara com a API a cada início e avisa em
+  vermelho, sem bloquear.
 - **As saídas do domínio são declaradas três vezes.** `Summary`, `Invoice`,
   `InvoiceInstallment`, `CategoryBreakdown` e `CategoryItem` existem como dataclass em
-  `domain/service.py`, como schema Pydantic em `api/schemas.py` e como interface em
-  `types.ts`. Isso é o preço da regra das camadas: o domínio não pode importar a API, então
+  `domain/service.py` e como schema Pydantic em `api/schemas.py`; o tipo do frontend é gerado
+  do schema. Isso é o preço da regra das camadas: o domínio não pode importar a API, então
   não pode devolver o schema dela. O `response_model` converte por nome de campo, e
-  `test_api.py` quebra se um campo some de um lado só — mas renomear exige mexer nos três.
+  `test_api.py` quebra se um campo some de um lado só — mas renomear exige mexer nos dois e
+  regenerar os tipos.
 - **`domain/` → `infra/` é só de tipo.** `domain/service.py` importa `Entry` e `User` de
   `infra/models.py` apenas sob `TYPE_CHECKING`, para anotar os parâmetros. Em tempo de
   execução o domínio não carrega o SQLAlchemy, e os testes passam dataclasses no lugar.

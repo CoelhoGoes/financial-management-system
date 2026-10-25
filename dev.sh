@@ -84,6 +84,20 @@ fi
 cd frontend
 [ -d node_modules ] || { cinza "Instalando dependências do frontend…"; npm install; }
 
+# Os tipos do frontend são gerados do OpenAPI e versionados, para o build não depender da
+# API. Mudou um schema e ninguém regenerou? O typecheck não percebe — aqui sim. Só avisa,
+# como o alembic check acima.
+tipos_novos=$(mktemp --suffix=.d.ts)
+if npx openapi-typescript http://localhost:8000/openapi.json --default-non-nullable false \
+     -o "$tipos_novos" >/dev/null 2>&1 \
+   && cmp -s "$tipos_novos" src/shared/api-schema.d.ts; then
+  cinza "Tipos do frontend conferem com a API (api-schema.d.ts)."
+else
+  vermelho "src/shared/api-schema.d.ts difere do OpenAPI da API — falta regenerar:"
+  vermelho "  cd frontend && npm run gen:types"
+fi
+rm -f "$tipos_novos"
+
 echo
 verde "Frontend em http://localhost:5173"
 cinza "Ctrl+C encerra o Vite. Os containers seguem de pé — 'docker compose down' para derrubar."

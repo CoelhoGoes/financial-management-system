@@ -129,7 +129,9 @@ class ImportPreviewItem(BaseModel):
     description: str
     date: date
     import_id: str
-    already_imported: bool
+    already_imported: bool = Field(
+        description="Já entrou numa importação anterior: aparece marcada, não some da lista."
+    )
 
 
 class EntryImport(EntryBase):
@@ -158,4 +160,6 @@ class ImportResult(BaseModel):
     """`skipped` conta o que o servidor recusou por já existir, não o que você desmarcou."""
 
     created: list[EntryOut]
-    skipped: int
+    skipped: int = Field(
+        description="Quantas o servidor recusou por já existirem — não o que você desmarcou."
+    )

@@ -1,90 +1,28 @@
-// Espelha backend/app/api/schemas.py. Campos Decimal (dinheiro) chegam como string no JSON
-// (FastAPI serializa Decimal como string) — use Number(valor) antes de formatar/somar.
+// Apelidos para os tipos gerados de backend/app/api/schemas.py. O arquivo gerado é
+// api-schema.d.ts: não edite à mão, rode `npm run gen:types` com a API no ar (o ./dev.sh
+// avisa quando ele está desatualizado). Comentário sobre um campo vai no
+// Field(description=...) do schemas.py, que chega até aqui.
+//
+// Dinheiro sai da API como string (FastAPI serializa Decimal assim) — use Number(valor) antes
+// de formatar/somar. Na entrada o servidor aceita número ou string.
+import type { components } from './api-schema'
 
-export interface User {
-  id: number
-  email: string
-  monthly_income: string
-  closing_day: number
-}
+type Schemas = components['schemas']
 
-export type EntryType = 'gasto' | 'entrada'
-export type EntryMethod = 'avista' | 'credito'
+export type User = Schemas['UserOut']
 
-export interface EntryCreate {
-  type: EntryType
-  amount: string
-  description: string
-  category: string
-  date: string
-  method?: EntryMethod
-  installments?: number
-}
+export type EntryCreate = Schemas['EntryCreate']
+export type EntryUpdate = Schemas['EntryUpdate']
+export type EntryOut = Schemas['EntryOut']
+export type EntryType = EntryCreate['type']
+export type EntryMethod = NonNullable<EntryCreate['method']>
 
-/** PATCH /entries/{id}: só os campos enviados mudam. `import_id` não é editável. */
-export type EntryUpdate = Partial<EntryCreate>
+export type InvoiceInstallment = Schemas['InvoiceInstallment']
+export type Invoice = Schemas['Invoice']
+export type Summary = Schemas['Summary']
+export type CategoryItem = Schemas['CategoryItem']
+export type CategoryBreakdown = Schemas['CategoryBreakdown']
 
-export interface EntryOut extends EntryCreate {
-  id: number
-}
-
-export interface InvoiceInstallment {
-  entry_id: number
-  description: string
-  category: string
-  purchase_date: string
-  installment: number
-  total_installments: number
-  installment_amount: string
-}
-
-export interface Invoice {
-  month: string
-  total: string
-  items: InvoiceInstallment[]
-}
-
-export interface Summary {
-  month: string
-  monthly_income: string
-  extra_income: string
-  cash_expenses: string
-  invoice: string
-  total_spent: string
-  available_balance: string
-}
-
-export interface CategoryItem {
-  description: string
-  amount: string
-  installment: number | null
-  total_installments: number | null
-}
-
-export interface CategoryBreakdown {
-  category: string
-  total: string
-  share: string
-  items: CategoryItem[]
-}
-
-export interface ImportPreviewItem {
-  type: EntryType
-  amount: string
-  description: string
-  date: string
-  import_id: string
-  /** Já entrou numa importação anterior: aparece marcada, não some da lista. */
-  already_imported: boolean
-}
-
-/** Sem method/installments: importado é sempre à vista, e o servidor recusa esses campos. */
-export interface EntryImport extends Omit<EntryCreate, 'method' | 'installments'> {
-  import_id: string
-}
-
-export interface ImportResult {
-  created: EntryOut[]
-  /** Quantas o servidor recusou por já existirem — não o que você desmarcou. */
-  skipped: number
-}
+export type ImportPreviewItem = Schemas['ImportPreviewItem']
+export type EntryImport = Schemas['EntryImport']
+export type ImportResult = Schemas['ImportResult']

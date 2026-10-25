@@ -73,7 +73,11 @@ VITE_API_URL=http://localhost:8000
 ```
 
 Outros comandos: `npm run build` (typecheck + build de produção), `npm run lint` (oxlint),
-`npm test` (vitest), `npm run test:watch` (vitest em watch), `npm run preview` (serve o build).
+`npm test` (vitest), `npm run test:watch` (vitest em watch), `npm run preview` (serve o build),
+`npm run gen:types` (regenera `src/shared/api-schema.d.ts` a partir da API no ar — rode depois
+de mudar `backend/app/api/schemas.py`; o `./dev.sh` avisa quando ficou desatualizado).
+Antes dele, `docker compose restart api`: o container roda sem `--reload` e continua servindo o
+OpenAPI antigo até reiniciar.
 
 ### Rodar o backend sem Docker
 
@@ -212,7 +216,8 @@ frontend/
     ├── data/
     │   └── api.ts     cliente HTTP tipado (JWT, header, tratamento de 401)
     └── shared/        usado por qualquer camada, não depende de nenhuma
-        ├── types.ts        espelho TypeScript de backend/app/api/schemas.py
+        ├── api-schema.d.ts gerado do OpenAPI da API — não edite à mão
+        ├── types.ts        nomes curtos para os tipos gerados
         ├── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
         └── format.ts       currentMonth() / formatCurrency() / formatPercent()
                             / shiftMonth() / formatMonthShort() / formatDayMonth()
