@@ -320,7 +320,7 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** acelerar os 8 testes de `TestFailFastDoSegredo`.
+**Em andamento:** corrigir as vulnerabilidades do `npm audit` no frontend.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

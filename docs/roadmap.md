@@ -10,8 +10,11 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Acelerar os 8 testes de `TestFailFastDoSegredo`: cada um sobe um subprocesso Python para
-      importar o app, e juntos somaram ~16s de 37s na medição de 02/10/2026
+- [ ] Corrigir as 15 vulnerabilidades do `npm audit` no frontend (1 crítica, 8 altas, 6
+      moderadas), prioridade combinada em 26/10/2026. Nenhuma chega ao bundle do navegador:
+      13 entram pelo CLI `shadcn` e pelo `@tailwindcss/vite` (que estão em `dependencies`,
+      por isso o `npm audit --omit=dev` as conta como runtime) e 2 pelo `vitest`. Inclui
+      decidir se o `shadcn` sai de `dependencies` para `devDependencies`
 
 ## Próximo
 
