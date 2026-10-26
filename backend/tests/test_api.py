@@ -291,7 +291,7 @@ class TestToken:
         r = client.get("/entries", headers={"Authorization": f"Bearer {vencido}"})
         assert r.status_code == 401
 
-    def test_token_assinado_com_outro_segredo_e_recusado(self, client, auth):
+    def test_token_assinado_com_outra_chave_e_recusado(self, client, auth):
         """Sem isto, trocar o JWT_SECRET não invalidaria sessão nenhuma."""
         auth()
         forjado = self._forjar(1, segredo="f" * 64)  # 64 chars: o PyJWT avisa abaixo de 32 bytes
@@ -315,10 +315,18 @@ class TestToken:
 
 
 class TestFailFastDoSegredo:
-    """O módulo recusa importar sem JWT_SECRET. Precisa de subprocesso: o erro
-    acontece no import, antes de qualquer app existir."""
+    """A API recusa subir sem JWT_SECRET, ou com um segredo curto. A regra é testada
+    direto em `check_secret`; um subprocesso prova que o import do app a aplica."""
 
-    def _importar(self, tmp_path, *, segredo="0" * 64, remover=None):
+    @pytest.fixture
+    def check_secret(self, monkeypatch):
+        # o próprio módulo exige um segredo válido para ser importado
+        monkeypatch.setenv("JWT_SECRET", "0" * 64)
+        from app.infra.security import check_secret
+        return check_secret
+
+    def test_sem_jwt_secret_a_aplicacao_nao_sobe(self, tmp_path):
+        """Num processo novo: é o que prova que o import do app chama a regra."""
         import subprocess
         import sys
         from pathlib import Path
@@ -326,52 +334,48 @@ class TestFailFastDoSegredo:
         env = {
             **os.environ,
             "DATABASE_URL": f"sqlite+pysqlite:///{tmp_path/'x.db'}",
-            "JWT_SECRET": segredo,
             "PYTHONPATH": str(Path(__file__).resolve().parent.parent),
         }
-        if remover:
-            env.pop(remover, None)
+        env.pop("JWT_SECRET", None)
         # check=False de propósito: o returncode é o que está sendo testado
-        return subprocess.run(
+        r = subprocess.run(
             [sys.executable, "-c", "import app.main"],
             env=env, capture_output=True, text=True, check=False,
         )
-
-    def _importar_sem(self, variavel, tmp_path):
-        return self._importar(tmp_path, remover=variavel)
-
-    def test_sem_jwt_secret_a_aplicacao_nao_sobe(self, tmp_path):
-        r = self._importar_sem("JWT_SECRET", tmp_path)
         assert r.returncode != 0
         assert "JWT_SECRET não está definida" in r.stderr
 
-    def test_a_mensagem_diz_como_resolver(self, tmp_path):
-        """Falhar é metade; a outra metade é a pessoa saber o que fazer."""
-        r = self._importar_sem("JWT_SECRET", tmp_path)
-        assert "openssl rand -hex 32" in r.stderr
+    def test_sem_segredo_a_regra_recusa(self, check_secret):
+        with pytest.raises(RuntimeError, match="JWT_SECRET não está definida"):
+            check_secret(None)
 
-    def test_com_jwt_secret_o_import_passa(self, tmp_path):
-        r = self._importar(tmp_path)
-        assert r.returncode == 0, r.stderr[-400:]
+    def test_a_mensagem_diz_como_resolver(self, check_secret):
+        """Falhar é metade; a outra metade é a pessoa saber o que fazer."""
+        with pytest.raises(RuntimeError, match="openssl rand -hex 32"):
+            check_secret(None)
+
+    def test_segredo_valido_passa(self, check_secret):
+        assert check_secret("0" * 64) == "0" * 64
 
     @pytest.mark.parametrize("segredo", ["abc", "a" * 31, ""])
-    def test_segredo_curto_tambem_impede_a_subida(self, tmp_path, segredo):
+    def test_segredo_curto_tambem_impede_a_subida(self, check_secret, segredo):
         """Exigir a variável não basta: `JWT_SECRET=abc` seria quebrável por força
         bruta, e quem quebrasse forjaria a sessão de qualquer usuário."""
-        r = self._importar(tmp_path, segredo=segredo)
-        assert r.returncode != 0
-        assert "JWT_SECRET" in r.stderr
+        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+            check_secret(segredo)
 
-    def test_a_mensagem_do_segredo_curto_diz_o_tamanho_e_o_minimo(self, tmp_path):
-        r = self._importar(tmp_path, segredo="a" * 10)
-        assert "tem 10 bytes" in r.stderr
-        assert "mínimo é 32" in r.stderr
-        assert "openssl rand -hex 32" in r.stderr
+    def test_a_mensagem_do_segredo_curto_diz_o_tamanho_e_o_minimo(self, check_secret):
+        with pytest.raises(RuntimeError) as erro:
+            check_secret("a" * 10)
+        assert "tem 10 bytes" in str(erro.value)
+        assert "mínimo é 32" in str(erro.value)
+        assert "openssl rand -hex 32" in str(erro.value)
 
-    def test_exatamente_32_bytes_passa(self, tmp_path):
+    def test_exatamente_32_bytes_passa(self, check_secret):
         """A fronteira: 32 é aceito, 31 não."""
-        assert self._importar(tmp_path, segredo="a" * 32).returncode == 0
-        assert self._importar(tmp_path, segredo="a" * 31).returncode != 0
+        check_secret("a" * 32)
+        with pytest.raises(RuntimeError):
+            check_secret("a" * 31)
 
 
 def revisada(linha, category="Outros", **kw):

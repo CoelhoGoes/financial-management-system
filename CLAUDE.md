@@ -146,6 +146,7 @@ frontend/
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
                                / shiftMonth() / formatMonthShort() / formatDayMonth()
 docs/dominio.md               business rules in prose
+docs/features/                one doc per feature, opened at step 1 of the skills flow
 docker-compose.yml            repo root
 .env.example                  repo root (backend vars only)
 ```
@@ -191,7 +192,7 @@ npm run gen:types  # regenerate src/shared/api-schema.d.ts from the running API
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 135 tests (1 skipped on sqlite), ~14s
+cd backend && pytest                          # 136 tests (1 skipped on sqlite), ~15s
 
 cd frontend && npm test                       # 93 tests, ~5s
 ```
