@@ -10,9 +10,6 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Trocar o título da página, hoje `frontend-tmp` (`frontend/index.html:7`), sobra do
-      template do Vite. Achado em 28/10/2026
-
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
