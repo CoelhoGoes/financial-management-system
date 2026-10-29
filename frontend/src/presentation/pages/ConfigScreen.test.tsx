@@ -176,4 +176,9 @@ describe('ConfigScreen', () => {
       expect(api.deleteAccount).not.toHaveBeenCalled()
     })
   })
+
+  it('o título da aba é o nome da tela', async () => {
+    montar()
+    await waitFor(() => expect(document.title).toBe('Configurações'))
+  })
 })

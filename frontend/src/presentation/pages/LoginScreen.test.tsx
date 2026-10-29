@@ -89,4 +89,13 @@ describe('LoginScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Entrar' }))
     expect(api.login).not.toHaveBeenCalled()
   })
+
+  it('o título da aba acompanha o modo da tela', async () => {
+    const user = userEvent.setup()
+    montar()
+    expect(document.title).toBe('Entrar')
+
+    await user.click(screen.getByRole('button', { name: 'Não tem conta? Cadastre-se' }))
+    expect(document.title).toBe('Criar conta')
+  })
 })

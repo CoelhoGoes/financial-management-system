@@ -30,6 +30,7 @@ export function LoginScreen() {
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background">
+      <title>{mode === 'login' ? 'Entrar' : 'Criar conta'}</title>
       <Card className="w-full max-w-sm">
         <form onSubmit={onSubmit}>
           <CardHeader>

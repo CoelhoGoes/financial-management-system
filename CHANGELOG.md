@@ -15,6 +15,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   dá para fixar claro ou escuro, e a escolha vale só para aquele aparelho
 
 ### Alterado
+- A aba do navegador mostra o nome da tela aberta (Resumo, Lançamentos, Fatura, Importar,
+  Configurações, Entrar) em vez de "frontend-tmp", e a página se declara em português, então
+  leitores de tela leem com a pronúncia certa e o navegador não oferece tradução
 - Na tela de lançamentos, a opção escolhida em tipo (gasto/entrada) e forma (à vista/crédito)
   agora é anunciada por leitores de tela, e o seletor de categoria ganhou o visual do resto
   do app, também na importação de extrato

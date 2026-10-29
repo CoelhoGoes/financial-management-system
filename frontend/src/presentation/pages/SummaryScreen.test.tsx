@@ -102,4 +102,9 @@ describe('SummaryScreen', () => {
     expect(screen.getByText('100,0%')).toBeInTheDocument()
     expect(screen.getByText(/Televisão \(parcela 3\/9\)/)).toBeInTheDocument()
   })
+
+  it('o título da aba é o nome da tela', async () => {
+    montar()
+    await waitFor(() => expect(document.title).toBe('Resumo'))
+  })
 })
