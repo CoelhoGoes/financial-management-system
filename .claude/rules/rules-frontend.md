@@ -29,9 +29,12 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
   and the deploy never need the API up. Nothing regenerates it on its own: `./dev.sh` compares
   it with the API on every start and warns in red when it is stale. The script passes
   `--default-non-nullable false`, otherwise fields with a server default (`method`,
-  `installments`) come out required. `openapi-typescript` declares a `typescript ^5` peer; the
-  `overrides` entry in `package.json` points it at the project's TypeScript 6 (same output,
+  `installments`) come out required. `openapi-typescript` declares a `typescript ^5` peer; its
+  entry in `overrides` (`package.json`) points it at the project's TypeScript 6 (same output,
   verified 25/10/2026).
+- **`overrides.deepmerge`** pins `4.1.2`, below the range of GHSA-gcqx-w48m-w2h4, which has no
+  fixed version yet. It only reaches the `shadcn` CLI, which asks for `^4.3.1` and only uses
+  `arrayMerge`. Remove it when a fixed version ships — tracked in `docs/roadmap.md`.
 - **`shared/types.ts`** — short names for the generated types (`Summary`, `EntryOut`…) plus
   `EntryType`/`EntryMethod`, so the rest of `src/` imports from here and never from the
   generated file.

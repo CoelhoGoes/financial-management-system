@@ -12,7 +12,9 @@ por conta própria vira dívida que ninguém revisou.
 **Precisa de aprovação explícita antes:**
 
 - adicionar, remover ou trocar dependência **de runtime** — `backend/requirements.txt` e
-  `dependencies` do `package.json`. São as que vão para a imagem Docker e para o bundle
+  `dependencies` do `package.json` (no frontend, só o que põe JS ou fonte no navegador)
+- trocar a versão de `tailwindcss`, `@tailwindcss/vite`, `shadcn` ou `tw-animate-css` — estão
+  em `devDependencies`, mas geram o CSS do app
 - criar arquivo ou pasta novos na estrutura do projeto
 - mudar schema do banco, contrato de API ou formato de payload
 - apagar código, arquivo ou configuração
@@ -30,8 +32,7 @@ por conta própria vira dívida que ninguém revisou.
   nova — avise qual e por quê, mas não espere aprovação. Preferir o shadcn ao feito à mão é
   a regra, não a exceção (ver `.claude/rules/rules-frontend.md`)
 - dependência **de desenvolvimento** — `backend/requirements-dev.txt` e `devDependencies` do
-  `package.json`. Não são entregues a ninguém: o `Dockerfile` instala só o `requirements.txt` e
-  o `vite build` não empacota `devDependencies`. O custo de errar é desinstalar
+  `package.json`, salvo as quatro que geram o CSS (acima)
 
 **Quando faltar contexto, pergunte em vez de supor.** Se eu não respondi alguma coisa, não
 preencha a lacuna com o palpite mais provável — diga que falta a informação e o que você
@@ -217,6 +218,7 @@ Auditing tools run through `uvx`/`npx`, so they install nothing and never enter
 ```bash
 uvx ruff check backend/              # lint
 uvx pip-audit -r backend/requirements.txt   # known CVEs in dependencies
+cd frontend && npm audit                    # same for the frontend; --omit=dev for what ships
 ```
 
 To run the API without Docker: install `backend/requirements.txt` into a venv, export

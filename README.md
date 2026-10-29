@@ -142,6 +142,7 @@ A partir da raiz do repositório:
 ```bash
 uvx ruff check backend/                       # lint do backend (config em backend/pyproject.toml)
 uvx pip-audit -r backend/requirements.txt     # vulnerabilidades conhecidas nas dependências
+cd frontend && npm audit                      # o mesmo para o frontend; --omit=dev para só o que vai ao navegador
 cd frontend && npx -y knip                    # código e dependências sem uso no frontend
 ```
 
