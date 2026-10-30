@@ -37,7 +37,8 @@ class EntryBase(BaseModel):
     """O que todo lançamento tem, digitado ou importado."""
 
     type: Literal["gasto", "entrada"]
-    amount: Decimal = Field(gt=0, decimal_places=2)
+    # max_digits: o mesmo Numeric(12,2) da coluna; acima disso o Postgres recusaria com 500
+    amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
     description: str = Field(min_length=1, max_length=200)
     category: str = Field(min_length=1, max_length=50)
     date: date

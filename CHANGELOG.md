@@ -43,7 +43,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
 
 ### Corrigido
 - Quando o servidor recusa um campo, a tela diz em português o que corrigir ("Preencha o
-  campo Descrição.", "Valor grande demais.") em vez de "[object Object]"
+  campo Descrição.", "Valor grande demais.") em vez de "[object Object]". Um valor acima de
+  R$ 9.999.999.999,99, que dava erro inesperado, agora é recusado assim
 - Trocar de mês rápido na tela de fatura podia deixar na tela as parcelas do mês anterior,
   quando a resposta dele chegava depois da do mês escolhido
 

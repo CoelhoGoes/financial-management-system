@@ -148,7 +148,7 @@ class TestValidacao:
         assert r.status_code == 422
 
     @pytest.mark.parametrize("campo,valor", [
-        ("amount", "0"), ("amount", "-10.00"),
+        ("amount", "0"), ("amount", "-10.00"), ("amount", "10000000000.00"),
         ("description", ""), ("installments", 0), ("installments", 49),
     ])
     def test_campos_fora_da_faixa_sao_recusados(self, client, auth, campo, valor):
