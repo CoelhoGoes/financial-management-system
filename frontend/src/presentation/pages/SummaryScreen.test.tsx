@@ -141,6 +141,40 @@ describe('SummaryScreen', () => {
     expect(popup).toHaveTextContent('item de Educação')
   })
 
+  it('clicar no gasto do mês, no centro da rosca, abre todas as categorias da maior para a menor', async () => {
+    const user = userEvent.setup()
+    const categoria = (category: string, total: string) => ({
+      category,
+      total,
+      share: '0.1',
+      items: [{ description: `item de ${category}`, amount: total, installment: null, total_installments: null }],
+    })
+    vi.mocked(api.summary).mockResolvedValue({ ...resumo('6500.00'), total_spent: '1150.00' })
+    // a API devolve da maior para a menor (service.py); a tela mantém essa ordem
+    vi.mocked(api.categories).mockResolvedValue([
+      categoria('Moradia', '700.00'),
+      categoria('Mercado', '300.00'),
+      categoria('Lazer', '100.00'),
+      categoria('Saúde', '50.00'),
+    ])
+    montar()
+
+    const centro = await screen.findByRole('button', { name: /Ver todas as categorias/ })
+    await user.click(centro)
+    const popup = await screen.findByRole('dialog', { name: 'Gasto do mês' })
+    expect(popup).toHaveTextContent('R$ 1.150,00 em 4 categorias, da maior para a menor')
+    expect(within(popup).getAllByRole('heading', { level: 3 }).map((h) => h.textContent?.split('R$')[0])).toEqual([
+      'Moradia',
+      'Mercado',
+      'Lazer',
+      'Saúde',
+    ])
+
+    // ao fechar, o foco volta para o centro da rosca
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(centro).toHaveFocus())
+  })
+
   it('clicar na categoria abre o popup com o total e as transações', async () => {
     const user = userEvent.setup()
     vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))

@@ -152,7 +152,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 136 testes (1 pulado em sqlite), ~15s
 
-cd frontend && npm test                       # 114 testes, ~6s
+cd frontend && npm test                       # 115 testes, ~6s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —

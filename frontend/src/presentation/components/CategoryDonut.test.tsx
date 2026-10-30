@@ -12,6 +12,7 @@ describe('CategoryDonut', () => {
         data={[{ category: malicioso, total: 100, fill: 'var(--chart-1)' }]}
         total="100.00"
         onSliceClick={vi.fn()}
+        onTotalClick={vi.fn()}
       />,
     )
 

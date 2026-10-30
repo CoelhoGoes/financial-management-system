@@ -15,6 +15,8 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   dá para fixar claro ou escuro, e a escolha vale só para aquele aparelho
 - No resumo, clicar numa categoria (na legenda ou na fatia do gráfico) abre uma janela com as
   transações daquela categoria no mês
+- No resumo, clicar no gasto do mês, no centro do gráfico de rosca, abre uma janela com todas
+  as categorias do mês, da que mais gastou para a que menos gastou
 
 ### Alterado
 - No computador, as telas passam a usar a largura da tela: resumo, lançamentos e configurações

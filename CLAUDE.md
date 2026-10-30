@@ -202,7 +202,7 @@ npm run gen:types  # regenerate src/shared/api-schema.d.ts from the running API
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 136 tests (1 skipped on sqlite), ~15s
 
-cd frontend && npm test                       # 114 tests, ~6s
+cd frontend && npm test                       # 115 tests, ~6s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain

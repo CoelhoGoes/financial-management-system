@@ -34,6 +34,8 @@ interface Slice {
   label: string
   color: string
   categories: CategoryBreakdown[]
+  // subtítulo do popup quando ele junta mais de uma categoria
+  description?: string
 }
 
 function toSlices(categories: CategoryBreakdown[]): Slice[] {
@@ -43,7 +45,25 @@ function toSlices(categories: CategoryBreakdown[]): Slice[] {
     categories: [c],
   }))
   const rest = categories.slice(SLICE_COLORS.length)
-  return rest.length ? [...top, { label: 'Outras', color: OTHERS_COLOR, categories: rest }] : top
+  const others = {
+    label: 'Outras',
+    color: OTHERS_COLOR,
+    categories: rest,
+    description: `As ${rest.length} categorias de menor gasto no mês`,
+  }
+  return rest.length ? [...top, others] : top
+}
+
+// O popup do centro da rosca: todas as categorias, na ordem em que a API as devolve — da
+// maior para a menor (service.py).
+function allCategories(categories: CategoryBreakdown[], summary: Summary | null): Slice {
+  const n = categories.length
+  return {
+    label: 'Gasto do mês',
+    color: '',
+    categories,
+    description: `R$ ${formatCurrency(summary?.total_spent ?? '0')} em ${n} ${n === 1 ? 'categoria' : 'categorias'}, da maior para a menor`,
+  }
 }
 
 function CategoryTotal({ category }: { category: CategoryBreakdown }) {
@@ -185,6 +205,7 @@ export function SummaryScreen() {
                       }))}
                       total={summary?.total_spent ?? '0'}
                       onSliceClick={(i) => setOpenSlice(slices[i])}
+                      onTotalClick={() => setOpenSlice(allCategories(categories, summary))}
                     />
                   </Suspense>
 
@@ -228,17 +249,13 @@ export function SummaryScreen() {
               <DialogHeader>
                 <DialogTitle>{openSlice.label}</DialogTitle>
                 <DialogDescription>
-                  {openSlice.categories.length === 1 ? (
-                    <CategoryTotal category={openSlice.categories[0]} />
-                  ) : (
-                    `As ${openSlice.categories.length} categorias de menor gasto no mês`
-                  )}
+                  {openSlice.description ?? <CategoryTotal category={openSlice.categories[0]} />}
                 </DialogDescription>
               </DialogHeader>
               <div className="flex max-h-[60svh] flex-col gap-4 overflow-y-auto text-sm">
                 {openSlice.categories.map((category) => (
                   <section key={category.category} className="flex flex-col">
-                    {openSlice.categories.length > 1 && (
+                    {openSlice.description && (
                       <h3 className="flex justify-between gap-4 font-medium">
                         {category.category}
                         <span className="font-normal text-muted-foreground">
