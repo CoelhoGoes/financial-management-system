@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis } from 'recharts'
 import { api } from '@/data/api'
-import { formatCurrency, formatMonthShort } from '@/shared/format'
+import { formatMonthShort } from '@/shared/format'
 import type { Summary } from '@/shared/types'
 import { Button } from '@/presentation/components/ui/button'
+import { ChartTooltipRow } from '@/presentation/components/ChartTooltipRow'
 import {
   ChartContainer,
   ChartTooltip,
@@ -100,10 +101,10 @@ export function TrendChart({ until }: { until: string }) {
                 <ChartTooltipContent
                   labelFormatter={(v) => formatMonthShort(String(v))}
                   formatter={(value, name) => (
-                    <span className="flex w-full justify-between gap-4">
-                      <span>{config[name as keyof typeof config]?.label ?? name}</span>
-                      <span className="tabular-nums">R$ {formatCurrency(String(value))}</span>
-                    </span>
+                    <ChartTooltipRow
+                      name={config[name as keyof typeof config]?.label ?? String(name)}
+                      value={value as number}
+                    />
                   )}
                 />
               }
