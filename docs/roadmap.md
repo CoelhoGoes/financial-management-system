@@ -10,10 +10,10 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Saldo cumulativo: o saldo positivo ou negativo de um mês passa para o seguinte. Hoje
-      cada mês é isolado — `calculate_summary` (`service.py`) só usa renda, entradas, gastos à
-      vista e fatura do próprio mês. Pedido em 29/10/2026. Muda regra de negócio em
-      `service.py` e o significado do saldo no resumo e na tendência
+- [ ] Dia em que a renda cai (ex.: "todo último dia útil do mês"). Pedido em 30/10/2026, na
+      etapa 2 do saldo cumulativo, que trata a renda só por mês e ano; o usuário quer tratar
+      o dia com mais foco, logo em seguida. Ainda sem casos levantados — o que o dia muda no
+      cálculo é a primeira pergunta
 
 ## Próximo
 
@@ -43,6 +43,9 @@ Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do 
 - [ ] Tirar o `overrides` de `deepmerge` (fixado em 4.1.2) do `frontend/package.json` quando
       sair versão corrigida do GHSA-gcqx-w48m-w2h4. Entra pelo CLI do `shadcn`, que pede
       `^4.3.1`. Motivo em `docs/features/2026-10-26-vulnerabilidades-do-frontend.md`
+- [ ] Anotar como `Mapped[Decimal]` as colunas de dinheiro de `models.py` (`Entry.amount`,
+      `Income.amount`), hoje `Mapped[float]`. A coluna é `Numeric` e já devolve `Decimal`, então
+      só a anotação está errada. Achado da revisão estrutural do saldo cumulativo, 30/10/2026
 - [ ] Deploy: backend em Railway / Render / Fly.io; frontend na Vercel
 - [ ] Limite de tamanho de corpo no servidor (uvicorn ou proxy) antes do deploy: o 413 do
       upload de OFX só dispara depois que o corpo inteiro chegou — limita a memória do
