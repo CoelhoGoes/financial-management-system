@@ -10,16 +10,14 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Ajeitar o gráfico de tendência do Resumo. Registrado em 29/10/2026, ao fim do layout
-      para desktop; o que exatamente ajustar não foi detalhado — levantar na etapa 1
+- [ ] Revisar a estrutura do frontend quanto aos componentes: confirmar que cada componente
+      está no próprio arquivo, sem dividir arquivo com outros. Pedido em 29/10/2026, depois de
+      separar a rosca do `TrendChart.tsx` na revisão estrutural do layout para desktop
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
-- [ ] Revisar a estrutura do frontend quanto aos componentes: confirmar que cada componente
-      está no próprio arquivo, sem dividir arquivo com outros. Pedido em 29/10/2026, depois de
-      separar a rosca do `TrendChart.tsx` na revisão estrutural do layout para desktop
 - [ ] Validar a categoria contra a lista fechada também no servidor. Hoje `EntryCreate.category`
       aceita qualquer texto de 1 a 50 caracteres (`schemas.py`); a lista de `docs/dominio.md` só
       é imposta pelo seletor do frontend. Achado da revisão de segurança de 29/10/2026 — uma
