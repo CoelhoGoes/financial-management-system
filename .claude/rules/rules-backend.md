@@ -10,10 +10,12 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
 
 - **`infra/database.py`** — SQLAlchemy engine/session (`DATABASE_URL` env var, defaults to local
   Postgres). `get_session()` is the FastAPI dependency that yields a session per request.
-- **`infra/models.py`** — two tables: `User` (email, bcrypt hash, `monthly_income`, `closing_day`)
-  and `Entry` (`type` gasto/entrada, `amount`, `method` avista/credito, `installments`). Attribute
-  names are English but map explicitly onto the existing Portuguese DB columns (e.g. `usuarios`,
-  `renda_mensal`, `lancamentos`, `valor` — see **Language conventions**). Money columns are always
+- **`infra/models.py`** — three tables: `User` (email, bcrypt hash, `closing_day`), `Entry`
+  (`type` gasto/entrada, `amount`, `method` avista/credito, `installments`) and `Income` (the
+  monthly income history: `month`, always day 1, and `amount`, unique per user and month by
+  `uq_renda_mes`). Attribute names are English but map explicitly onto the existing Portuguese
+  DB columns (e.g. `usuarios`, `lancamentos`, `rendas`, `valor` — see **Language
+  conventions**). Money columns are always
   `Numeric(12,2)`, never float. `Entry.import_id` (`id_importacao`) holds the origin of an imported
   line (`BANKID:ACCTID:FITID`) and is null for a typed entry; the `uq_lancamento_importacao`
   constraint on (`usuario_id`, `id_importacao`) is what stops a re-imported statement from
@@ -43,10 +45,14 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
   password there counts against login too (and answers 403, not 401, which would make the
   frontend drop the session).
 - **`domain/service.py`** — the business rules, written as pure functions with no DB import
-  (`Entry`/`User` are only imported under `TYPE_CHECKING`) and no API import (results are its own
+  (`Entry`/`Income`/`User` are only imported under `TYPE_CHECKING`) and no API import (results are its own
   dataclasses, not Pydantic), so they're unit-testable without a running Postgres.
   `invoice_for_purchase`, `split_installments`, `build_invoices` / `calculate_invoice`,
-  `calculate_summary`, `calculate_category_breakdown`. See `docs/dominio.md` for what each rule
+  `income_for`, `calculate_summaries` / `calculate_summary`, `calculate_category_breakdown`.
+  `calculate_summaries` is where the accumulated balance lives: one running sum from the
+  oldest entry or income up to the latest month asked, so `/trend` computes the series once;
+  `calculate_summary` is the one-month call of it. `month_start` turns `YYYY-MM` into the
+  date stored in `Income.month`. See `docs/dominio.md` for what each rule
   means. `calculate_category_breakdown` is the only place that groups spending by category —
   `calculate_summary` used to do it too and no longer does. `tests/test_service.py` exercises all of
   them with dataclass stubs and no database at all; add the test in the same commit as the rule.
@@ -78,7 +84,10 @@ mapping to the frontend layers are in `CLAUDE.md` → **Architecture**.
   that every new endpoint must reuse rather than repeat: `_owned_entry` (an `Entry` that
   belongs to the JWT user, 404 otherwise — used by `PATCH` and `DELETE`) and
   `_reject_income_on_credit` (used by create and by `PATCH`, which validates the merged
-  entry, not just the fields sent).
+  entry, not just the fields sent). `_income_at` is the income-history twin of
+  `_owned_entry` (the user's income for one month, or `None`). Every month in a path or query
+  goes through the `MONTH` pattern, which also caps the year at 1900–2199: the accumulated
+  balance walks month by month, and year 0001 or 9999 kept a request busy for seconds.
 - **`main.py`** — app entrypoint; wires CORS from `ALLOWED_ORIGINS`, includes both routers,
   exposes `/health`. It creates **no** schema: `create_all` was removed on purpose, because
   running it alongside migrations lets the code's schema drift from the database in silence.

@@ -33,7 +33,7 @@ function montar(active: Parameters<typeof Header>[0]['active'] = 'resumo') {
 
 describe('Header', () => {
   beforeEach(() => {
-    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 10 })
+    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', closing_day: 10 })
   })
 
   // UC6: as quatro abas ficam sempre na barra, inclusive a da tela aberta

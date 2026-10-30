@@ -191,11 +191,18 @@ export function EntryScreen() {
         {summary && (
           <Card>
             <CardContent>
-              <dl className="flex items-center justify-between text-sm">
-                <dt className="text-muted-foreground">Saldo disponível — {month}</dt>
-                <dd className="font-medium">
-                  R$ {formatCurrency(summary.available_balance)}
-                </dd>
+              {/* o mesmo par do resumo: acumulado em destaque, o do mês embaixo */}
+              <dl className="flex flex-col gap-1 text-sm">
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Saldo disponível — {month}</dt>
+                  <dd className="font-medium tabular-nums">
+                    R$ {formatCurrency(summary.available_balance)}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <dt>Saldo do mês</dt>
+                  <dd className="tabular-nums">R$ {formatCurrency(summary.month_balance)}</dd>
+                </div>
               </dl>
             </CardContent>
           </Card>

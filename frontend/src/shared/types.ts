@@ -10,6 +10,7 @@ import type { components } from './api-schema'
 type Schemas = components['schemas']
 
 export type User = Schemas['UserOut']
+export type Income = Schemas['IncomeOut']
 
 export type EntryCreate = Schemas['EntryCreate']
 export type EntryUpdate = Schemas['EntryUpdate']

@@ -48,7 +48,7 @@ async function lerExtrato(user: ReturnType<typeof userEvent.setup>) {
 describe('ImportScreen', () => {
   beforeEach(() => {
     vi.mocked(api.me).mockResolvedValue({
-      id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 10,
+      id: 1, email: 'a@b.co', closing_day: 10,
     })
     vi.mocked(api.previewImport).mockReset()
     vi.mocked(api.confirmImport).mockReset()

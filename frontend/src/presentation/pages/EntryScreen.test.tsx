@@ -23,7 +23,7 @@ const { api } = await import('@/data/api')
 
 const RESUMO = {
   month: '2026-09', monthly_income: '5000.00', extra_income: '0', cash_expenses: '0',
-  invoice: '0', total_spent: '0', available_balance: '4000.00',
+  invoice: '0', total_spent: '0', month_balance: '1000.00', available_balance: '4000.00',
 }
 const LANCAMENTO: EntryOut = {
   id: 1, description: 'feira', amount: '150.50', type: 'gasto',
@@ -46,7 +46,7 @@ const vemAntes = (a: Node, b: Node) =>
 
 describe('EntryScreen', () => {
   beforeEach(() => {
-    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', monthly_income: '5000.00', closing_day: 10 })
+    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', closing_day: 10 })
     vi.mocked(api.entries).mockResolvedValue([LANCAMENTO])
     vi.mocked(api.summary).mockResolvedValue(RESUMO)
     vi.mocked(api.createEntry).mockResolvedValue(LANCAMENTO)
@@ -395,9 +395,12 @@ describe('EntryScreen', () => {
     })
   })
 
-  it('mostra o saldo disponível vindo do resumo', async () => {
+  // UC7: o mesmo par do resumo, acumulado e do mês
+  it('mostra o saldo acumulado e o do mês vindos do resumo', async () => {
     montar()
-    expect(await screen.findByText('R$ 4.000,00')).toBeInTheDocument()
+    const acumulado = await screen.findByText('R$ 4.000,00')
+    expect(acumulado.previousElementSibling).toHaveTextContent(/^Saldo disponível/)
+    expect(screen.getByText('R$ 1.000,00').previousElementSibling).toHaveTextContent('Saldo do mês')
   })
 
   it('mantém a ordem saldo → formulário → lista', async () => {

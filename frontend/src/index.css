@@ -38,6 +38,7 @@
   /* renda no gráfico de tendência: âmbar fora da rampa verde, para a linha tracejada não se
      confundir com as barras nem com o saldo. Provisório até a paleta nova */
   --chart-income: oklch(0.666 0.179 58.318);
+  --chart-month-balance: oklch(0.546 0.245 262.881);
   --radius: 0.625rem;
   /* altura da navbar a partir de md, onde ela cabe numa linha. O formulário fixo de
      Lançamentos gruda logo abaixo dela; abaixo de md a navbar tem duas linhas e altura livre */
@@ -121,6 +122,7 @@
   --chart-4: oklch(0.527 0.154 150.069);
   --chart-5: oklch(0.448 0.119 151.328);
   --chart-income: oklch(0.828 0.189 84.429);
+  --chart-month-balance: oklch(0.707 0.165 254.624);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.723 0.219 149.579);

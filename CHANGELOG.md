@@ -17,8 +17,14 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   transações daquela categoria no mês
 - No resumo, clicar no gasto do mês, no centro do gráfico de rosca, abre uma janela com todas
   as categorias do mês, da que mais gastou para a que menos gastou
+- Histórico da renda mensal: em Configurações, a renda é registrada a partir de um mês e vale
+  até a próxima registrada, então mudar a renda não reescreve os meses passados. As rendas
+  registradas aparecem numa lista, cada uma com opção de apagar
 
 ### Alterado
+- O saldo disponível passou a ser acumulado: o que sobra ou falta num mês passa para o
+  seguinte, também nos meses futuros. O saldo só do mês continua logo abaixo, no resumo e nos
+  lançamentos, e ganhou uma linha azul no gráfico de tendência
 - No computador, as telas passam a usar a largura da tela: resumo, lançamentos e configurações
   mostram os blocos lado a lado, e na tela de lançamentos o formulário fica visível enquanto a
   lista rola. No celular continua uma coluna só

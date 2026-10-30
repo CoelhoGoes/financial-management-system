@@ -15,7 +15,7 @@ vi.mock('@/data/api', () => ({
 }))
 const { api } = await import('@/data/api')
 
-const USUARIO = { id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 25 }
+const USUARIO = { id: 1, email: 'a@b.co', closing_day: 25 }
 
 function montar() {
   return render(

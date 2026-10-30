@@ -13,6 +13,7 @@ const mes = (month: string, cash: string, invoice: string, saldo: string) => ({
   cash_expenses: cash,
   invoice,
   total_spent: '0',
+  month_balance: saldo,
   available_balance: saldo,
 })
 

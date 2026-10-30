@@ -75,7 +75,6 @@ def update_config(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    user.monthly_income = data.monthly_income
     user.closing_day = data.closing_day
     session.commit()
     session.refresh(user)

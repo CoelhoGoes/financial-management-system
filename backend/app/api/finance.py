@@ -1,7 +1,7 @@
 from dataclasses import asdict
 from datetime import UTC, date, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -11,13 +11,15 @@ from ..domain.ofx import OFXError, parse_statement
 from ..domain.service import (
     calculate_category_breakdown,
     calculate_invoice,
+    calculate_summaries,
     calculate_summary,
     is_income_on_credit,
     month_key,
+    month_start,
     shift_month,
 )
 from ..infra.database import get_session
-from ..infra.models import Entry, User
+from ..infra.models import Entry, Income, User
 from .deps import current_user
 from .schemas import (
     CategoryBreakdown,
@@ -27,13 +29,18 @@ from .schemas import (
     EntryUpdate,
     ImportPreviewItem,
     ImportResult,
+    IncomeIn,
+    IncomeOut,
     Invoice,
     Summary,
 )
 
 router = APIRouter(tags=["finance"])
 
-MONTH = r"^\d{4}-(0[1-9]|1[0-2])$"
+# Anos de 1900 a 2199: o acumulado percorre mês a mês desde a primeira renda ou lançamento,
+# e um ano qualquer (0001, 9999) deixaria cada requisição segundos ocupada. O ano 0000
+# nem existe para o Python.
+MONTH = r"^(19\d{2}|2[01]\d{2})-(0[1-9]|1[0-2])$"
 
 # Um extrato OFX de um mês tem alguns KB. O limite existe para que um upload grande não
 # vire memória do processo antes de qualquer validação, não porque 2 MB seja apertado.
@@ -42,6 +49,20 @@ MAX_UPLOAD_BYTES = 2 * 1024 * 1024
 
 def _all(session: Session, user: User) -> list[Entry]:
     return list(session.scalars(select(Entry).where(Entry.user_id == user.id)))
+
+
+def _incomes(session: Session, user: User) -> list[Income]:
+    return list(session.scalars(select(Income).where(Income.user_id == user.id)))
+
+
+def _income_at(session: Session, user: User, month: str) -> Income | None:
+    return session.scalar(
+        select(Income).where(Income.user_id == user.id, Income.month == month_start(month))
+    )
+
+
+def _income_out(income: Income) -> IncomeOut:
+    return IncomeOut(month=month_key(income.month), amount=income.amount)
 
 
 def _owned_entry(session: Session, user: User, entry_id: int) -> Entry:
@@ -139,11 +160,11 @@ def remove(
 
 @router.get("/summary/{month}", response_model=Summary)
 def summary(
-    month: str,
+    month: str = Path(pattern=MONTH),
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    return calculate_summary(month, user, _all(session, user))
+    return calculate_summary(month, user, _all(session, user), _incomes(session, user))
 
 
 @router.get("/summary/{month}/categories", response_model=list[CategoryBreakdown])
@@ -175,8 +196,48 @@ def trend(
     # must not change meaning if a deployment happens to set TZ. Clients that care
     # about their own region send `until` instead of relying on this.
     end = until or month_key(datetime.now(UTC).date())
-    entries = _all(session, user)
-    return [calculate_summary(shift_month(end, -i), user, entries) for i in range(months - 1, -1, -1)]
+    wanted = [shift_month(end, -i) for i in range(months - 1, -1, -1)]
+    return calculate_summaries(wanted, user, _all(session, user), _incomes(session, user))
+
+
+@router.get("/incomes", response_model=list[IncomeOut])
+def list_incomes(
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    return [_income_out(i) for i in sorted(_incomes(session, user), key=lambda i: i.month)]
+
+
+@router.put("/incomes/{month}", response_model=IncomeOut)
+def save_income(
+    data: IncomeIn,
+    month: str = Path(pattern=MONTH),
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    """Cria ou substitui a renda que vale a partir de `month`."""
+    income = _income_at(session, user, month)
+    if income:
+        income.amount = data.amount
+    else:
+        income = Income(user_id=user.id, month=month_start(month), amount=data.amount)
+        session.add(income)
+    session.commit()
+    session.refresh(income)
+    return _income_out(income)
+
+
+@router.delete("/incomes/{month}", status_code=204)
+def remove_income(
+    month: str = Path(pattern=MONTH),
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    income = _income_at(session, user, month)
+    if not income:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Renda não encontrada.")
+    session.delete(income)
+    session.commit()
 
 
 @router.post("/imports/preview", response_model=list[ImportPreviewItem])

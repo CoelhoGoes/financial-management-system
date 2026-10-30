@@ -83,10 +83,10 @@ rather than inventing category names.
   `calculate_summary`, `monthly_income`, `closing_day`, `JWT_SECRET`.
 - **User-facing content** (UI strings, button/label text, error messages shown to the user,
   i18n content): **Portuguese**. This is what the end user sees and does not change.
-- **Database schema** (table/column names, e.g. `usuarios`, `lancamentos`, `renda_mensal`) and
+- **Database schema** (table/column names, e.g. `usuarios`, `lancamentos`, `rendas`) and
   **domain enum values** (`gasto`/`entrada`, `avista`/`credito`) stay in Portuguese — the ORM
   models map English attribute names onto these existing Portuguese columns explicitly (e.g.
-  `monthly_income: Mapped[float] = mapped_column("renda_mensal", ...)` in `models.py`), so the
+  `closing_day: Mapped[int] = mapped_column("dia_fechamento", ...)` in `models.py`), so the
   actual DB schema is unaffected by the code-identifier language.
 - **Documentation and commit messages**: Portuguese.
 - Follow this for all new code going forward.
@@ -200,9 +200,9 @@ npm run gen:types  # regenerate src/shared/api-schema.d.ts from the running API
 
 ```bash
 pip install -r backend/requirements-dev.txt   # once
-cd backend && pytest                          # 136 tests (1 skipped on sqlite), ~15s
+cd backend && pytest                          # 179 tests (2 skipped on sqlite), ~20s
 
-cd frontend && npm test                       # 115 tests, ~6s
+cd frontend && npm test                       # 130 tests, ~6s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain
@@ -251,7 +251,7 @@ Skipping a layer downwards is fine (a router reads `infra/models.py`, a screen c
 
 - `domain/` never imports from `api/` — it returns its own dataclasses, and the router's
   `response_model` turns them into the `api/schemas.py` models by field name. Its only link to
-  `infra/` is `Entry`/`User` under `TYPE_CHECKING`.
+  `infra/` is `Entry`/`Income`/`User` under `TYPE_CHECKING`.
 - `infra/` never imports FastAPI. Anything that raises an `HTTPException` or is a `Depends`
   lives in `api/` (that's why `current_user` is in `api/deps.py`, not `infra/security.py`).
 - `data/` and `shared/` never import React components or `state/`.
@@ -329,7 +329,7 @@ do `FastAPI(...)` em `backend/app/main.py`, que é o que o `/docs` da API mostra
 A fila de trabalho vive em `docs/roadmap.md`. Consulte esse arquivo quando eu perguntar o
 que falta ou o que vem a seguir — não a reproduza aqui.
 
-**Em andamento:** saldo cumulativo entre os meses (ainda sem documento de feature).
+**Em andamento:** saldo cumulativo entre os meses — `docs/features/2026-10-30-saldo-cumulativo.md`.
 
 Backend e frontend estão pareados: todo endpoint tem tela que o usa. Antes de propor
 "arrumar" algo que parece desleixo, cheque **Dívidas conhecidas** no `dominio.md` — várias

@@ -121,8 +121,8 @@ export function SummaryScreen() {
           <div className="flex gap-2">
             <RiInformationLine className="mt-0.5 shrink-0 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Sua renda mensal ainda não foi informada, então o saldo disponível está sendo
-              calculado como se ela fosse zero.
+              Nenhuma renda mensal vale para este mês, então o saldo dele está sendo calculado
+              como se ela fosse zero.
             </p>
           </div>
           <Button
@@ -150,12 +150,19 @@ export function SummaryScreen() {
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="flex items-baseline justify-between">
-                <span className="text-sm text-muted-foreground">Saldo disponível</span>
-                <span className="text-2xl font-semibold tabular-nums">
-                  R$ {formatCurrency(summary.available_balance)}
-                </span>
-              </div>
+              {/* o acumulado é o destaque; o saldo só deste mês fica logo abaixo, menor */}
+              <dl className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between">
+                  <dt className="text-sm text-muted-foreground">Saldo disponível</dt>
+                  <dd className="text-2xl font-semibold tabular-nums">
+                    R$ {formatCurrency(summary.available_balance)}
+                  </dd>
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <dt>Saldo do mês</dt>
+                  <dd className="tabular-nums">R$ {formatCurrency(summary.month_balance)}</dd>
+                </div>
+              </dl>
 
               <dl className="flex flex-col gap-2 border-t pt-4 text-sm">
                 <div className="flex justify-between">

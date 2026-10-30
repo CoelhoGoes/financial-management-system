@@ -12,7 +12,6 @@ class UserCreate(BaseModel):
 
 
 class UserConfig(BaseModel):
-    monthly_income: Decimal = Field(ge=0)
     closing_day: int = Field(ge=1, le=28)
 
 
@@ -24,7 +23,6 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: EmailStr
-    monthly_income: Decimal
     closing_day: int
 
 
@@ -109,12 +107,27 @@ class CategoryBreakdown(BaseModel):
 
 class Summary(BaseModel):
     month: str
-    monthly_income: Decimal
+    monthly_income: Decimal = Field(description="A renda deste mês, pelo histórico de rendas.")
     extra_income: Decimal
     cash_expenses: Decimal
     invoice: Decimal
     total_spent: Decimal
-    available_balance: Decimal
+    month_balance: Decimal = Field(description="Saldo só deste mês.")
+    available_balance: Decimal = Field(
+        description="Saldo acumulado: este mês somado a todos os anteriores."
+    )
+
+
+class IncomeIn(BaseModel):
+    # max_digits: o mesmo Numeric(12,2) da coluna; acima disso o Postgres recusaria com 500
+    amount: Decimal = Field(ge=0, max_digits=12, decimal_places=2)
+
+
+class IncomeOut(BaseModel):
+    """Renda que vale de `month` até o mês anterior à próxima registrada."""
+
+    month: str
+    amount: Decimal
 
 
 class ImportPreviewItem(BaseModel):

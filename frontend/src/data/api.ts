@@ -6,6 +6,7 @@ import type {
   EntryOut,
   EntryUpdate,
   ImportPreviewItem,
+  Income,
   ImportResult,
   Invoice,
   Summary,
@@ -120,8 +121,13 @@ export const api = {
   isAuthenticated: () => Boolean(token()),
 
   me: () => req<User>('/auth/me'),
-  saveConfig: (monthly_income: string, closing_day: number) =>
-    req<User>('/auth/me', { method: 'PUT', body: JSON.stringify({ monthly_income, closing_day }) }),
+  saveConfig: (closing_day: number) =>
+    req<User>('/auth/me', { method: 'PUT', body: JSON.stringify({ closing_day }) }),
+
+  incomes: () => req<Income[]>('/incomes'),
+  saveIncome: (month: string, amount: string) =>
+    req<Income>(`/incomes/${month}`, { method: 'PUT', body: JSON.stringify({ amount }) }),
+  removeIncome: (month: string) => req<null>(`/incomes/${month}`, { method: 'DELETE' }),
   deleteAccount: (password: string) =>
     req<null>('/auth/me', { method: 'DELETE', body: JSON.stringify({ password }) }),
 

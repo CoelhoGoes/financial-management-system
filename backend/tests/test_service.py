@@ -7,7 +7,9 @@ import pytest
 from app.domain.service import (
     calculate_category_breakdown,
     calculate_invoice,
+    calculate_summaries,
     calculate_summary,
+    income_for,
     invoice_for_purchase,
     is_income_on_credit,
     shift_month,
@@ -102,24 +104,146 @@ class TestCalculateInvoice:
 
 
 class TestCalculateSummary:
-    def test_a_formula_do_saldo(self, user, gasto):
+    def test_a_formula_do_saldo_do_mes(self, user, gasto, renda):
         entries = [
             gasto("2026-09-03", "300.00", category="Mercado"),
             gasto("2026-09-10", "900.00", type="entrada", category="Freela"),
             gasto("2026-08-05", "1200.00", method="credito", installments=3, category="Lazer"),
         ]
-        s = calculate_summary("2026-09", user, entries)
+        s = calculate_summary("2026-09", user, entries, [renda("2026-09", "5000.00")])
         assert s.cash_expenses == Decimal("300.00")
         assert s.extra_income == Decimal("900.00")
         assert s.invoice == Decimal("400.00")
         assert s.total_spent == Decimal("700.00")
         # 5000 + 900 - 300 - 400
-        assert s.available_balance == Decimal("5200.00")
+        assert s.month_balance == Decimal("5200.00")
 
-    def test_usuario_sem_lancamento_ve_apenas_a_renda(self, user):
-        s = calculate_summary("2026-09", user, [])
-        assert s.available_balance == Decimal("5000.00")
+    def test_usuario_sem_lancamento_ve_apenas_a_renda(self, user, renda):
+        s = calculate_summary("2026-09", user, [], [renda("2026-09", "5000.00")])
+        assert s.month_balance == Decimal("5000.00")
         assert s.total_spent == Decimal(0)
+
+
+class TestIncomeFor:
+    def test_vale_a_renda_de_inicio_mais_recente_ate_o_mes(self, renda):
+        """UC5: a renda nova vale do seu mês em diante; antes, a anterior."""
+        rendas = [renda("2026-10", "2000.00"), renda("2026-08", "1000.00")]
+        assert income_for("2026-07", rendas) == Decimal(0)
+        assert income_for("2026-08", rendas) == Decimal("1000.00")
+        assert income_for("2026-09", rendas) == Decimal("1000.00")
+        assert income_for("2027-05", rendas) == Decimal("2000.00")
+
+    def test_sem_renda_registrada_e_zero(self):
+        assert income_for("2026-09", []) == Decimal(0)
+
+
+class TestSaldoAcumulado:
+    def _saldos(self, meses, user, entries, rendas):
+        return [s.available_balance for s in calculate_summaries(meses, user, entries, rendas)]
+
+    def test_acumulado_e_o_anterior_mais_o_do_mes(self, user, gasto, renda):
+        """UC1."""
+        entries = [gasto("2026-08-03", "300.00"), gasto("2026-09-03", "500.00")]
+        s = calculate_summary("2026-09", user, entries, [renda("2026-08", "1000.00")])
+        assert s.month_balance == Decimal("500.00")
+        assert s.available_balance == Decimal("1200.00")  # 700 de agosto + 500
+
+    def test_conta_vazia_acumula_zero(self, user):
+        """F1: continua cumulativo; nada soma nada."""
+        assert self._saldos(["2026-08", "2026-09"], user, [], []) == [Decimal(0), Decimal(0)]
+
+    def test_meses_antes_de_tudo_somam_zero(self, user, gasto, renda):
+        """UC2/F2: antes do primeiro lançamento e da primeira renda o acumulado é zero, e o
+        primeiro mês com valores não depende de onde a soma começa."""
+        entries = [gasto("2026-09-03", "100.00")]
+        rendas = [renda("2026-09", "1000.00")]
+        assert self._saldos(["2026-07", "2026-08", "2026-09"], user, entries, rendas) == [
+            Decimal(0), Decimal(0), Decimal("900.00"),
+        ]
+
+    def test_mes_vazio_no_meio_carrega_o_acumulado(self, user, gasto):
+        """UC2: x + 0 = x."""
+        entries = [gasto("2026-07-03", "100.00", type="entrada")]
+        assert self._saldos(["2026-07", "2026-08", "2026-09"], user, entries, []) == [
+            Decimal("100.00"), Decimal("100.00"), Decimal("100.00"),
+        ]
+
+    def test_negativo_passa_adiante(self, user, gasto, renda):
+        """UC3."""
+        entries = [gasto("2026-08-03", "1500.00")]
+        assert self._saldos(["2026-08", "2026-09"], user, entries, [renda("2026-08", "1000.00")]) == [
+            Decimal("-500.00"), Decimal("500.00"),
+        ]
+
+    def test_futuro_soma_renda_e_desconta_parcelas(self, user, gasto, renda):
+        """UC4: compra em 05/09 com fechamento dia 10 cai nas faturas de out, nov e dez."""
+        entries = [gasto("2026-09-05", "300.00", method="credito", installments=3)]
+        saldos = self._saldos(["2026-12"], user, entries, [renda("2026-09", "1000.00")])
+        assert saldos == [Decimal("3700.00")]  # 4 rendas - 300 de parcelas
+
+    def test_renda_nova_muda_so_dali_em_diante(self, user, renda):
+        """UC5."""
+        rendas = [renda("2026-08", "1000.00"), renda("2026-10", "2000.00")]
+        assert self._saldos(["2026-09", "2026-10"], user, [], rendas) == [
+            Decimal("2000.00"), Decimal("4000.00"),
+        ]
+
+    def test_apagar_renda_volta_a_anterior(self, user, renda):
+        """UC5b: sem a de outubro, outubro usa a de agosto."""
+        assert self._saldos(["2026-10"], user, [], [renda("2026-08", "1000.00")]) == [
+            Decimal("3000.00"),
+        ]
+
+    def test_lancamento_passado_muda_os_seguintes(self, user, gasto):
+        """UC8."""
+        antes = self._saldos(["2026-09"], user, [], [])
+        depois = self._saldos(["2026-09"], user, [gasto("2026-06-03", "100.00")], [])
+        assert (antes, depois) == ([Decimal(0)], [Decimal("-100.00")])
+
+    def test_excluir_o_mais_antigo_tira_a_contribuicao_dele(self, user, gasto, renda):
+        """F3."""
+        rendas = [renda("2026-09", "1000.00")]
+        antigo, novo = gasto("2026-07-03", "200.00"), gasto("2026-09-03", "100.00")
+        assert self._saldos(["2026-09"], user, [antigo, novo], rendas) == [Decimal("700.00")]
+        assert self._saldos(["2026-09"], user, [novo], rendas) == [Decimal("900.00")]
+
+    def test_extrato_antigo_sem_renda_puxa_para_baixo(self, user, gasto, renda):
+        """F4: meses antes da primeira renda contam renda zero."""
+        entries = [gasto("2026-05-03", "400.00")]
+        assert self._saldos(["2026-09"], user, entries, [renda("2026-09", "1000.00")]) == [
+            Decimal("600.00"),
+        ]
+
+    def test_renda_zero_para_de_somar(self, user, renda):
+        """F7."""
+        rendas = [renda("2026-08", "1000.00"), renda("2026-09", "0")]
+        assert self._saldos(["2026-10"], user, [], rendas) == [Decimal("1000.00")]
+
+    def test_sem_renda_nenhuma_so_os_lancamentos_acumulam(self, user, gasto):
+        """F7b."""
+        entries = [gasto("2026-08-03", "100.00"), gasto("2026-09-03", "50.00")]
+        assert self._saldos(["2026-09"], user, entries, []) == [Decimal("-150.00")]
+
+    def test_totais_do_mes_nao_mudam(self, user, gasto, renda):
+        """F12: só o saldo ganha a versão acumulada."""
+        entries = [
+            gasto("2026-08-03", "999.00"),
+            gasto("2026-09-03", "300.00"),
+            gasto("2026-08-05", "1200.00", method="credito", installments=3),
+        ]
+        s = calculate_summary("2026-09", user, entries, [renda("2026-08", "1000.00")])
+        assert (s.cash_expenses, s.invoice, s.total_spent) == (
+            Decimal("300.00"), Decimal("400.00"), Decimal("700.00"),
+        )
+
+    def test_varios_meses_de_uma_vez_batem_com_um_por_vez(self, user, gasto, renda):
+        """O /trend pede vários meses numa chamada; cada um precisa dar o mesmo que o /summary."""
+        entries = [gasto("2026-06-03", "120.00"), gasto("2026-08-05", "900.00", method="credito",
+                                                        installments=3)]
+        rendas = [renda("2026-06", "1000.00")]
+        meses = ["2026-07", "2026-09", "2026-11"]
+        juntos = calculate_summaries(meses, user, entries, rendas)
+        assert juntos == [calculate_summary(m, user, entries, rendas) for m in meses]
 
 
 class TestCategoryBreakdown:
@@ -130,7 +254,7 @@ class TestCategoryBreakdown:
             gasto("2026-08-05", "1200.00", method="credito", installments=3, category="Lazer"),
         ]
         breakdown = calculate_category_breakdown("2026-09", user, entries)
-        resumo = calculate_summary("2026-09", user, entries)
+        resumo = calculate_summary("2026-09", user, entries, [])
         assert sum(c.total for c in breakdown) == resumo.total_spent
 
     def test_vem_ordenado_do_maior_para_o_menor(self, user, gasto):

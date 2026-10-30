@@ -26,6 +26,7 @@ const resumo = (monthly_income: string) => ({
   cash_expenses: '0',
   invoice: '0',
   total_spent: '0',
+  month_balance: monthly_income,
   available_balance: monthly_income,
 })
 
@@ -52,7 +53,7 @@ const vemAntes = (a: Node, b: Node) =>
 
 describe('SummaryScreen', () => {
   beforeEach(() => {
-    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 10 })
+    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', closing_day: 10 })
     vi.mocked(api.categories).mockResolvedValue([])
     vi.mocked(api.trend).mockResolvedValue([])
   })
@@ -60,7 +61,7 @@ describe('SummaryScreen', () => {
   it('avisa quando a renda mensal é zero', async () => {
     vi.mocked(api.summary).mockResolvedValue(resumo('0'))
     montar()
-    expect(await screen.findByText(/renda mensal ainda não foi informada/i)).toBeInTheDocument()
+    expect(await screen.findByText(/renda mensal vale para este mês/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /informar renda mensal/i })).toBeInTheDocument()
   })
 
@@ -68,15 +69,30 @@ describe('SummaryScreen', () => {
     vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
     montar()
     expect(await screen.findByText(/Resumo — 2026-09/)).toBeInTheDocument()
-    expect(screen.queryByText(/renda mensal ainda não foi informada/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/renda mensal vale para este mês/i)).not.toBeInTheDocument()
   })
 
   it('mostra os valores no formato brasileiro', async () => {
     vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
     montar()
-    // sem gasto nenhum, o saldo disponível é igual à renda — o valor aparece nos dois lugares
-    expect(await screen.findAllByText('R$ 6.500,00')).toHaveLength(2)
+    // sem gasto nenhum, os dois saldos são iguais à renda — o valor aparece nos três lugares
+    expect(await screen.findAllByText('R$ 6.500,00')).toHaveLength(3)
     expect(screen.queryByText('R$ 6500.00')).not.toBeInTheDocument()
+  })
+
+  // UC1
+  it('mostra o saldo acumulado em destaque e o saldo do mês abaixo', async () => {
+    vi.mocked(api.summary).mockResolvedValue({
+      ...resumo('6500.00'),
+      month_balance: '1200.00',
+      available_balance: '9800.00',
+    })
+    montar()
+    const acumulado = await screen.findByText('R$ 9.800,00')
+    const doMes = screen.getByText('R$ 1.200,00')
+    expect(acumulado.previousElementSibling).toHaveTextContent('Saldo disponível')
+    expect(doMes.previousElementSibling).toHaveTextContent('Saldo do mês')
+    expect(vemAntes(acumulado, doMes)).toBe(true)
   })
 
   it('abre no mês corrente', async () => {

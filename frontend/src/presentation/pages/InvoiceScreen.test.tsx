@@ -45,7 +45,7 @@ function montar() {
 
 describe('InvoiceScreen', () => {
   beforeEach(() => {
-    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', monthly_income: '0', closing_day: 10 })
+    vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', closing_day: 10 })
     vi.mocked(api.invoice).mockResolvedValue(comItens(currentMonth()))
   })
 

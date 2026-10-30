@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider, useAuth } from '@/state/auth-context'
+import { currentMonth } from '@/shared/format'
 import { ConfigScreen } from './ConfigScreen'
 
 vi.mock('@/data/api', () => ({
@@ -10,13 +11,20 @@ vi.mock('@/data/api', () => ({
     isAuthenticated: () => true,
     me: vi.fn(),
     saveConfig: vi.fn(),
+    incomes: vi.fn(),
+    saveIncome: vi.fn(),
+    removeIncome: vi.fn(),
     deleteAccount: vi.fn(),
     logout: vi.fn(),
   },
 }))
 const { api } = await import('@/data/api')
 
-const USUARIO = { id: 1, email: 'a@b.co', monthly_income: '6500.00', closing_day: 15 }
+const USUARIO = { id: 1, email: 'a@b.co', closing_day: 15 }
+const RENDAS = [
+  { month: '2026-03', amount: '4000.00' },
+  { month: '2026-09', amount: '5000.00' },
+]
 
 // O App.tsx só monta esta tela com `user` já carregado; o formulário lê os valores
 // iniciais uma vez, no useState. O teste espelha esse mesmo portão.
@@ -43,62 +51,129 @@ describe('ConfigScreen', () => {
   beforeEach(() => {
     vi.mocked(api.me).mockResolvedValue(USUARIO)
     vi.mocked(api.saveConfig).mockResolvedValue(USUARIO)
+    vi.mocked(api.incomes).mockResolvedValue(RENDAS)
   })
 
-  it('começa com os valores atuais do usuário, não com um padrão inventado', async () => {
+  it('começa com o dia de fechamento atual do usuário, não com um padrão inventado', async () => {
     montar()
-    await waitFor(() => expect(screen.getByLabelText('Renda mensal')).toHaveValue(6500))
-    expect(screen.getByLabelText('Dia de fechamento da fatura')).toHaveValue(15)
+    await waitFor(() => expect(screen.getByLabelText('Dia de fechamento da fatura')).toHaveValue(15))
   })
 
-  it('salva os dois campos e confirma na tela', async () => {
+  it('salva o dia de fechamento como número e confirma na tela', async () => {
     const user = userEvent.setup()
     montar()
-    await waitFor(() => expect(screen.getByLabelText('Renda mensal')).toHaveValue(6500))
-
-    const renda = screen.getByLabelText('Renda mensal')
-    await user.clear(renda)
-    await user.type(renda, '7200')
-    await user.click(screen.getByRole('button', { name: 'Salvar' }))
-
-    await waitFor(() => expect(api.saveConfig).toHaveBeenCalledWith('7200', 15))
-    expect(await screen.findByText('Configurações salvas.')).toBeInTheDocument()
-  })
-
-  it('manda o dia de fechamento como número, não como texto', async () => {
-    const user = userEvent.setup()
-    montar()
-    await waitFor(() => expect(screen.getByLabelText('Renda mensal')).toHaveValue(6500))
-
-    const dia = screen.getByLabelText('Dia de fechamento da fatura')
+    const dia = await screen.findByLabelText('Dia de fechamento da fatura')
     await user.clear(dia)
     await user.type(dia, '5')
     await user.click(screen.getByRole('button', { name: 'Salvar' }))
 
-    await waitFor(() => expect(api.saveConfig).toHaveBeenCalled())
-    const [, diaEnviado] = vi.mocked(api.saveConfig).mock.calls[0]
-    expect(diaEnviado).toBe(5)
-    expect(typeof diaEnviado).toBe('number')
+    await waitFor(() => expect(api.saveConfig).toHaveBeenCalledWith(5))
+    expect(await screen.findByText('Configurações salvas.')).toBeInTheDocument()
   })
 
-  it('limita o dia de fechamento a 1–28, como o backend', async () => {
+  it('limita o dia de fechamento a 1–28 e a renda a ≥ 0, como o backend', async () => {
     montar()
-    await waitFor(() => expect(screen.getByLabelText('Renda mensal')).toHaveValue(6500))
-    const dia = screen.getByLabelText('Dia de fechamento da fatura')
+    const dia = await screen.findByLabelText('Dia de fechamento da fatura')
     expect(dia).toHaveAttribute('min', '1')
     expect(dia).toHaveAttribute('max', '28')
-    expect(screen.getByLabelText('Renda mensal')).toHaveAttribute('min', '0')
+    expect(screen.getByLabelText('Valor')).toHaveAttribute('min', '0')
   })
 
-  it('mostra o erro quando o servidor recusa', async () => {
+  it('mostra o erro quando o servidor recusa a configuração', async () => {
     const user = userEvent.setup()
     vi.mocked(api.saveConfig).mockRejectedValue(new Error('Sessão expirada.'))
     montar()
-    await waitFor(() => expect(screen.getByLabelText('Renda mensal')).toHaveValue(6500))
-
-    await user.click(screen.getByRole('button', { name: 'Salvar' }))
+    await user.click(await screen.findByRole('button', { name: 'Salvar' }))
     expect(await screen.findByText('Sessão expirada.')).toBeInTheDocument()
     expect(screen.queryByText('Configurações salvas.')).not.toBeInTheDocument()
+  })
+
+  describe('a renda mensal', () => {
+    const linhas = async () =>
+      within(await screen.findByRole('list', { name: 'Rendas registradas' }))
+        .getAllByRole('listitem')
+        .map((li) => li.textContent)
+
+    it('lista as rendas registradas em ordem de mês', async () => {
+      montar()
+      expect(await linhas()).toEqual([
+        expect.stringMatching(/mar\/26.*R\$ 4\.000,00/),
+        expect.stringMatching(/set\/26.*R\$ 5\.000,00/),
+      ])
+    })
+
+    // UC5
+    it('"a partir de" começa no mês atual e a renda salva entra na lista', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.saveIncome).mockResolvedValue({ month: '2026-06', amount: '4500.00' })
+      montar()
+      expect(await screen.findByLabelText('A partir de')).toHaveValue(currentMonth())
+
+      await user.type(screen.getByLabelText('Valor'), '4500')
+      const mes = screen.getByLabelText('A partir de')
+      await user.clear(mes)
+      await user.type(mes, '2026-06')
+      await user.click(screen.getByRole('button', { name: 'Salvar renda' }))
+
+      await waitFor(() => expect(api.saveIncome).toHaveBeenCalledWith('2026-06', '4500'))
+      expect(await linhas()).toEqual([
+        expect.stringMatching(/mar\/26/),
+        expect.stringMatching(/jun\/26.*R\$ 4\.500,00/),
+        expect.stringMatching(/set\/26/),
+      ])
+    })
+
+    // F6: o servidor substitui a do mesmo mês; a lista não fica com duas
+    it('salvar de novo no mesmo mês substitui a linha', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.saveIncome).mockResolvedValue({ month: '2026-09', amount: '5500.00' })
+      montar()
+      await screen.findByRole('list', { name: 'Rendas registradas' })
+      await user.type(screen.getByLabelText('Valor'), '5500')
+      const mes = screen.getByLabelText('A partir de')
+      await user.clear(mes)
+      await user.type(mes, '2026-09')
+      await user.click(screen.getByRole('button', { name: 'Salvar renda' }))
+
+      await waitFor(() =>
+        expect(screen.getByText('R$ 5.500,00')).toBeInTheDocument(),
+      )
+      expect(await linhas()).toHaveLength(2)
+    })
+
+    // UC5b
+    it('apaga uma renda pelo botão da linha', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.removeIncome).mockResolvedValue(null)
+      montar()
+      await user.click(await screen.findByRole('button', { name: 'Apagar renda a partir de set/26' }))
+      await waitFor(() => expect(api.removeIncome).toHaveBeenCalledWith('2026-09'))
+      expect(await linhas()).toEqual([expect.stringMatching(/mar\/26/)])
+    })
+
+    it('sem renda registrada, diz isso em vez de uma lista vazia', async () => {
+      vi.mocked(api.incomes).mockResolvedValue([])
+      montar()
+      expect(await screen.findByText('Nenhuma renda registrada.')).toBeInTheDocument()
+    })
+
+    // F5, F8, F9: o que o servidor recusa (mês ou valor inválido, sessão, rede) aparece no card
+    it('mostra o erro do servidor e mantém a lista como estava', async () => {
+      const user = userEvent.setup()
+      vi.mocked(api.saveIncome).mockRejectedValue(new Error('Mês inválido.'))
+      montar()
+      await screen.findByRole('list', { name: 'Rendas registradas' })
+      await user.type(screen.getByLabelText('Valor'), '100')
+      await user.click(screen.getByRole('button', { name: 'Salvar renda' }))
+      expect(await screen.findByText('Mês inválido.')).toBeInTheDocument()
+      expect(await linhas()).toHaveLength(2)
+    })
+
+    it('mostra o erro quando a lista não carrega', async () => {
+      vi.mocked(api.incomes).mockRejectedValue(new Error('Não deu para completar a operação.'))
+      montar()
+      expect(await screen.findByText('Não deu para completar a operação.')).toBeInTheDocument()
+    })
   })
 
   describe('o tema', () => {
@@ -186,9 +261,11 @@ describe('ConfigScreen', () => {
     await waitFor(() => expect(document.title).toBe('Configurações'))
   })
 
-  it('mantém a ordem dados → aparência → excluir conta', async () => {
+  it('mantém a ordem renda → dados → aparência → excluir conta', async () => {
     montar()
-    const dados = await screen.findByLabelText('Renda mensal')
+    const renda = await screen.findByText('Renda mensal')
+    const dados = screen.getByLabelText('Dia de fechamento da fatura')
+    expect(vemAntes(renda, dados)).toBe(true)
     const aparencia = screen.getByText('Aparência')
     const excluir = screen.getByText('Excluir conta')
     expect(vemAntes(dados, aparencia)).toBe(true)

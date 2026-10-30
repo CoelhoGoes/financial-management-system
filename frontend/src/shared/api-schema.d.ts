@@ -161,6 +161,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/incomes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Incomes */
+        get: operations["list_incomes_incomes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/incomes/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Income
+         * @description Cria ou substitui a renda que vale a partir de `month`.
+         */
+        put: operations["save_income_incomes__month__put"];
+        post?: never;
+        /** Remove Income */
+        delete: operations["remove_income_incomes__month__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/imports/preview": {
         parameters: {
             query?: never;
@@ -445,6 +483,21 @@ export interface components {
              */
             skipped: number;
         };
+        /** IncomeIn */
+        IncomeIn: {
+            /** Amount */
+            amount: number | string;
+        };
+        /**
+         * IncomeOut
+         * @description Renda que vale de `month` até o mês anterior à próxima registrada.
+         */
+        IncomeOut: {
+            /** Month */
+            month: string;
+            /** Amount */
+            amount: string;
+        };
         /** Invoice */
         Invoice: {
             /** Month */
@@ -478,7 +531,10 @@ export interface components {
         Summary: {
             /** Month */
             month: string;
-            /** Monthly Income */
+            /**
+             * Monthly Income
+             * @description A renda deste mês, pelo histórico de rendas.
+             */
             monthly_income: string;
             /** Extra Income */
             extra_income: string;
@@ -488,7 +544,15 @@ export interface components {
             invoice: string;
             /** Total Spent */
             total_spent: string;
-            /** Available Balance */
+            /**
+             * Month Balance
+             * @description Saldo só deste mês.
+             */
+            month_balance: string;
+            /**
+             * Available Balance
+             * @description Saldo acumulado: este mês somado a todos os anteriores.
+             */
             available_balance: string;
         };
         /** Token */
@@ -503,8 +567,6 @@ export interface components {
         };
         /** UserConfig */
         UserConfig: {
-            /** Monthly Income */
-            monthly_income: number | string;
             /** Closing Day */
             closing_day: number;
         };
@@ -527,8 +589,6 @@ export interface components {
              * Format: email
              */
             email: string;
-            /** Monthly Income */
-            monthly_income: string;
             /** Closing Day */
             closing_day: number;
         };
@@ -945,6 +1005,90 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Summary"][];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_incomes_incomes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncomeOut"][];
+                };
+            };
+        };
+    };
+    save_income_incomes__month__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IncomeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncomeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_income_incomes__month__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

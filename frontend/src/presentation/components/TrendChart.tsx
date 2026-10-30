@@ -23,16 +23,23 @@ const PRESETS = [3, 6, 12] as const
 // Os tokens --chart-* são uma rampa de verdes iguais nos dois temas, então a ordem
 // importa: as barras ficam com dois tons distinguíveis entre si e o saldo usa
 // --foreground, que inverte com o tema e é o traço mais legível sobre qualquer fundo.
-// A renda é uma série de valor constante, não uma ReferenceLine: só assim entra na legenda
+// O saldo do mês (sem o que vem dos anteriores) fica em azul, --chart-month-balance, fora da
+// rampa verde como a renda; o acumulado continua sendo o traço em destaque.
+// A renda é uma série, não uma ReferenceLine: só assim entra na legenda
 // do shadcn (o Legend do recharts 3.8 não aceita item avulso) e some dela junto com a linha
 // quando a renda é zero.
 const config = {
   cash_expenses: { label: 'À vista', color: 'var(--chart-2)' },
   invoice: { label: 'Fatura', color: 'var(--chart-4)' },
   available_balance: {
-    label: 'Saldo',
+    label: 'Saldo acumulado',
     color: 'var(--foreground)',
     icon: () => <LineIcon color="var(--color-available_balance)" />,
+  },
+  month_balance: {
+    label: 'Saldo do mês',
+    color: 'var(--chart-month-balance)',
+    icon: () => <LineIcon color="var(--color-month_balance)" />,
   },
   income: {
     label: 'Renda',
@@ -46,6 +53,7 @@ interface Point {
   cash_expenses: number
   invoice: number
   available_balance: number
+  month_balance: number
   income: number
 }
 
@@ -68,6 +76,7 @@ export function TrendChart({ until }: { until: string }) {
             cash_expenses: Number(s.cash_expenses),
             invoice: Number(s.invoice),
             available_balance: Number(s.available_balance),
+            month_balance: Number(s.month_balance),
             income: Number(s.monthly_income),
           })),
         )
@@ -78,7 +87,7 @@ export function TrendChart({ until }: { until: string }) {
     }
   }, [months, until])
 
-  // a renda vem da configuração do usuário, igual em todo mês (service.py); zero = não informada
+  // a renda de cada mês vem do histórico de rendas (service.py); zero em todos = nenhuma registrada
   const hasIncome = points?.some((p) => p.income > 0) ?? false
 
   return (
@@ -142,7 +151,13 @@ export function TrendChart({ until }: { until: string }) {
               }
             />
             {/* itemSorter null: a legenda segue a ordem das séries abaixo, não a alfabética */}
-            <ChartLegend itemSorter={null} content={<ChartLegendContent />} />
+            {/* cinco itens não cabem numa linha a 375px: quebram em linhas, cada nome inteiro */}
+            <ChartLegend
+              itemSorter={null}
+              content={
+                <ChartLegendContent className="flex-wrap gap-x-4 gap-y-1 [&>div]:whitespace-nowrap" />
+              }
+            />
             {/* isAnimationActive={false}: com a animação ligada o recharts 3.8 monta os
                 grupos das barras vazios, sem nenhum path. A linha não é afetada. */}
             <Bar dataKey="cash_expenses" stackId="gasto" fill="var(--color-cash_expenses)" isAnimationActive={false} radius={[0, 0, 2, 2]} />
@@ -155,6 +170,14 @@ export function TrendChart({ until }: { until: string }) {
               shape={<EdgeToEdgeCurve />}
               dot={{ fill: 'var(--color-available_balance)' }}
               activeDot={{ r: 6 }}
+            />
+            <Line
+              dataKey="month_balance"
+              type="monotone"
+              stroke="var(--color-month_balance)"
+              strokeWidth={2}
+              shape={<EdgeToEdgeCurve />}
+              dot={false}
             />
             {hasIncome && (
               <Line

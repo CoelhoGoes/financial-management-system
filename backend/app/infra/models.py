@@ -33,7 +33,6 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column("senha_hash", String(255))
-    monthly_income: Mapped[float] = mapped_column("renda_mensal", Numeric(12, 2), default=0)
     closing_day: Mapped[int] = mapped_column("dia_fechamento", Integer, default=25)
     created_at: Mapped[datetime] = mapped_column(
         "criado_em", DateTime(timezone=True), server_default=func.now()
@@ -47,6 +46,26 @@ class User(Base):
     entries: Mapped[list["Entry"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    incomes: Mapped[list["Income"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class Income(Base):
+    """Renda mensal a partir de um mês. Vale até o mês anterior à próxima renda registrada."""
+
+    __tablename__ = "rendas"
+    __table_args__ = (UniqueConstraint("usuario_id", "mes", name="uq_renda_mes"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        "usuario_id", ForeignKey("usuarios.id", ondelete="CASCADE"), index=True
+    )
+    # sempre o dia 1: a renda vale por mês, o dia não carrega significado
+    month: Mapped[date] = mapped_column("mes", Date)
+    amount: Mapped[float] = mapped_column("valor", Numeric(12, 2))
+
+    user: Mapped["User"] = relationship(back_populates="incomes")
 
 
 class Entry(Base):

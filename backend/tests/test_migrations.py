@@ -53,3 +53,46 @@ def test_migracoes_e_modelos_descrevem_o_mesmo_schema(monkeypatch):
         command.check(config)
     finally:
         _empty_database()
+
+
+def test_renda_das_contas_existentes_vira_historico(monkeypatch):
+    """UC9: a renda configurada passa a valer do mês do primeiro lançamento (ou da criação da
+    conta, sem lançamento), para o saldo do mês dos meses passados não mudar. Renda 0 não vira
+    registro."""
+    from alembic.config import Config
+
+    from alembic import command
+
+    monkeypatch.setenv("DATABASE_URL", URL)
+    for mod in [m for m in sys.modules if m == "app" or m.startswith("app.")]:
+        del sys.modules[mod]
+
+    config = Config(str(BACKEND / "alembic.ini"))
+    config.set_main_option("script_location", str(BACKEND / "alembic"))
+
+    _empty_database()
+    try:
+        command.upgrade(config, "327f8230f60a")  # a última antes do histórico da renda
+        engine = create_engine(URL)
+        with engine.begin() as conn:
+            conn.execute(text("""
+                INSERT INTO usuarios (id, email, senha_hash, renda_mensal, dia_fechamento, criado_em)
+                VALUES (1, 'com@b.co', 'x', 5000, 10, '2026-01-15'),
+                       (2, 'sem@b.co', 'x', 3000, 10, '2026-03-20'),
+                       (3, 'zero@b.co', 'x', 0, 10, '2026-01-01')
+            """))
+            conn.execute(text("""
+                INSERT INTO lancamentos (usuario_id, tipo, valor, descricao, categoria, data, forma, parcelas)
+                VALUES (1, 'gasto', 10, 'b', 'Outros', '2026-09-03', 'avista', 1),
+                       (1, 'gasto', 10, 'a', 'Outros', '2026-07-21', 'avista', 1),
+                       (3, 'gasto', 10, 'c', 'Outros', '2026-05-01', 'avista', 1)
+            """))
+        command.upgrade(config, "head")
+        with engine.begin() as conn:
+            rendas = conn.execute(
+                text("SELECT usuario_id, mes::text, valor::text FROM rendas ORDER BY usuario_id")
+            ).all()
+        engine.dispose()
+        assert rendas == [(1, "2026-07-01", "5000.00"), (2, "2026-03-01", "3000.00")]
+    finally:
+        _empty_database()

@@ -71,7 +71,7 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
   `dangerouslySetInnerHTML`, and the API accepts any category text — key by position
   (`slice-0`…) and put the text in `label` (`CategoryDonut.test.tsx` guards this).
   `ChartTooltipRow` also takes a `marker` that replaces the square: `TrendChart` passes
-  `LineIcon` (solid for the balance, dashed for income) so the tooltip repeats the legend's
+  `LineIcon` (solid for both balances, dashed for income) so the tooltip repeats the legend's
   markers. `EdgeToEdgeCurve` is the `shape` of `TrendChart`'s lines — on a category axis
   recharts places each point at the centre of its band, and the shape stretches the curve to
   the plot edges via `usePlotArea`. Income is a constant `Line`, not a `ReferenceLine`: the
@@ -100,7 +100,7 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
 ### Money in the frontend
 
 FastAPI serializes `Decimal` as a **string**, so every money field the API *returns* is typed
-`string`; money the API *accepts* (`EntryCreate.amount`, `UserConfig.monthly_income`) is
+`string`; money the API *accepts* (`EntryCreate.amount`, `IncomeIn.amount`) is
 `number | string`, because Pydantic parses either. Always `Number(value)` before arithmetic or
 formatting, and send money back as the string the user typed, never a computed JS float — the
 backend parses it into `Decimal` exactly.
@@ -117,8 +117,9 @@ backend parses it into `Decimal` exactly.
   (`npx shadcn@latest search <termo>`, or the catalogue in `.agents/skills/shadcn/`) *before*
   writing a component yourself or reaching for another library. The theme already ships the
   tokens its components expect — semantic colours and `--chart-1..5` (plus our own
-  `--chart-income`, amber, for the trend chart's income line until a new palette replaces
-  it) — so anything hand-rolled
+  `--chart-income`, amber, for the trend chart's income line, and `--chart-month-balance`,
+  blue, for its month-balance line, until a new palette replaces them) — so anything
+  hand-rolled
   falls outside that consistency. If shadcn has it and you still choose not to use it, say why.
   This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
   from being written when `Chart` exists.

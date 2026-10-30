@@ -26,8 +26,11 @@ por usuário em `/auth/me` ou pela tela de configuração. Aceita de 1 a 28 e va
 ninguém mudar.
 
 **Renda mensal** (`monthly_income`) — valor fixo que o usuário declara ganhar por mês. Não é um
-lançamento; é um campo do usuário, somado automaticamente em todo mês do resumo. Começa em
-**0**, então uma conta recém-criada mostra saldo como se não houvesse renda até alguém informá-la.
+lançamento: é um histórico (tabela `rendas`), em que cada renda vale **a partir de um mês** até
+o mês anterior à próxima registrada. A renda de um mês é a registrada com o maior mês de início
+até ele (`income_for`); antes da primeira, é **0** — uma conta recém-criada mostra saldo como se
+não houvesse renda até alguém registrá-la. Uma renda por conta e mês: registrar de novo no
+mesmo mês substitui. Só mês e ano, sem dia (o dia do pagamento está no `docs/roadmap.md`).
 
 **Conta excluída** — usuário com `excluido_em` preenchido. A exclusão é lógica: a linha e os
 lançamentos continuam no banco, mas a conta some para a API — o token deixa de valer, o login
@@ -89,18 +92,30 @@ As parcelas se espalham por meses consecutivos a partir da fatura em que a compr
 anterior). Uma compra de 3x que cai na fatura de outubro gera parcelas em outubro, novembro e
 dezembro.
 
-### Como o saldo do mês é calculado
+### Como o saldo é calculado
 
 ```
-saldo disponível = renda mensal
+saldo do mês     = renda do mês (pelo histórico)
                  + entradas do mês (lançamentos type=entrada)
                  - gastos à vista do mês (type=gasto, method=avista)
                  - total da fatura que vence no mês
+
+saldo disponível = saldo disponível do mês anterior + saldo do mês
 ```
 
 O que entra na conta como fatura é a **fatura que vence naquele mês**, não as compras feitas
 naquele mês. É essa distinção que faz o número ser útil: mostra o que vai sair da conta, não o
 que foi gasto.
+
+O saldo disponível (`available_balance`) é **sempre acumulado**: todo mês traz o dos
+anteriores, positivo, negativo ou zero, e nenhum mês volta a ser isolado. O saldo só do mês
+fica em `month_balance`. Na prática a soma começa no mais antigo entre o primeiro lançamento e
+a primeira renda — antes disso não há renda, lançamento nem parcela, e cada mês soma zero. Nos
+meses futuros o acumulado continua: soma a renda e desconta as parcelas já comprometidas.
+Nada fica guardado: lançar, editar ou apagar num mês passado muda na hora todos os seguintes.
+
+A API aceita meses de **1900 a 2199**. A soma anda mês a mês, e um ano qualquer (0001, 9999)
+deixava cada requisição segundos ocupada.
 
 ### O que entra no resumo por categoria
 
@@ -116,8 +131,9 @@ lazer foi comprado, e o número parece erro. Os totais por categoria somam exata
 ### Tendência
 
 `/trend` devolve uma lista de resumos mensais, um por mês, terminando no mês passado em `until`
-e voltando `months` meses. Cada item é o mesmo `Summary` de `/summary/{month}` — não há cálculo
-novo, só repetição do mesmo cálculo em meses diferentes.
+e voltando `months` meses. Cada item é o mesmo `Summary` de `/summary/{month}`, com o mesmo
+saldo acumulado. O servidor calcula a série de uma vez (`calculate_summaries`), numa soma
+corrida, em vez de refazer o acúmulo inteiro para cada mês.
 
 Sem `until`, o servidor usa o mês atual **em UTC**: ele não conhece o fuso de quem pergunta.
 Quem se importa com o próprio fuso manda `until` — é o que a tela de tendência deve fazer
@@ -194,7 +210,10 @@ conversar antes.
   isso é irrelevante; é o primeiro lugar para olhar se ficar lento. A tela de resumo chama os
   dois primeiros em paralelo, então são **duas varreduras completas e dois cálculos de fatura**
   a cada mês visitado — não só no carregamento, já que a navegação entre meses refaz as buscas.
-  Quem for fazer o filtro em SQL ganha o dobro do que parece.
+  Quem for fazer o filtro em SQL ganha o dobro do que parece. Com o saldo acumulado, o
+  `/summary` e o `/trend` também percorrem mês a mês desde o primeiro lançamento ou renda: o
+  filtro em SQL não basta para eles, que precisam do saldo de todos os meses anteriores — um
+  saldo de fechamento guardado por mês seria o caminho, com o custo de mantê-lo em dia.
 - **Os tipos do frontend são gerados, mas a geração não roda sozinha.** O
   `frontend/src/shared/api-schema.d.ts` sai do OpenAPI da API (`npm run gen:types`) e é
   versionado, para o build não depender da API no ar. Mudar um schema sem regenerar passa no
@@ -207,7 +226,7 @@ conversar antes.
   não pode devolver o schema dela. O `response_model` converte por nome de campo, e
   `test_api.py` quebra se um campo some de um lado só — mas renomear exige mexer nos dois e
   regenerar os tipos.
-- **`domain/` → `infra/` é só de tipo.** `domain/service.py` importa `Entry` e `User` de
+- **`domain/` → `infra/` é só de tipo.** `domain/service.py` importa `Entry`, `Income` e `User` de
   `infra/models.py` apenas sob `TYPE_CHECKING`, para anotar os parâmetros. Em tempo de
   execução o domínio não carrega o SQLAlchemy, e os testes passam dataclasses no lugar.
 - **`shiftMonth` no frontend duplica `shift_month` do `service.py`.** Os dois somam e subtraem
@@ -218,7 +237,7 @@ conversar antes.
 - **Conta excluída nunca é apagada de verdade.** A exclusão só marca `excluido_em`; usuário e
   lançamentos ficam no banco indefinidamente. Não há expurgo automático (o app não tem
   agendador) nem comando documentado — apagar de vez é um `DELETE FROM usuarios` à mão, e o
-  `ON DELETE CASCADE` leva os lançamentos junto. Decidido em 23/10/2026.
+  `ON DELETE CASCADE` leva os lançamentos e as rendas junto. Decidido em 23/10/2026.
 - **A camada de API roda em sqlite por padrão.** `backend/tests/test_api.py` sobe o app contra
   um sqlite temporário: rápido e sem container. A mesma suíte roda contra Postgres apontando
   `TEST_DATABASE_URL` (veja o README), e foi verificada nos dois — mas a execução do dia a dia é

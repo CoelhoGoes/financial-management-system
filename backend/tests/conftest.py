@@ -26,13 +26,25 @@ class FakeEntry:
 
 @dataclass
 class FakeUser:
-    monthly_income: Decimal = Decimal(0)
     closing_day: int = 25
+
+
+@dataclass
+class FakeIncome:
+    month: date
+    amount: Decimal
 
 
 @pytest.fixture
 def user():
-    return FakeUser(monthly_income=Decimal("5000.00"), closing_day=10)
+    return FakeUser(closing_day=10)
+
+
+@pytest.fixture
+def renda():
+    def make(month: str, amount: str):
+        return FakeIncome(month=date.fromisoformat(f"{month}-01"), amount=Decimal(amount))
+    return make
 
 
 @pytest.fixture

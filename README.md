@@ -150,9 +150,9 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 
 ```bash
 pip install -r backend/requirements-dev.txt   # uma vez
-cd backend && pytest                          # 136 testes (1 pulado em sqlite), ~15s
+cd backend && pytest                          # 179 testes (2 pulados em sqlite), ~20s
 
-cd frontend && npm test                       # 115 testes, ~6s
+cd frontend && npm test                       # 130 testes, ~6s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -193,7 +193,7 @@ backend/
     │   └── ofx.py         leitura de extrato OFX
     └── infra/             o que fala com o mundo de fora
         ├── database.py    engine e sessão do SQLAlchemy
-        ├── models.py      tabelas usuarios e lancamentos
+        ├── models.py      tabelas usuarios, lancamentos e rendas
         └── security.py    hash bcrypt e JWT
 
 frontend/
@@ -261,16 +261,19 @@ Todos exigem `Authorization: Bearer <token>`, exceto `/auth/register`, `/auth/to
 | POST | `/auth/register` | cria conta |
 | POST | `/auth/token` | login (form-urlencoded), devolve JWT |
 | GET | `/auth/me` | dados do usuário |
-| PUT | `/auth/me` | atualiza renda mensal e dia de fechamento |
+| PUT | `/auth/me` | atualiza o dia de fechamento |
 | DELETE | `/auth/me` | exclui a conta (pede `password` no corpo); exclusão lógica, os dados ficam no banco |
 | POST | `/entries` | cria lançamento |
 | GET | `/entries` | lista lançamentos (filtro opcional `?month=2026-09`) |
 | PATCH | `/entries/{id}` | altera só os campos enviados; o resultado é validado como lançamento novo |
 | DELETE | `/entries/{id}` | remove lançamento |
-| GET | `/summary/{month}` | saldo, entradas e gastos do mês |
+| GET | `/summary/{month}` | saldo acumulado, saldo do mês, entradas e gastos do mês |
 | GET | `/summary/{month}/categories` | gasto por categoria, com os itens e o número da parcela |
 | GET | `/invoices/{month}` | itens e total da fatura que vence no mês |
 | GET | `/trend` | série dos últimos meses (`?months=6`, `?until=2026-09`) |
+| GET | `/incomes` | rendas registradas, em ordem de mês |
+| PUT | `/incomes/{month}` | registra a renda que vale a partir do mês (repetir substitui) |
+| DELETE | `/incomes/{month}` | apaga a renda daquele mês |
 | POST | `/imports/preview` | lê um extrato OFX (multipart, campo `file`) e devolve as linhas, sem gravar |
 | POST | `/imports` | grava as linhas revisadas (sempre à vista), pulando as já importadas |
 | GET | `/health` | status da API |
@@ -302,11 +305,11 @@ Antes de expor na internet:
 
 **Funciona:** registro, login, sessão persistida em `localStorage`, roteamento multi-página
 (`/login`, `/`, `/lancamentos`, `/fatura`, `/importar`, `/configuracoes`), tela de resumo mensal
-(saldo, renda, fatura, gasto por categoria num gráfico de rosca com as transações de cada
+(saldo acumulado e do mês, renda, fatura, gasto por categoria num gráfico de rosca com as transações de cada
 categoria num popup, e gráfico de tendência dos últimos meses), tela de lançamentos (criar,
 editar, listar e excluir gastos/entradas do mês), tela de fatura (consulta por mês, com
 navegação entre meses), importação de extrato OFX com conferência antes de gravar, e tela de
-configuração (renda mensal, dia de fechamento, tema claro/escuro seguindo o sistema por padrão,
+configuração (renda mensal com histórico por mês, dia de fechamento, tema claro/escuro seguindo o sistema por padrão,
 e exclusão da conta). No computador, as telas usam a largura da tela em colunas; no celular, uma
 coluna só.
 Backend completo com todos os endpoints acima; o schema é das migrações Alembic.

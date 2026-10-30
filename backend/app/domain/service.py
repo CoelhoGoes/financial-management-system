@@ -12,7 +12,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # avoids depending on the DB: the rules below are testable on their own
-    from ..infra.models import Entry, User
+    from ..infra.models import Entry, Income, User
 
 
 # Results of the rules below. Plain dataclasses, not Pydantic: the domain does not know
@@ -58,12 +58,16 @@ class CategoryBreakdown:
 
 @dataclass
 class Summary:
+    """`month_balance` is the month on its own; `available_balance` carries every month
+    before it too (the accumulated balance)."""
+
     month: str
     monthly_income: Decimal
     extra_income: Decimal
     cash_expenses: Decimal
     invoice: Decimal
     total_spent: Decimal
+    month_balance: Decimal
     available_balance: Decimal
 
 CENT = Decimal("0.01")
@@ -72,6 +76,11 @@ SHARE = Decimal("0.0001")
 
 def month_key(d: date) -> str:
     return f"{d.year:04d}-{d.month:02d}"
+
+
+def month_start(key: str) -> date:
+    year, month = map(int, key.split("-"))
+    return date(year, month, 1)
 
 
 def shift_month(key: str, n: int) -> str:
@@ -125,27 +134,67 @@ def calculate_invoice(month: str, entries: list[Entry], closing_day: int) -> Inv
     return Invoice(month=month, total=sum((i.installment_amount for i in items), Decimal(0)), items=items)
 
 
-def calculate_summary(month: str, user: User, entries: list[Entry]) -> Summary:
-    income = Decimal(user.monthly_income)
-    this_month = [e for e in entries if month_key(e.date) == month]
+def income_for(month: str, incomes: list[Income]) -> Decimal:
+    """The income registered with the latest start month up to `month`; zero before the first."""
+    started = [i for i in incomes if month_key(i.month) <= month]
+    if not started:
+        return Decimal(0)
+    return Decimal(max(started, key=lambda i: i.month).amount)
 
-    extra_income = sum((Decimal(e.amount) for e in this_month if e.type == "entrada"), Decimal(0))
-    cash_expenses = sum(
-        (Decimal(e.amount) for e in this_month if e.type == "gasto" and e.method == "avista"),
-        Decimal(0),
-    )
 
-    invoice = calculate_invoice(month, entries, user.closing_day)
+def calculate_summaries(
+    months: list[str], user: User, entries: list[Entry], incomes: list[Income]
+) -> list[Summary]:
+    """One summary per month in `months`, each with the balance accumulated up to it."""
+    invoices = build_invoices(entries, user.closing_day)
+    by_month: dict[str, list[Entry]] = defaultdict(list)
+    for e in entries:
+        by_month[month_key(e.date)].append(e)
 
-    return Summary(
-        month=month,
-        monthly_income=income,
-        extra_income=extra_income,
-        cash_expenses=cash_expenses,
-        invoice=invoice.total,
-        total_spent=cash_expenses + invoice.total,
-        available_balance=income + extra_income - cash_expenses - invoice.total,
-    )
+    def month_summary(month: str) -> Summary:
+        this_month = by_month.get(month, [])
+        income = income_for(month, incomes)
+        extra_income = sum(
+            (Decimal(e.amount) for e in this_month if e.type == "entrada"), Decimal(0)
+        )
+        cash_expenses = sum(
+            (Decimal(e.amount) for e in this_month if e.type == "gasto" and e.method == "avista"),
+            Decimal(0),
+        )
+        invoice = sum((i.installment_amount for i in invoices.get(month, [])), Decimal(0))
+        balance = income + extra_income - cash_expenses - invoice
+        return Summary(
+            month=month,
+            monthly_income=income,
+            extra_income=extra_income,
+            cash_expenses=cash_expenses,
+            invoice=invoice,
+            total_spent=cash_expenses + invoice,
+            month_balance=balance,
+            available_balance=balance,
+        )
+
+    # Before the first entry and the first income every month adds zero (an installment always
+    # falls after its purchase), so the running sum may start there without changing the result.
+    computed: dict[str, Summary] = {}
+    starts = [*by_month, *(month_key(i.month) for i in incomes)]
+    if starts and months:
+        current, total = min(starts), Decimal(0)
+        while current <= max(months):
+            summary = month_summary(current)
+            total += summary.month_balance
+            summary.available_balance = total
+            computed[current] = summary
+            current = shift_month(current, 1)
+
+    # a month before every start accumulates zero, and month_summary already says so
+    return [computed.get(month) or month_summary(month) for month in months]
+
+
+def calculate_summary(
+    month: str, user: User, entries: list[Entry], incomes: list[Income]
+) -> Summary:
+    return calculate_summaries([month], user, entries, incomes)[0]
 
 
 def calculate_category_breakdown(

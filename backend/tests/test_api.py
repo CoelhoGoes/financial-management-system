@@ -134,8 +134,8 @@ class TestEscopoPorUsuario:
         assert len(client.get("/entries", headers=ana).json()) == 1
 
     def test_o_resumo_de_um_nao_soma_o_gasto_do_outro(self, client, auth):
-        ana = auth(email="ana@b.co", monthly_income="1000.00", closing_day=10)
-        bia = auth(email="bia@b.co", monthly_income="1000.00", closing_day=10)
+        ana = auth(email="ana@b.co", closing_day=10)
+        bia = auth(email="bia@b.co", closing_day=10)
         client.post("/entries", headers=ana, json=LANCAMENTO)
 
         assert client.get("/summary/2026-09", headers=bia).json()["total_spent"] == "0"
@@ -158,13 +158,13 @@ class TestValidacao:
     @pytest.mark.parametrize("dia", [0, 29, 31])
     def test_dia_de_fechamento_fora_de_1_a_28(self, client, auth, dia):
         h = auth()
-        r = client.put("/auth/me", headers=h, json={"monthly_income": "100.00", "closing_day": dia})
+        r = client.put("/auth/me", headers=h, json={"closing_day": dia})
         assert r.status_code == 422
 
 
 class TestDinheiroComoString:
     def test_valores_trafegam_como_string_e_nao_como_float(self, client, auth):
-        h = auth(monthly_income="5000.00", closing_day=10)
+        h = auth(closing_day=10)
         client.post("/entries", headers=h, json=LANCAMENTO)
         s = client.get("/summary/2026-09", headers=h).json()
         assert all(isinstance(s[k], str) for k in
@@ -192,7 +192,7 @@ class TestTrend:
 
     def test_mes_sem_lancamento_aparece_zerado_em_vez_de_sumir(self, client, auth):
         """O gráfico depende disso: um mês vazio precisa de barra zero, não de buraco."""
-        h = auth(monthly_income="1000.00", closing_day=10)
+        h = auth(closing_day=10)
         client.post("/entries", headers=h, json=_gasto(date="2026-09-05", amount="100.00"))
         serie = client.get("/trend?months=3&until=2026-09", headers=h).json()
         assert [s["month"] for s in serie] == ["2026-07", "2026-08", "2026-09"]
@@ -205,7 +205,9 @@ class TestTrend:
         serie = client.get("/trend?months=1", headers=h).json()
         assert serie[0]["month"] == f"{datetime.now(UTC):%Y-%m}"
 
-    @pytest.mark.parametrize("qs", ["months=0", "months=25", "until=2026-13", "until=setembro"])
+    @pytest.mark.parametrize("qs", [
+        "months=0", "months=25", "until=2026-13", "until=setembro", "until=1899-12", "until=2200-01",
+    ])
     def test_parametros_fora_do_contrato_sao_recusados(self, client, auth, qs):
         assert client.get(f"/trend?{qs}", headers=auth()).status_code == 422
 
@@ -214,22 +216,111 @@ class TestTrend:
         campos = set(client.get("/trend?months=1&until=2026-09", headers=h).json()[0])
         assert campos == {
             "month", "monthly_income", "extra_income", "cash_expenses",
-            "invoice", "total_spent", "available_balance",
+            "invoice", "total_spent", "month_balance", "available_balance",
         }
 
     def test_nao_mistura_lancamento_de_outro_usuario(self, client, auth):
-        ana = auth(email="ana@b.co", monthly_income="1000.00", closing_day=10)
-        bia = auth(email="bia@b.co", monthly_income="1000.00", closing_day=10)
+        ana = auth(email="ana@b.co", closing_day=10)
+        bia = auth(email="bia@b.co", closing_day=10)
         client.post("/entries", headers=ana, json=_gasto(date="2026-09-05", amount="300.00"))
         serie = client.get("/trend?months=1&until=2026-09", headers=bia).json()
         assert serie[0]["total_spent"] == "0"
+
+
+class TestRenda:
+    """Histórico da renda: cada renda vale do seu mês até a próxima registrada."""
+
+    def test_registrar_lista_em_ordem_de_mes(self, client, auth):
+        h = auth()
+        assert client.put("/incomes/2026-09", headers=h, json={"amount": "5000.00"}).json() == {
+            "month": "2026-09", "amount": "5000.00",
+        }
+        client.put("/incomes/2026-03", headers=h, json={"amount": "4000.00"})
+        assert [i["month"] for i in client.get("/incomes", headers=h).json()] == [
+            "2026-03", "2026-09",
+        ]
+
+    def test_o_mesmo_mes_duas_vezes_substitui(self, client, auth):
+        """F6: vale a última, não ficam duas."""
+        h = auth()
+        client.put("/incomes/2026-09", headers=h, json={"amount": "5000.00"})
+        client.put("/incomes/2026-09", headers=h, json={"amount": "6000.00"})
+        assert client.get("/incomes", headers=h).json() == [{"month": "2026-09", "amount": "6000.00"}]
+
+    def test_renda_muda_o_resumo_a_partir_do_mes(self, client, auth):
+        """UC5: os meses anteriores ficam com a renda anterior."""
+        h = auth()
+        client.put("/incomes/2026-08", headers=h, json={"amount": "1000.00"})
+        client.put("/incomes/2026-10", headers=h, json={"amount": "2000.00"})
+        serie = client.get("/trend?months=4&until=2026-10", headers=h).json()
+        assert [s["monthly_income"] for s in serie] == ["0", "1000.00", "1000.00", "2000.00"]
+        assert [s["available_balance"] for s in serie] == ["0", "1000.00", "2000.00", "4000.00"]
+
+    def test_apagar_volta_a_renda_anterior(self, client, auth):
+        """UC5b."""
+        h = auth()
+        client.put("/incomes/2026-08", headers=h, json={"amount": "1000.00"})
+        client.put("/incomes/2026-10", headers=h, json={"amount": "2000.00"})
+        assert client.delete("/incomes/2026-10", headers=h).status_code == 204
+        assert client.get("/summary/2026-10", headers=h).json()["monthly_income"] == "1000.00"
+
+    def test_apagar_mes_sem_renda_e_404(self, client, auth):
+        assert client.delete("/incomes/2026-10", headers=auth()).status_code == 404
+
+    # 0000 e 0001: fora de 1900–2199, o acumulado andaria séculos (revisão de segurança)
+    @pytest.mark.parametrize("mes", ["2026-13", "2026-9", "setembro", "0000-01", "0001-01", "2200-01"])
+    def test_mes_invalido_e_recusado(self, client, auth, mes):
+        """F5."""
+        h = auth()
+        assert client.put(f"/incomes/{mes}", headers=h, json={"amount": "10.00"}).status_code == 422
+        assert client.get("/incomes", headers=h).json() == []
+
+    def test_renda_negativa_e_recusada(self, client, auth):
+        """F8."""
+        r = client.put("/incomes/2026-09", headers=auth(), json={"amount": "-1.00"})
+        assert r.status_code == 422
+
+    def test_renda_acima_da_coluna_e_recusada_e_nao_500(self, client, auth):
+        r = client.put("/incomes/2026-09", headers=auth(), json={"amount": "10000000000.00"})
+        assert r.status_code == 422
+
+    def test_renda_no_limite_da_coluna_e_aceita(self, client, auth):
+        r = client.put("/incomes/2026-09", headers=auth(), json={"amount": "9999999999.99"})
+        assert r.status_code == 200
+
+    def test_renda_zero_e_aceita(self, client, auth):
+        """F7."""
+        assert client.put("/incomes/2026-09", headers=auth(), json={"amount": "0"}).status_code == 200
+
+    def test_uma_conta_nao_ve_nem_apaga_a_renda_da_outra(self, client, auth):
+        ana = auth(email="ana@b.co")
+        bia = auth(email="bia@b.co")
+        client.put("/incomes/2026-09", headers=ana, json={"amount": "5000.00"})
+        assert client.get("/incomes", headers=bia).json() == []
+        assert client.delete("/incomes/2026-09", headers=bia).status_code == 404
+        assert client.get("/summary/2026-09", headers=bia).json()["available_balance"] == "0"
+        assert len(client.get("/incomes", headers=ana).json()) == 1
+
+    def test_sem_sessao_e_401(self, client):
+        assert client.get("/incomes").status_code == 401
+        assert client.put("/incomes/2026-09", json={"amount": "1.00"}).status_code == 401
+
+    def test_auth_me_nao_tem_mais_renda(self, client, auth):
+        h = auth()
+        r = client.put("/auth/me", headers=h, json={"closing_day": 5})
+        assert r.status_code == 200
+        assert "monthly_income" not in r.json()
+
+    @pytest.mark.parametrize("mes", ["2026-13", "setembro", "1899-12", "9999-12"])
+    def test_resumo_com_mes_invalido_e_recusado(self, client, auth, mes):
+        assert client.get(f"/summary/{mes}", headers=auth()).status_code == 422
 
 
 class TestInvoices:
     """A regra de fechamento é a mais sutil do domínio — ver docs/dominio.md."""
 
     def test_compra_antes_do_fechamento_cai_na_fatura_do_mes_seguinte(self, client, auth):
-        h = auth(monthly_income="0", closing_day=10)
+        h = auth(closing_day=10)
         client.post(
             "/entries", headers=h,
             json=_gasto(date="2026-09-05", amount="300.00", method="credito", installments=1),
@@ -238,7 +329,7 @@ class TestInvoices:
         assert client.get("/invoices/2026-11", headers=h).json()["total"] == "0"
 
     def test_compra_no_dia_do_fechamento_pula_uma_fatura(self, client, auth):
-        h = auth(monthly_income="0", closing_day=10)
+        h = auth(closing_day=10)
         client.post(
             "/entries", headers=h,
             json=_gasto(date="2026-09-10", amount="300.00", method="credito", installments=1),
@@ -247,7 +338,7 @@ class TestInvoices:
         assert client.get("/invoices/2026-11", headers=h).json()["total"] == "300.00"
 
     def test_parcelas_se_espalham_por_meses_consecutivos(self, client, auth):
-        h = auth(monthly_income="0", closing_day=10)
+        h = auth(closing_day=10)
         client.post(
             "/entries", headers=h,
             json=_gasto(date="2026-09-05", amount="300.00", method="credito",
@@ -260,15 +351,15 @@ class TestInvoices:
         assert all(f["items"][0]["description"] == "TV" for f in faturas)
 
     def test_gasto_a_vista_nunca_entra_na_fatura(self, client, auth):
-        h = auth(monthly_income="0", closing_day=10)
+        h = auth(closing_day=10)
         client.post("/entries", headers=h, json=_gasto(date="2026-09-05", amount="300.00"))
         assert client.get("/invoices/2026-10", headers=h).json() == {
             "month": "2026-10", "total": "0", "items": [],
         }
 
     def test_fatura_de_um_nao_mostra_compra_do_outro(self, client, auth):
-        ana = auth(email="ana@b.co", monthly_income="0", closing_day=10)
-        bia = auth(email="bia@b.co", monthly_income="0", closing_day=10)
+        ana = auth(email="ana@b.co", closing_day=10)
+        bia = auth(email="bia@b.co", closing_day=10)
         client.post(
             "/entries", headers=ana,
             json=_gasto(date="2026-09-05", amount="300.00", method="credito", installments=1),
