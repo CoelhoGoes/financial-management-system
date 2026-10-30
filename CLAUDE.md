@@ -136,6 +136,8 @@ frontend/
     │       ├── CategoryDonut.tsx  category donut, lazy-loaded for the same reason
     │       ├── ChartSwatch.tsx    color square for chart legends and tooltips
     │       ├── ChartTooltipRow.tsx  "name … R$ value" tooltip row
+    │       ├── LineIcon.tsx       line/dashed marker for line series in legend and tooltip
+    │       ├── EdgeToEdgeCurve.tsx  Line shape that stretches a series to the chart edges
     │       └── ui/            shadcn components: badge, button, card, chart, checkbox,
     │                          dialog, input, label, native-select, table, toggle,
     │                          toggle-group
@@ -149,7 +151,8 @@ frontend/
         ├── types.ts           short names for the generated types
         ├── categories.ts      closed category lists, mirrors docs/dominio.md
         └── format.ts          currentMonth() / formatCurrency() / formatPercent()
-                               / shiftMonth() / formatMonthShort() / formatDayMonth()
+                               / formatCurrencyInteger() / shiftMonth()
+                               / formatMonthShort() / formatDayMonth()
 docs/dominio.md               business rules in prose
 docs/features/                one doc per feature, opened at step 1 of the skills flow
 docker-compose.yml            repo root
@@ -199,7 +202,7 @@ npm run gen:types  # regenerate src/shared/api-schema.d.ts from the running API
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 136 tests (1 skipped on sqlite), ~15s
 
-cd frontend && npm test                       # 107 tests, ~6s
+cd frontend && npm test                       # 114 tests, ~6s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain

@@ -152,7 +152,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 136 testes (1 pulado em sqlite), ~15s
 
-cd frontend && npm test                       # 107 testes, ~6s
+cd frontend && npm test                       # 114 testes, ~6s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -212,6 +212,8 @@ frontend/
     │       ├── CategoryDonut.tsx  rosca de gasto por categoria (carregada sob demanda)
     │       ├── ChartSwatch.tsx    quadradinho de cor das legendas e tooltips
     │       ├── ChartTooltipRow.tsx  linha "nome … R$ valor" dos tooltips
+    │       ├── LineIcon.tsx       traço das séries de linha na legenda e no tooltip
+    │       ├── EdgeToEdgeCurve.tsx  estica uma linha do gráfico até as bordas
     │       └── ui/             componentes shadcn (badge, button, card, chart, checkbox,
     │                           dialog, input, label, native-select, table, toggle,
     │                           toggle-group)
@@ -225,7 +227,8 @@ frontend/
         ├── types.ts        nomes curtos para os tipos gerados
         ├── categories.ts   listas fechadas de categoria, espelha docs/dominio.md
         └── format.ts       currentMonth() / formatCurrency() / formatPercent()
-                            / shiftMonth() / formatMonthShort() / formatDayMonth()
+                            / formatCurrencyInteger() / shiftMonth()
+                            / formatMonthShort() / formatDayMonth()
 
 dev.sh                 na raiz — sobe tudo numa linha
 docker-compose.yml     na raiz

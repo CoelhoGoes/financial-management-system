@@ -15,6 +15,13 @@ export function formatCurrency(value: string) {
   return BRL.format(Number(value))
 }
 
+// Reais sem centavos (4057.3 -> "4.057"), para eixo de gráfico, onde centavo é ruído.
+const BRL_INTEGER = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
+
+export function formatCurrencyInteger(value: number) {
+  return BRL_INTEGER.format(value)
+}
+
 // Fração (0.494) -> "49,4%", na mesma convenção do formatCurrency.
 const PERCENT = new Intl.NumberFormat('pt-BR', {
   style: 'percent',

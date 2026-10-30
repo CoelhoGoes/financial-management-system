@@ -24,6 +24,9 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   no celular as abas aparecem só com o ícone
 - O gasto por categoria no resumo virou um gráfico de rosca com o total do mês no centro; as
   cinco maiores categorias aparecem uma a uma e as demais ficam agrupadas em "Outras"
+- O gráfico de tendência do resumo ganhou legenda, valores no eixo vertical e um ponto por mês
+  na linha do saldo; o período (3, 6 ou 12 meses) virou um seletor, e a linha da renda e os
+  nomes dos meses ficaram legíveis no tema escuro
 - A aba do navegador mostra o nome da tela aberta (Resumo, Lançamentos, Fatura, Importar,
   Configurações, Entrar) em vez de "frontend-tmp", e a página se declara em português, então
   leitores de tela leem com a pronúncia certa e o navegador não oferece tradução

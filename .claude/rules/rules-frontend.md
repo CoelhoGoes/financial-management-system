@@ -44,7 +44,8 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
 - **`shared/format.ts`** — `currentMonth()` (`SummaryScreen`, `EntryScreen`, `InvoiceScreen`),
   `formatCurrency()` (those three plus `ImportScreen` and `TrendChart`), `formatPercent()`
   (`SummaryScreen`), `shiftMonth()` (`MonthNav`, which every month stepper goes
-  through), `formatMonthShort()` (`TrendChart`) and `formatDayMonth()` (`ImportScreen`, which
+  through), `formatMonthShort()` and `formatCurrencyInteger()` (`TrendChart`, the axis shows whole
+  reais) and `formatDayMonth()` (`ImportScreen`, which
   shows a statement line as `21/09` — the year is noise inside one statement). Money and
   percentages go through `Intl.NumberFormat('pt-BR')`, so they read `4.057,30` and `49,4%` —
   never format a number inline in a screen.
@@ -65,6 +66,16 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
   `ChartConfig` key**: shadcn's `ChartStyle` writes the keys raw into a `<style>` via
   `dangerouslySetInnerHTML`, and the API accepts any category text — key by position
   (`slice-0`…) and put the text in `label` (`CategoryDonut.test.tsx` guards this).
+  `ChartTooltipRow` also takes a `marker` that replaces the square: `TrendChart` passes
+  `LineIcon` (solid for the balance, dashed for income) so the tooltip repeats the legend's
+  markers. `EdgeToEdgeCurve` is the `shape` of `TrendChart`'s lines — on a category axis
+  recharts places each point at the centre of its band, and the shape stretches the curve to
+  the plot edges via `usePlotArea`. Income is a constant `Line`, not a `ReferenceLine`: the
+  recharts 3.8 `Legend` takes no `payload`, so only series reach the legend.
+  **Axis label colour goes through the axis `tick={{ fill }}` prop**: shadcn's
+  `[&_.recharts-cartesian-axis-tick_text]` selector does not match recharts 3.8 (the text is
+  `.recharts-cartesian-axis-tick-value`), so labels fall back to recharts' fixed `#666` and a
+  class on `ChartContainer` does nothing.
 - **Tests** — `npm test` (vitest + jsdom, config in `vite.config.ts`). `shared/format.test.ts`
   covers the pure helpers; every screen and the shared components with behaviour (`Header`,
   `MonthNav`, `TrendChart`, `CategoryDonut`) have a `.test.tsx` beside them, rendering with
@@ -101,7 +112,9 @@ backend parses it into `Decimal` exactly.
 - **Check shadcn before building anything by hand.** Search the registry
   (`npx shadcn@latest search <termo>`, or the catalogue in `.agents/skills/shadcn/`) *before*
   writing a component yourself or reaching for another library. The theme already ships the
-  tokens its components expect — semantic colours and `--chart-1..5` — so anything hand-rolled
+  tokens its components expect — semantic colours and `--chart-1..5` (plus our own
+  `--chart-income`, amber, for the trend chart's income line until a new palette replaces
+  it) — so anything hand-rolled
   falls outside that consistency. If shadcn has it and you still choose not to use it, say why.
   This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
   from being written when `Chart` exists.

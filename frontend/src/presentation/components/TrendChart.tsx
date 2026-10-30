@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, XAxis, YAxis } from 'recharts'
+import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from 'recharts'
 import { api } from '@/data/api'
-import { formatMonthShort } from '@/shared/format'
+import { formatCurrencyInteger, formatMonthShort } from '@/shared/format'
 import type { Summary } from '@/shared/types'
-import { Button } from '@/presentation/components/ui/button'
+import { NativeSelect, NativeSelectOption } from '@/presentation/components/ui/native-select'
 import { ChartTooltipRow } from '@/presentation/components/ChartTooltipRow'
+import { EdgeToEdgeCurve } from '@/presentation/components/EdgeToEdgeCurve'
+import { LineIcon } from '@/presentation/components/LineIcon'
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -19,10 +23,22 @@ const PRESETS = [3, 6, 12] as const
 // Os tokens --chart-* são uma rampa de verdes iguais nos dois temas, então a ordem
 // importa: as barras ficam com dois tons distinguíveis entre si e o saldo usa
 // --foreground, que inverte com o tema e é o traço mais legível sobre qualquer fundo.
+// A renda é uma série de valor constante, não uma ReferenceLine: só assim entra na legenda
+// do shadcn (o Legend do recharts 3.8 não aceita item avulso) e some dela junto com a linha
+// quando a renda é zero.
 const config = {
   cash_expenses: { label: 'À vista', color: 'var(--chart-2)' },
   invoice: { label: 'Fatura', color: 'var(--chart-4)' },
-  available_balance: { label: 'Saldo', color: 'var(--foreground)' },
+  available_balance: {
+    label: 'Saldo',
+    color: 'var(--foreground)',
+    icon: () => <LineIcon color="var(--color-available_balance)" />,
+  },
+  income: {
+    label: 'Renda',
+    color: 'var(--chart-income)',
+    icon: () => <LineIcon color="var(--color-income)" dashed />,
+  },
 } satisfies ChartConfig
 
 interface Point {
@@ -30,12 +46,12 @@ interface Point {
   cash_expenses: number
   invoice: number
   available_balance: number
+  income: number
 }
 
 export function TrendChart({ until }: { until: string }) {
   const [months, setMonths] = useState<number>(6)
   const [points, setPoints] = useState<Point[] | null>(null)
-  const [income, setIncome] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -52,9 +68,9 @@ export function TrendChart({ until }: { until: string }) {
             cash_expenses: Number(s.cash_expenses),
             invoice: Number(s.invoice),
             available_balance: Number(s.available_balance),
+            income: Number(s.monthly_income),
           })),
         )
-        setIncome(Number(data.at(-1)?.monthly_income ?? 0))
       })
       .catch((e: Error) => ativo && setError(e.message))
     return () => {
@@ -62,61 +78,71 @@ export function TrendChart({ until }: { until: string }) {
     }
   }, [months, until])
 
+  // a renda vem da configuração do usuário, igual em todo mês (service.py); zero = não informada
+  const hasIncome = points?.some((p) => p.income > 0) ?? false
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
+      <NativeSelect
+        size="sm"
+        aria-label="Período"
+        value={months}
+        onChange={(e) => setMonths(Number(e.target.value))}
+      >
         {PRESETS.map((n) => (
-          <Button
-            key={n}
-            type="button"
-            size="sm"
-            variant={n === months ? 'default' : 'outline'}
-            aria-pressed={n === months}
-            onClick={() => setMonths(n)}
-          >
+          <NativeSelectOption key={n} value={n}>
             {n} meses
-          </Button>
+          </NativeSelectOption>
         ))}
-      </div>
+      </NativeSelect>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {!points && !error && <p className="text-sm text-muted-foreground">Carregando…</p>}
 
       {points && (
-        <ChartContainer config={config} className="h-56 w-full">
+        <ChartContainer config={config} className="h-64 w-full">
           <ComposedChart data={points} accessibilityLayer>
             <CartesianGrid vertical={false} />
-            {/* eixo escondido, mas o domínio precisa alcançar a renda — senão a linha de
-                referência fica fora da área visível e simplesmente não aparece */}
-            <YAxis hide domain={[0, (max: number) => Math.max(max, income) * 1.05]} />
+            {/* rótulos em --foreground: o cinza #666 que o recharts põe some no tema escuro, e o
+                seletor do shadcn que o trocaria (.recharts-cartesian-axis-tick text) não casa
+                com o recharts 3.8 */}
+            <YAxis
+              width="auto"
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: 'var(--foreground)' }}
+              tickFormatter={formatCurrencyInteger}
+            />
             <XAxis
               dataKey="month"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
+              tick={{ fill: 'var(--foreground)' }}
               tickFormatter={formatMonthShort}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
                   labelFormatter={(v) => formatMonthShort(String(v))}
-                  formatter={(value, name) => (
-                    <ChartTooltipRow
-                      name={config[name as keyof typeof config]?.label ?? String(name)}
-                      value={value as number}
-                    />
-                  )}
+                  // o mesmo marcador da legenda: quadradinho nas barras, traço nas linhas
+                  formatter={(value, name, item) => {
+                    const itemConfig = config[name as keyof typeof config]
+                    const Icon = itemConfig && 'icon' in itemConfig ? itemConfig.icon : undefined
+                    return (
+                      <ChartTooltipRow
+                        name={itemConfig?.label ?? String(name)}
+                        value={value as number}
+                        color={item.color}
+                        marker={Icon && <Icon />}
+                      />
+                    )
+                  }}
                 />
               }
             />
-            {income > 0 && (
-              <ReferenceLine
-                y={income}
-                strokeDasharray="4 4"
-                stroke="var(--muted-foreground)"
-                label={{ value: 'renda', position: 'insideTopLeft', fontSize: 11 }}
-              />
-            )}
+            {/* itemSorter null: a legenda segue a ordem das séries abaixo, não a alfabética */}
+            <ChartLegend itemSorter={null} content={<ChartLegendContent />} />
             {/* isAnimationActive={false}: com a animação ligada o recharts 3.8 monta os
                 grupos das barras vazios, sem nenhum path. A linha não é afetada. */}
             <Bar dataKey="cash_expenses" stackId="gasto" fill="var(--color-cash_expenses)" isAnimationActive={false} radius={[0, 0, 2, 2]} />
@@ -126,8 +152,21 @@ export function TrendChart({ until }: { until: string }) {
               type="monotone"
               stroke="var(--color-available_balance)"
               strokeWidth={2}
-              dot={false}
+              shape={<EdgeToEdgeCurve />}
+              dot={{ fill: 'var(--color-available_balance)' }}
+              activeDot={{ r: 6 }}
             />
+            {hasIncome && (
+              <Line
+                dataKey="income"
+                stroke="var(--color-income)"
+                strokeWidth={2}
+                strokeDasharray="4 4"
+                shape={<EdgeToEdgeCurve />}
+                dot={false}
+                activeDot={false}
+              />
+            )}
           </ComposedChart>
         </ChartContainer>
       )}

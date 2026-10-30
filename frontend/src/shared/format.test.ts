@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { currentMonth, formatCurrency, formatDayMonth, formatPercent, shiftMonth } from './format'
+import {
+  currentMonth,
+  formatCurrency,
+  formatCurrencyInteger,
+  formatDayMonth,
+  formatPercent,
+  shiftMonth,
+} from './format'
 
 describe('formatCurrency', () => {
   it.each([
@@ -16,6 +23,19 @@ describe('formatCurrency', () => {
   it('sempre mostra duas casas, porque é dinheiro', () => {
     expect(formatCurrency('7')).toBe('7,00')
     expect(formatCurrency('7.1')).toBe('7,10')
+  })
+})
+
+// UC5/F9 do gráfico de tendência: o eixo vertical mostra reais inteiros
+describe('formatCurrencyInteger', () => {
+  it.each([
+    [2000, '2.000'],
+    [6500, '6.500'],
+    [0, '0'],
+    [4057.3, '4.057'],
+    [12345678, '12.345.678'],
+  ])('formata %s como %s, sem centavos', (entrada, esperado) => {
+    expect(formatCurrencyInteger(entrada)).toBe(esperado)
   })
 })
 
