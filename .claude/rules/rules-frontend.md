@@ -14,7 +14,11 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
   `http://localhost:8000`. Token lives in `localStorage` under `gf:token`. It declares
   `Content-Type: application/json` **except** when the body is a `FormData` (the OFX upload in
   `previewImport`): there the browser must set the header itself, because only it knows the
-  multipart boundary. Declaring it by hand makes the request arrive unparseable.
+  multipart boundary. Declaring it by hand makes the request arrive unparseable. Error
+  messages go through `errorMessage`: a string `detail` is shown as is, and the list a 422
+  brings (Pydantic errors, in English) becomes one Portuguese sentence per error, from the
+  error `type` and the field's label in `FIELD_LABELS` — a new form field needs its label
+  there, or it falls back to a generic sentence. Covered by `api.test.ts`.
 - **`state/auth-context.tsx`** — `AuthProvider` wraps the app in `main.tsx` and owns `user`,
   `loading`, `error`. On mount, if a token exists it calls `/auth/me` to rehydrate the session.
   `useAuth()` throws outside the provider. All screens read auth state from here, never from
