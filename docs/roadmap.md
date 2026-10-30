@@ -10,14 +10,18 @@ usuário é registrado no `CHANGELOG.md`.
 
 ## Em andamento
 
-- [ ] Revisar a estrutura do frontend quanto aos componentes: confirmar que cada componente
-      está no próprio arquivo, sem dividir arquivo com outros. Pedido em 29/10/2026, depois de
-      separar a rosca do `TrendChart.tsx` na revisão estrutural do layout para desktop
+- [ ] Saldo cumulativo: o saldo positivo ou negativo de um mês passa para o seguinte. Hoje
+      cada mês é isolado — `calculate_summary` (`service.py`) só usa renda, entradas, gastos à
+      vista e fatura do próprio mês. Pedido em 29/10/2026. Muda regra de negócio em
+      `service.py` e o significado do saldo no resumo e na tendência
 
 ## Próximo
 
 Na ordem combinada em 02/10/2026: proteger o que já existe, produto, saúde do código.
 
+- [ ] Revisar a estrutura do frontend quanto aos componentes: confirmar que cada componente
+      está no próprio arquivo, sem dividir arquivo com outros. Pedido em 29/10/2026, depois de
+      separar a rosca do `TrendChart.tsx` na revisão estrutural do layout para desktop
 - [ ] Validar a categoria contra a lista fechada também no servidor. Hoje `EntryCreate.category`
       aceita qualquer texto de 1 a 50 caracteres (`schemas.py`); a lista de `docs/dominio.md` só
       é imposta pelo seletor do frontend. Achado da revisão de segurança de 29/10/2026 — uma
