@@ -36,6 +36,9 @@
   --chart-4: oklch(0.527 0.154 150.069);
   --chart-5: oklch(0.448 0.119 151.328);
   --radius: 0.625rem;
+  /* altura da navbar a partir de md, onde ela cabe numa linha. O formulário fixo de
+     Lançamentos gruda logo abaixo dela; abaixo de md a navbar tem duas linhas e altura livre */
+  --header-height: 3.3125rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.627 0.194 149.214);

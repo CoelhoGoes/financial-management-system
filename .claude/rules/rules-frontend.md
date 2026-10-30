@@ -48,21 +48,32 @@ importing none of them. The dependency rule is in `CLAUDE.md` → **Architecture
   shows a statement line as `21/09` — the year is noise inside one statement). Money and
   percentages go through `Intl.NumberFormat('pt-BR')`, so they read `4.057,30` and `49,4%` —
   never format a number inline in a screen.
-- **`presentation/components/`** (outside `ui/`) — `Header` is the nav bar every authenticated
-  screen mounts; its button row wraps (`flex-wrap`) because four tabs plus the gear and "Sair" do
-  not fit one line on a phone. `MonthNav` is the month stepper shared by `SummaryScreen`,
-  `EntryScreen` and `InvoiceScreen`, and deliberately does **not** use the shadcn `Pagination` —
-  that one renders anchors, since it was built for pages that have a URL, and an anchor without
-  `href` breaks keyboard and screen reader. `TrendChart` is lazy-loaded from `SummaryScreen`
-  (`React.lazy` + `Suspense`) so recharts stays out of the main bundle.
+- **`presentation/components/`** (outside `ui/`) — `Page` is the shell every authenticated
+  screen mounts: `Header` plus a `<main>` capped at `max-w-6xl`; each screen passes its own
+  `md:grid` (or a narrower `max-w-3xl`) through `className`, and below `md` everything is one
+  column in the phone's order. `Header` is the full-width sticky nav bar: from `md` it fits one
+  line and is exactly `--header-height` tall (`index.css`), which the sticky form in
+  `EntryScreen` uses as its `top` — anything new in the bar must keep it on one line between
+  `md` and `lg` (that is why the email only shows from `lg`). Below `md` the tabs drop to a
+  second row, icon only, label kept in `sr-only`. `MonthNav` is the month stepper shared by
+  `SummaryScreen`, `EntryScreen` and `InvoiceScreen`, and deliberately does **not** use the
+  shadcn `Pagination` — that one renders anchors, since it was built for pages that have a URL,
+  and an anchor without `href` breaks keyboard and screen reader. `TrendChart` and
+  `CategoryDonut` are lazy-loaded from `SummaryScreen` (`React.lazy` + `Suspense`) so recharts
+  stays out of the main bundle. `ChartSwatch` (colour square) and `ChartTooltipRow` ("name … R$
+  value") are shared by both charts' tooltips and the donut legend. **Never use API data as a
+  `ChartConfig` key**: shadcn's `ChartStyle` writes the keys raw into a `<style>` via
+  `dangerouslySetInnerHTML`, and the API accepts any category text — key by position
+  (`slice-0`…) and put the text in `label` (`CategoryDonut.test.tsx` guards this).
 - **Tests** — `npm test` (vitest + jsdom, config in `vite.config.ts`). `shared/format.test.ts`
-  covers the pure helpers; every screen and both shared components have a `.test.tsx` beside them,
-  rendering with `@testing-library/react` and mocking `@/data/api`. Mock fixtures are typed against
+  covers the pure helpers; every screen and the shared components with behaviour (`Header`,
+  `MonthNav`, `TrendChart`, `CategoryDonut`) have a `.test.tsx` beside them, rendering with
+  `@testing-library/react` and mocking `@/data/api`. Mock fixtures are typed against
   `shared/types.ts`, so a fixture with a wrong field type fails `npm run build`. Those mocks are
   hand-written, so they do **not** catch a backend contract change — a field can disappear from
   `Summary` and the test stays green. The gap is wider than it looks for the OFX upload: the
-  multipart request itself is never exercised here (vitest mocks `@/data/api`) nor in pytest (which
-  runs no JavaScript), so that seam is only ever checked by hand.
+  multipart request itself is never exercised here (vitest mocks `@/data/api`) nor in pytest
+  (which runs no JavaScript), so that seam is only ever checked by hand.
 - **`App.tsx`** — route table only (`/login`, `/`, `/lancamentos`, `/fatura`, `/importar`,
   `/configuracoes`), via `react-router`. `main.tsx` wraps the app in `BrowserRouter` +
   `AuthProvider`. Screens live one per file in `src/presentation/pages/` (`LoginScreen`,
@@ -95,10 +106,10 @@ backend parses it into `Decimal` exactly.
   This rule fires **before** the decision, not after: it is what stops a hand-made bar chart
   from being written when `Chart` exists.
 - **Installed so far**: `Button`, `Input`, `Label`, `Card`, `Table`, `Chart`, `Checkbox`,
-  `Badge`, `NativeSelect`, `Toggle`, `ToggleGroup` (`src/presentation/components/ui/`). `Chart`
-  wraps recharts — that is why `TrendChart` is lazy-loaded (see the `presentation/components/`
-  item above). Install more with the shadcn CLI (`npx shadcn@latest add <name>`) rather than
-  writing them by hand.
+  `Badge`, `Dialog`, `NativeSelect`, `Toggle`, `ToggleGroup`
+  (`src/presentation/components/ui/`). `Chart` wraps recharts — that is why the charts are
+  lazy-loaded (see the `presentation/components/` item above). Install more with the shadcn CLI
+  (`npx shadcn@latest add <name>`) rather than writing them by hand.
 - **Closed-choice fields**: category (in `EntryScreen` and on each `ImportScreen` line) is a
   `NativeSelect`, not the Base UI `Select` popup — a real `<select>` keeps the phone's native
   picker, the form's `required` and `selectOptions` in tests. Two-option choices (type, method,
@@ -107,7 +118,8 @@ backend parses it into `Decimal` exactly.
 - **Local edits to shadcn files** — re-apply them if a component is reinstalled with
   `--overwrite`: `native-select.tsx` uses `text-base md:text-sm` like `Input` (shadcn ships
   `text-sm`, and below 16px iOS Safari zooms the page on focus); `toggle.tsx` styles the pressed
-  item as filled `primary`, like `Button`'s default, instead of shadcn's faint `bg-muted`.
+  item as filled `primary`, like `Button`'s default, instead of shadcn's faint `bg-muted`;
+  `dialog.tsx` reads "Fechar" in the close button's `sr-only` text (shadcn ships "Close").
 - Use the `@/` alias for every import inside `src/` (`@/presentation/components/ui/button`,
   `@/data/api`). `components.json` aliases point into `src/presentation/`, so the shadcn CLI
   writes new components there.

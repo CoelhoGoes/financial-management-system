@@ -10,7 +10,7 @@ import { Label } from '@/presentation/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/presentation/components/ui/native-select'
 import { ToggleGroup, ToggleGroupItem } from '@/presentation/components/ui/toggle-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
-import { Header } from '@/presentation/components/Header'
+import { Page } from '@/presentation/components/Page'
 import { MonthNav } from '@/presentation/components/MonthNav'
 
 /** Hoje no fuso de quem usa. Não use toISOString: ele dá a data em UTC, e no horário de
@@ -182,151 +182,155 @@ export function EntryScreen() {
   const categories = form.type === 'gasto' ? GASTO_CATEGORIES : ENTRADA_CATEGORIES
 
   return (
-    <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
-      <Header active="lancamentos" className="max-w-sm" />
+    // no desktop: saldo + formulário à esquerda, grudados abaixo da navbar (--header-height + o
+    // p-6 do <main>), para editar um item no fim da lista sem a página pular.
+    // Só gruda com 48rem de altura: numa janela baixa (iPhone deitado) o formulário é mais alto
+    // que a tela, e grudado o "Salvar" ficaria inalcançável até o fim da lista
+    <Page active="lancamentos" className="md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-start">
+      <div className="flex flex-col gap-6 md:[@media(min-height:48rem)]:sticky md:top-[calc(var(--header-height)+--spacing(6))]">
+        {summary && (
+          <Card>
+            <CardContent>
+              <dl className="flex items-center justify-between text-sm">
+                <dt className="text-muted-foreground">Saldo disponível — {month}</dt>
+                <dd className="font-medium">
+                  R$ {formatCurrency(summary.available_balance)}
+                </dd>
+              </dl>
+            </CardContent>
+          </Card>
+        )}
 
-      {summary && (
-        <Card className="w-full max-w-sm">
-          <CardContent>
-            <dl className="flex items-center justify-between text-sm">
-              <dt className="text-muted-foreground">Saldo disponível — {month}</dt>
-              <dd className="font-medium">
-                R$ {formatCurrency(summary.available_balance)}
-              </dd>
-            </dl>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="w-full max-w-sm">
-        <form onSubmit={onSubmit}>
-          <CardHeader>
-            <CardTitle>{editingId === null ? 'Novo lançamento' : 'Editar lançamento'}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {/* clicar no já escolhido devolve []: o campo nunca fica sem valor */}
-            <ToggleGroup
-              aria-label="Tipo"
-              variant="outline"
-              spacing={0}
-              className="w-full"
-              value={[form.type]}
-              onValueChange={(v) => v[0] && updateForm('type', v[0] as EntryType)}
-            >
-              <ToggleGroupItem value="gasto" className="flex-1">
-                Gasto
-              </ToggleGroupItem>
-              <ToggleGroupItem value="entrada" className="flex-1">
-                Entrada
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="description">Descrição</Label>
-              <Input
-                ref={descriptionRef}
-                id="description"
-                type="text"
-                maxLength={200}
-                value={form.description}
-                onChange={(e) => updateForm('description', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="category">Categoria</Label>
-              <NativeSelect
-                id="category"
+        <Card>
+          <form onSubmit={onSubmit}>
+            <CardHeader>
+              <CardTitle>{editingId === null ? 'Novo lançamento' : 'Editar lançamento'}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              {/* clicar no já escolhido devolve []: o campo nunca fica sem valor */}
+              <ToggleGroup
+                aria-label="Tipo"
+                variant="outline"
+                spacing={0}
                 className="w-full"
-                value={form.category}
-                onChange={(e) => updateForm('category', e.target.value)}
-                required
+                value={[form.type]}
+                onValueChange={(v) => v[0] && updateForm('type', v[0] as EntryType)}
               >
-                <NativeSelectOption value="">Selecione</NativeSelectOption>
-                {categories.map((c) => (
-                  <NativeSelectOption key={c} value={c}>
-                    {c}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </div>
+                <ToggleGroupItem value="gasto" className="flex-1">
+                  Gasto
+                </ToggleGroupItem>
+                <ToggleGroupItem value="entrada" className="flex-1">
+                  Entrada
+                </ToggleGroupItem>
+              </ToggleGroup>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="amount">Valor</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={form.amount}
-                onChange={(e) => updateForm('amount', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="date">Data</Label>
-              <Input
-                id="date"
-                type="date"
-                value={form.date}
-                onChange={(e) => updateForm('date', e.target.value)}
-                required
-              />
-            </div>
-
-            {form.type === 'gasto' && (
               <div className="flex flex-col gap-1.5">
-                <Label id="method-label">Forma</Label>
-                <ToggleGroup
-                  aria-labelledby="method-label"
-                  variant="outline"
-                  spacing={0}
-                  className="w-full"
-                  value={[form.method]}
-                  onValueChange={(v) => v[0] && updateForm('method', v[0] as EntryMethod)}
-                >
-                  <ToggleGroupItem value="avista" className="flex-1">
-                    À vista
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="credito" className="flex-1">
-                    Crédito
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            )}
-
-            {form.type === 'gasto' && form.method === 'credito' && (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="installments">Parcelas</Label>
+                <Label htmlFor="description">Descrição</Label>
                 <Input
-                  id="installments"
-                  type="number"
-                  min={1}
-                  max={48}
-                  value={form.installments}
-                  onChange={(e) => updateForm('installments', e.target.value)}
+                  ref={descriptionRef}
+                  id="description"
+                  type="text"
+                  maxLength={200}
+                  value={form.description}
+                  onChange={(e) => updateForm('description', e.target.value)}
                   required
                 />
               </div>
-            )}
 
-            {formError && <p className="text-sm text-destructive">{formError}</p>}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="category">Categoria</Label>
+                <NativeSelect
+                  id="category"
+                  className="w-full"
+                  value={form.category}
+                  onChange={(e) => updateForm('category', e.target.value)}
+                  required
+                >
+                  <NativeSelectOption value="">Selecione</NativeSelectOption>
+                  {categories.map((c) => (
+                    <NativeSelectOption key={c} value={c}>
+                      {c}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
 
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Salvando...' : 'Salvar'}
-            </Button>
-            {editingId !== null && (
-              <Button type="button" variant="outline" onClick={stopEditing}>
-                Cancelar
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="amount">Valor</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={form.amount}
+                  onChange={(e) => updateForm('amount', e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="date">Data</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => updateForm('date', e.target.value)}
+                  required
+                />
+              </div>
+
+              {form.type === 'gasto' && (
+                <div className="flex flex-col gap-1.5">
+                  <Label id="method-label">Forma</Label>
+                  <ToggleGroup
+                    aria-labelledby="method-label"
+                    variant="outline"
+                    spacing={0}
+                    className="w-full"
+                    value={[form.method]}
+                    onValueChange={(v) => v[0] && updateForm('method', v[0] as EntryMethod)}
+                  >
+                    <ToggleGroupItem value="avista" className="flex-1">
+                      À vista
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="credito" className="flex-1">
+                      Crédito
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              )}
+
+              {form.type === 'gasto' && form.method === 'credito' && (
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="installments">Parcelas</Label>
+                  <Input
+                    id="installments"
+                    type="number"
+                    min={1}
+                    max={48}
+                    value={form.installments}
+                    onChange={(e) => updateForm('installments', e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              {formError && <p className="text-sm text-destructive">{formError}</p>}
+
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Salvando...' : 'Salvar'}
               </Button>
-            )}
-          </CardContent>
-        </form>
-      </Card>
+              {editingId !== null && (
+                <Button type="button" variant="outline" onClick={stopEditing}>
+                  Cancelar
+                </Button>
+              )}
+            </CardContent>
+          </form>
+        </Card>
+      </div>
 
-      <Card className="w-full max-w-sm">
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Lançamentos — {month}</CardTitle>
@@ -387,6 +391,6 @@ export function EntryScreen() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </Page>
   )
 }

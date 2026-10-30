@@ -40,6 +40,10 @@ function montar() {
   )
 }
 
+// UC7/F7: a grade do desktop vem do CSS; a ordem no HTML (celular, Tab, leitor de tela) não muda
+const vemAntes = (a: Node, b: Node) =>
+  Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+
 describe('EntryScreen', () => {
   beforeEach(() => {
     vi.mocked(api.me).mockResolvedValue({ id: 1, email: 'a@b.co', monthly_income: '5000.00', closing_day: 10 })
@@ -394,5 +398,14 @@ describe('EntryScreen', () => {
   it('mostra o saldo disponível vindo do resumo', async () => {
     montar()
     expect(await screen.findByText('R$ 4.000,00')).toBeInTheDocument()
+  })
+
+  it('mantém a ordem saldo → formulário → lista', async () => {
+    montar()
+    const saldo = await screen.findByText(/^Saldo disponível —/)
+    const formulario = screen.getByText('Novo lançamento')
+    const lista = screen.getByText(/^Lançamentos —/)
+    expect(vemAntes(saldo, formulario)).toBe(true)
+    expect(vemAntes(formulario, lista)).toBe(true)
   })
 })

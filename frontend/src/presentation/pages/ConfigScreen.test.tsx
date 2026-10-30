@@ -35,6 +35,10 @@ function montar() {
   )
 }
 
+// UC7/F7: a grade do desktop vem do CSS; a ordem no HTML (celular, Tab, leitor de tela) não muda
+const vemAntes = (a: Node, b: Node) =>
+  Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+
 describe('ConfigScreen', () => {
   beforeEach(() => {
     vi.mocked(api.me).mockResolvedValue(USUARIO)
@@ -180,5 +184,14 @@ describe('ConfigScreen', () => {
   it('o título da aba é o nome da tela', async () => {
     montar()
     await waitFor(() => expect(document.title).toBe('Configurações'))
+  })
+
+  it('mantém a ordem dados → aparência → excluir conta', async () => {
+    montar()
+    const dados = await screen.findByLabelText('Renda mensal')
+    const aparencia = screen.getByText('Aparência')
+    const excluir = screen.getByText('Excluir conta')
+    expect(vemAntes(dados, aparencia)).toBe(true)
+    expect(vemAntes(aparencia, excluir)).toBe(true)
   })
 })

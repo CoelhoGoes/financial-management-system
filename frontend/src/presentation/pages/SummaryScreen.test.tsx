@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -29,6 +29,13 @@ const resumo = (monthly_income: string) => ({
   available_balance: monthly_income,
 })
 
+const LAZER = {
+  category: 'Lazer',
+  total: '400.00',
+  share: '1',
+  items: [{ description: 'Televisão', amount: '400.00', installment: 3, total_installments: 9 }],
+}
+
 function montar() {
   return render(
     <MemoryRouter>
@@ -38,6 +45,10 @@ function montar() {
     </MemoryRouter>,
   )
 }
+
+// UC7/F7: a grade do desktop vem do CSS; a ordem no HTML (celular, Tab, leitor de tela) não muda
+const vemAntes = (a: Node, b: Node) =>
+  Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
 
 describe('SummaryScreen', () => {
   beforeEach(() => {
@@ -87,24 +98,80 @@ describe('SummaryScreen', () => {
     expect(api.categories).toHaveBeenCalledWith(anterior)
   })
 
-  it('mostra a categoria com percentual e o número da parcela', async () => {
+  it('a legenda mostra só nome e percentual da categoria, sem os itens', async () => {
+    vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
+    vi.mocked(api.categories).mockResolvedValue([LAZER])
+    montar()
+    const legenda = await screen.findByRole('button', { name: /Lazer/ })
+    expect(legenda).toHaveTextContent('100,0%')
+    expect(screen.queryByText(/Televisão/)).not.toBeInTheDocument()
+  })
+
+  it('passando de cinco categorias, as menores viram "Outras", que abre todas no popup', async () => {
+    const user = userEvent.setup()
+    const categoria = (category: string, total: string, share: string) => ({
+      category,
+      total,
+      share,
+      items: [{ description: `item de ${category}`, amount: total, installment: null, total_installments: null }],
+    })
     vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
     vi.mocked(api.categories).mockResolvedValue([
-      {
-        category: 'Lazer',
-        total: '400.00',
-        share: '1',
-        items: [{ description: 'Televisão', amount: '400.00', installment: 3, total_installments: 9 }],
-      },
+      categoria('Moradia', '700.00', '0.35'),
+      categoria('Mercado', '500.00', '0.25'),
+      categoria('Transporte', '300.00', '0.15'),
+      categoria('Lazer', '200.00', '0.10'),
+      categoria('Saúde', '150.00', '0.075'),
+      categoria('Contas', '100.00', '0.05'),
+      categoria('Educação', '50.00', '0.025'),
     ])
     montar()
-    expect(await screen.findByText('Lazer')).toBeInTheDocument()
-    expect(screen.getByText('100,0%')).toBeInTheDocument()
-    expect(screen.getByText(/Televisão \(parcela 3\/9\)/)).toBeInTheDocument()
+
+    const outras = await screen.findByRole('button', { name: /Outras/ })
+    expect(outras).toHaveTextContent('2 categorias')
+    expect(screen.queryByRole('button', { name: /Contas/ })).not.toBeInTheDocument()
+
+    await user.click(outras)
+    const popup = await screen.findByRole('dialog', { name: 'Outras' })
+    expect(popup).toHaveTextContent('As 2 categorias de menor gasto no mês')
+    expect(within(popup).getByRole('heading', { name: /Contas/ })).toHaveTextContent(
+      'R$ 100,00 · 5,0% do gasto do mês',
+    )
+    expect(within(popup).getByRole('heading', { name: /Educação/ })).toBeInTheDocument()
+    expect(popup).toHaveTextContent('item de Educação')
+  })
+
+  it('clicar na categoria abre o popup com o total e as transações', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
+    vi.mocked(api.categories).mockResolvedValue([LAZER])
+    montar()
+
+    await user.click(await screen.findByRole('button', { name: /Lazer/ }))
+    const popup = await screen.findByRole('dialog', { name: 'Lazer' })
+    expect(popup).toHaveTextContent('R$ 400,00 · 100,0% do gasto do mês')
+    expect(within(popup).getByText(/Televisão/).closest('li')).toHaveTextContent(
+      'Televisão (parcela 3/9)R$ 400,00',
+    )
+
+    await user.click(within(popup).getByRole('button', { name: 'Fechar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    // o foco volta para a categoria, para quem navega por teclado não recomeçar do topo
+    await waitFor(() => expect(screen.getByRole('button', { name: /Lazer/ })).toHaveFocus())
   })
 
   it('o título da aba é o nome da tela', async () => {
     montar()
     await waitFor(() => expect(document.title).toBe('Resumo'))
+  })
+
+  it('mantém a ordem resumo → categorias → tendência', async () => {
+    vi.mocked(api.summary).mockResolvedValue(resumo('6500.00'))
+    montar()
+    const resumoTitulo = await screen.findByText(/^Resumo —/)
+    const categorias = await screen.findByText('Por categoria')
+    const tendencia = screen.getByText('Tendência')
+    expect(vemAntes(resumoTitulo, categorias)).toBe(true)
+    expect(vemAntes(categorias, tendencia)).toBe(true)
   })
 })

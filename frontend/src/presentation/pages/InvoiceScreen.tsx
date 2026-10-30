@@ -11,7 +11,7 @@ import {
   TableHead,
   TableCell,
 } from '@/presentation/components/ui/table'
-import { Header } from '@/presentation/components/Header'
+import { Page } from '@/presentation/components/Page'
 import { MonthNav } from '@/presentation/components/MonthNav'
 
 export function InvoiceScreen() {
@@ -38,10 +38,8 @@ export function InvoiceScreen() {
   }, [month])
 
   return (
-    <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
-      <Header active="fatura" className="max-w-2xl" />
-
-      <Card className="w-full max-w-2xl">
+    <Page active="fatura" className="max-w-3xl">
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Fatura — {month}</CardTitle>
@@ -90,6 +88,6 @@ export function InvoiceScreen() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </Page>
   )
 }

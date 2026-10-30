@@ -129,11 +129,15 @@ frontend/
     ├── presentation/
     │   ├── pages/             one file per screen (Login/Summary/Entry/Invoice/Import/Config)
     │   └── components/
-    │       ├── Header.tsx     shared nav header, used by every authenticated screen
+    │       ├── Page.tsx       authenticated screen shell: navbar + content capped at max-w-6xl
+    │       ├── Header.tsx     full-width sticky navbar, used by every authenticated screen
     │       ├── MonthNav.tsx   month stepper, shared by Summary, Entry and Invoice
     │       ├── TrendChart.tsx trend chart, lazy-loaded so recharts stays out of the main bundle
+    │       ├── CategoryDonut.tsx  category donut, lazy-loaded for the same reason
+    │       ├── ChartSwatch.tsx    color square for chart legends and tooltips
+    │       ├── ChartTooltipRow.tsx  "name … R$ value" tooltip row
     │       └── ui/            shadcn components: badge, button, card, chart, checkbox,
-    │                          input, label, native-select, table, toggle,
+    │                          dialog, input, label, native-select, table, toggle,
     │                          toggle-group
     ├── state/
     │   ├── auth-context.tsx   AuthProvider / useAuth
@@ -195,7 +199,7 @@ npm run gen:types  # regenerate src/shared/api-schema.d.ts from the running API
 pip install -r backend/requirements-dev.txt   # once
 cd backend && pytest                          # 136 tests (1 skipped on sqlite), ~15s
 
-cd frontend && npm test                       # 96 tests, ~5s
+cd frontend && npm test                       # 107 tests, ~6s
 ```
 
 `backend/tests/test_service.py` needs no database: `service.py` is pure, so the tests use plain

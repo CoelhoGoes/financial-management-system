@@ -7,7 +7,7 @@ import { Input } from '@/presentation/components/ui/input'
 import { Label } from '@/presentation/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/presentation/components/ui/toggle-group'
-import { Header } from '@/presentation/components/Header'
+import { Page } from '@/presentation/components/Page'
 
 const THEMES: { value: Theme; label: string }[] = [
   { value: 'system', label: 'Sistema' },
@@ -64,10 +64,9 @@ export function ConfigScreen() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
-      <Header active="configuracoes" className="max-w-md" />
-
-      <Card className="w-full max-w-md">
+    // no desktop: dados à esquerda, aparência e excluir conta empilhados à direita
+    <Page active="configuracoes" className="md:grid md:grid-cols-2 md:items-start">
+      <Card>
         <CardHeader>
           <CardTitle>Configurações</CardTitle>
         </CardHeader>
@@ -120,61 +119,63 @@ export function ConfigScreen() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Aparência</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-1.5">
-          <Label id="theme-label">Tema</Label>
-          <ToggleGroup
-            aria-labelledby="theme-label"
-            variant="outline"
-            spacing={0}
-            value={[theme]}
-            // clicar no já escolhido devolve []: o tema nunca fica sem valor
-            onValueChange={(v) => v[0] && chooseTheme(v[0] as Theme)}
-          >
-            {THEMES.map((t) => (
-              <ToggleGroupItem key={t.value} value={t.value}>
-                {t.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          <p className="text-xs text-muted-foreground">
-            Vale só para este aparelho. "Sistema" acompanha o modo claro ou escuro do aparelho.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Excluir conta</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onDelete} className="flex flex-col gap-4">
-            <p className="text-sm text-muted-foreground">
-              A conta deixa de funcionar na hora e você sai do app. Seus lançamentos não
-              aparecem mais em lugar nenhum, e o e-mail fica livre para um cadastro novo, que
-              começa vazio.
+      <div className="flex flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Aparência</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-1.5">
+            <Label id="theme-label">Tema</Label>
+            <ToggleGroup
+              aria-labelledby="theme-label"
+              variant="outline"
+              spacing={0}
+              value={[theme]}
+              // clicar no já escolhido devolve []: o tema nunca fica sem valor
+              onValueChange={(v) => v[0] && chooseTheme(v[0] as Theme)}
+            >
+              {THEMES.map((t) => (
+                <ToggleGroupItem key={t.value} value={t.value}>
+                  {t.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            <p className="text-xs text-muted-foreground">
+              Vale só para este aparelho. "Sistema" acompanha o modo claro ou escuro do aparelho.
             </p>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="delete-password">Confirme com sua senha</Label>
-              <Input
-                id="delete-password"
-                type="password"
-                autoComplete="current-password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                required
-              />
-            </div>
-            {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
-            <Button type="submit" variant="destructive" disabled={deleting}>
-              {deleting ? 'Excluindo...' : 'Excluir minha conta'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Excluir conta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onDelete} className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                A conta deixa de funcionar na hora e você sai do app. Seus lançamentos não
+                aparecem mais em lugar nenhum, e o e-mail fica livre para um cadastro novo, que
+                começa vazio.
+              </p>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="delete-password">Confirme com sua senha</Label>
+                <Input
+                  id="delete-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  required
+                />
+              </div>
+              {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+              <Button type="submit" variant="destructive" disabled={deleting}>
+                {deleting ? 'Excluindo...' : 'Excluir minha conta'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </Page>
   )
 }

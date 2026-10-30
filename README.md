@@ -152,7 +152,7 @@ cd frontend && npx -y knip                    # código e dependências sem uso 
 pip install -r backend/requirements-dev.txt   # uma vez
 cd backend && pytest                          # 136 testes (1 pulado em sqlite), ~15s
 
-cd frontend && npm test                       # 96 testes, ~5s
+cd frontend && npm test                       # 107 testes, ~6s
 ```
 
 Os testes de `backend/tests/test_service.py` e `test_ofx.py` não precisam de banco —
@@ -205,11 +205,15 @@ frontend/
     ├── presentation/  o que aparece na tela
     │   ├── pages/     uma tela por arquivo (Login/Summary/Entry/Invoice/Import/Config)
     │   └── components/
-    │       ├── Header.tsx      navegação/header compartilhado entre as telas
+    │       ├── Page.tsx        invólucro das telas logadas: navbar + conteúdo até 1152px
+    │       ├── Header.tsx      navbar de ponta a ponta, compartilhada entre as telas
     │       ├── MonthNav.tsx    passo de mês, compartilhado por resumo, lançamentos e fatura
     │       ├── TrendChart.tsx  gráfico de tendência (carregado sob demanda)
+    │       ├── CategoryDonut.tsx  rosca de gasto por categoria (carregada sob demanda)
+    │       ├── ChartSwatch.tsx    quadradinho de cor das legendas e tooltips
+    │       ├── ChartTooltipRow.tsx  linha "nome … R$ valor" dos tooltips
     │       └── ui/             componentes shadcn (badge, button, card, chart, checkbox,
-    │                           input, label, native-select, table, toggle,
+    │                           dialog, input, label, native-select, table, toggle,
     │                           toggle-group)
     ├── state/
     │   ├── auth-context.tsx    AuthProvider / useAuth
@@ -294,12 +298,14 @@ Antes de expor na internet:
 ## Estado atual
 
 **Funciona:** registro, login, sessão persistida em `localStorage`, roteamento multi-página
-(`/login`, `/`, `/lancamentos`, `/fatura`, `/importar`, `/configuracoes`), tela de resumo
-mensal (saldo, renda, fatura, gasto por categoria com barra de proporção e gráfico de tendência
-dos últimos meses), tela de lançamentos (criar, editar, listar e excluir gastos/entradas do
-mês), tela de fatura (consulta por mês, com navegação entre meses), importação de extrato OFX
-com conferência antes de gravar, e tela de configuração (renda mensal, dia de fechamento, tema
-claro/escuro seguindo o sistema por padrão, e exclusão da conta).
+(`/login`, `/`, `/lancamentos`, `/fatura`, `/importar`, `/configuracoes`), tela de resumo mensal
+(saldo, renda, fatura, gasto por categoria num gráfico de rosca com as transações de cada
+categoria num popup, e gráfico de tendência dos últimos meses), tela de lançamentos (criar,
+editar, listar e excluir gastos/entradas do mês), tela de fatura (consulta por mês, com
+navegação entre meses), importação de extrato OFX com conferência antes de gravar, e tela de
+configuração (renda mensal, dia de fechamento, tema claro/escuro seguindo o sistema por padrão,
+e exclusão da conta). No computador, as telas usam a largura da tela em colunas; no celular, uma
+coluna só.
 Backend completo com todos os endpoints acima; o schema é das migrações Alembic.
 
 **Ainda não existe:** exportar os dados, trocar e-mail ou senha, entre outros — a fila

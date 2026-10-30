@@ -13,8 +13,17 @@ e o versionamento tenta seguir [SemVer](https://semver.org/lang/pt-BR/).
   do servidor, só deixam de ser acessíveis
 - Tema escuro. Por padrão o app segue o modo claro ou escuro do aparelho; em Configurações
   dá para fixar claro ou escuro, e a escolha vale só para aquele aparelho
+- No resumo, clicar numa categoria (na legenda ou na fatia do gráfico) abre uma janela com as
+  transações daquela categoria no mês
 
 ### Alterado
+- No computador, as telas passam a usar a largura da tela: resumo, lançamentos e configurações
+  mostram os blocos lado a lado, e na tela de lançamentos o formulário fica visível enquanto a
+  lista rola. No celular continua uma coluna só
+- A navegação virou uma barra fixa no topo, com todas as abas visíveis e a aba atual destacada;
+  no celular as abas aparecem só com o ícone
+- O gasto por categoria no resumo virou um gráfico de rosca com o total do mês no centro; as
+  cinco maiores categorias aparecem uma a uma e as demais ficam agrupadas em "Outras"
 - A aba do navegador mostra o nome da tela aberta (Resumo, Lançamentos, Fatura, Importar,
   Configurações, Entrar) em vez de "frontend-tmp", e a página se declara em português, então
   leitores de tela leem com a pronúncia certa e o navegador não oferece tradução

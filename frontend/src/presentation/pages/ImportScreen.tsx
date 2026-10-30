@@ -8,7 +8,7 @@ import { Badge } from '@/presentation/components/ui/badge'
 import { NativeSelect, NativeSelectOption } from '@/presentation/components/ui/native-select'
 import { Checkbox } from '@/presentation/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/presentation/components/ui/card'
-import { Header } from '@/presentation/components/Header'
+import { Page } from '@/presentation/components/Page'
 
 /** Categoria inicial de toda linha lida. Um extrato tem dezenas de lançamentos;
  *  exigir escolha em cada um antes de importar transformaria a tela em trabalho. */
@@ -94,10 +94,9 @@ export function ImportScreen() {
   const selected = review?.filter((r) => r.include).length ?? 0
 
   return (
-    <div className="flex min-h-svh flex-col items-center gap-6 bg-background p-6">
-      <Header active="importar" className="max-w-lg" />
+    <Page active="importar" className="max-w-3xl">
 
-      <Card className="w-full max-w-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Importar extrato</CardTitle>
         </CardHeader>
@@ -136,7 +135,7 @@ export function ImportScreen() {
       </Card>
 
       {review && (
-        <Card className="w-full max-w-lg">
+        <Card>
           <CardHeader>
             <CardTitle>Conferir antes de importar</CardTitle>
           </CardHeader>
@@ -207,6 +206,6 @@ export function ImportScreen() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </Page>
   )
 }
